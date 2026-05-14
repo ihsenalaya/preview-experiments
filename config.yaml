@@ -22,11 +22,11 @@ app:
 subjects:
   probe_image: ghcr.io/ihsenalaya/harness-probe:latest
   enabled:
-    - s1-flask-catalog             # reference subject (always active)
-    # - s2-listmonk                # uncomment to include in all experiments
-    # - s3-healthchecks
-    # - s4-umami
-    # - s5-petclinic
+    - s1-flask-catalog
+    - s2-listmonk
+    - s3-healthchecks
+    - s4-umami
+    - s5-petclinic
   images:
     s1-flask-catalog: ghcr.io/ihsenalaya/idp-preview:exp-20260514-e2efix-2089
     s2-listmonk: ghcr.io/ihsenalaya/s2-listmonk-adapter:v2.5.1
