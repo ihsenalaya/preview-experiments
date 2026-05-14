@@ -13,7 +13,7 @@ Reproducibility artefact for the paper:
 
 | Tool | Version | Purpose |
 |------|---------|---------|
-| Docker | ≥ 24 | Build testapp image |
+| Docker | ≥ 24 | Build subject/adapter images |
 | kubectl | ≥ 1.29 | Cluster interaction |
 | helm | ≥ 3.14 | Operator install |
 | Python | ≥ 3.12 | Harness + analysis |
@@ -32,34 +32,45 @@ experimentation/
 ├── Makefile
 ├── run-all-experiments.sh
 ├── run_demo.py                 ← quick end-to-end smoke run (1 Preview CR)
-├── testapp/                    ← self-contained reference application
-│   ├── app.py                  ← Flask backend, port 8080 (CORS enabled)
-│   ├── frontend.py             ← Flask frontend, port 3000
-│   ├── requirements.txt
-│   ├── alembic.ini
-│   ├── migrations/             ← schema (001) + seed data (002)
-│   ├── seeds/
-│   ├── Dockerfile
-│   └── tests/
-│       ├── smoke.py            ← 5 API tests (requests)
-│       ├── regression.py       ← 11 API tests incl. isolation probe
-│       └── e2e.py              ← 8 Playwright/Chromium tests incl. isolation probes
+├── subjects/                   ← one directory per experiment subject
+│   ├── CONTRACT.md             ← formal subject contract (directory layout, test format)
+│   ├── probe/                  ← shared Flask sidecar for S2–S5 (run_log proxy)
+│   │   ├── probe.py
+│   │   ├── requirements.txt
+│   │   └── Dockerfile
+│   ├── s1-flask-catalog/       ← reference subject (Flask + PostgreSQL)
+│   │   ├── meta.yaml
+│   │   └── testapp/            ← app source (app.py, frontend.py, migrations/, tests/)
+│   ├── s2-listmonk/            ← Listmonk v2.5.1 (Go, AGPL-3.0)
+│   │   ├── meta.yaml
+│   │   └── harness-adapter/    ← wrapper + tests
+│   ├── s3-healthchecks/        ← Healthchecks v3.6 (Django, BSD-3)
+│   │   ├── meta.yaml
+│   │   └── harness-adapter/
+│   ├── s4-umami/               ← Umami v2.15.1 (TypeScript/Next.js, MIT)
+│   │   ├── meta.yaml
+│   │   └── harness-adapter/
+│   └── s5-petclinic/           ← Spring PetClinic REST v3.4.0 (Java, Apache-2.0)
+│       ├── meta.yaml
+│       └── harness-adapter/
 ├── setup/
 │   ├── kind-config.yaml        ← Kind cluster (3 nodes)
 │   ├── versions.lock.yaml      ← frozen image/chart versions
 │   ├── bootstrap-cluster.sh    ← install cluster + operator
 │   └── teardown.sh
 ├── harness/                    ← shared Python library
-│   ├── config.py               ← reads config.yaml + EXP_* env overrides
-│   ├── preview_factory.py      ← create / wait / delete Preview CRs
+│   ├── config.py               ← reads config.yaml + subject loading helpers
+│   ├── preview_factory.py      ← create / wait / delete Preview CRs (multi-subject)
 │   ├── metrics_collector.py    ← collect Job timings, kubectl top
 │   └── results_writer.py       ← write timestamped CSV files
 ├── exp_flakiness/              ← RQ1: isolation eliminates flakiness
 ├── exp_cross_pr/               ← RQ2: cross-PR pollution under concurrency
-├── exp_performance/            ← RQ3: checkpoint overhead
-├── exp_bug_detection/          ← RQ4: isolation improves mutation detection
+├── exp_performance/            ← RQ3: checkpoint overhead (30 runs)
+├── exp_bug_detection/          ← RQ4: LLM-directed seeding vs. static (3 conditions)
 ├── exp_idempotence/            ← RQ5: operator convergence after restart
 ├── results/                    ← raw CSV output (gitignored except .gitkeep)
+├── scripts/
+│   └── anonymize.sh            ← double-blind submission package
 └── analysis/
     ├── shared/stats.py         ← Mann-Whitney U, Vargha-Delaney, McNemar
     ├── shared/plotting.py      ← publication-ready matplotlib style
@@ -74,34 +85,61 @@ experimentation/
 
 ---
 
-## Reference application (`testapp/`)
+## Experiment subjects
 
-A minimal product-catalogue app (Flask + PostgreSQL) used as the experiment subject.
+Five subjects of varying technology stacks exercise the isolation mechanism across
+diverse application architectures.
 
-| Component | Description |
-|-----------|-------------|
-| Backend | Flask, port 8080, REST API: products, categories, reviews, orders, stats |
-| Frontend | Flask, port 3000, HTML/JS catalogue with Playwright-testable UI |
-| Schema | 5 tables: `categories`, `products`, `reviews`, `orders`, `run_log` |
-| Seed | 2 alembic migrations: schema (001) + 5 seed products (002) |
-| `run_log` | Isolation probe table: each suite writes its name; restore must clear it |
+| ID | Application | Stack | License | Port | Seed entities |
+|----|-------------|-------|---------|------|---------------|
+| S1 | Flask Catalog (reference) | Python/Flask + PostgreSQL | MIT | 8080 | 5 products |
+| S2 | Listmonk v2.5.1 | Go | AGPL-3.0 | 9000 | 3 mailing lists |
+| S3 | Healthchecks v3.6 | Django/Python | BSD-3 | 8000 | 2 health checks |
+| S4 | Umami v2.15.1 | TypeScript/Next.js | MIT | 3000 | 1 website |
+| S5 | Spring PetClinic REST v3.4.0 | Java/Spring Boot | Apache-2.0 | 9966 | 13 owners/pets |
 
-### Build and push
+All subjects implement the [subjects/CONTRACT.md](subjects/CONTRACT.md) interface:
+a `/healthz` readiness endpoint, deterministic seed data, and three test suites
+(`smoke.py`, `regression.py`, `e2e.py`) that write `PASS`/`FAIL` lines to stdout.
 
-```bash
-cd testapp/
-docker build -t ghcr.io/<owner>/idp-preview:<tag> .
-docker push ghcr.io/<owner>/idp-preview:<tag>
-# Update config.yaml → app.image
+S2–S5 use a **shared probe sidecar** (`subjects/probe/`) that exposes the `run_log`
+table over HTTP at port 9090 (`GET /api/run-log`, `POST /api/run-log`), decoupling
+isolation probes from the upstream application.
+
+### Enable subjects
+
+Edit `config.yaml` to uncomment the subjects to include in all experiments:
+
+```yaml
+subjects:
+  enabled:
+    - s1-flask-catalog   # always active (reference)
+    - s2-listmonk
+    - s3-healthchecks
+    - s4-umami
+    - s5-petclinic
 ```
 
-### Test suites
+### Build and push adapter images
 
-| Suite | Runner | Tests | Isolation probes |
-|-------|--------|-------|-----------------|
-| smoke | `requests` | 5 | — |
-| regression | `requests` | 11 | `run_log_clean` (run_log empty at start) |
-| e2e | Playwright/Chromium | 8 | `run_log_clean`, `product_count_matches_seed` |
+```bash
+# Reference subject (S1)
+cd subjects/s1-flask-catalog/testapp/
+docker build -t ghcr.io/<owner>/idp-preview:<tag> .
+docker push ghcr.io/<owner>/idp-preview:<tag>
+
+# Shared probe sidecar (required for S2–S5)
+cd subjects/probe/
+docker build -t ghcr.io/<owner>/harness-probe:latest .
+docker push ghcr.io/<owner>/harness-probe:latest
+
+# Per-subject adapters (repeat for s3, s4, s5)
+cd subjects/s2-listmonk/harness-adapter/
+docker build -t ghcr.io/<owner>/s2-listmonk-adapter:v2.5.1 .
+docker push ghcr.io/<owner>/s2-listmonk-adapter:v2.5.1
+```
+
+Update the image tags in `config.yaml → subjects.images` after pushing.
 
 ---
 
@@ -111,7 +149,9 @@ Runs one Preview CR end-to-end and prints results:
 
 ```bash
 cd experimentation/
-python3 run_demo.py
+python3 run_demo.py                  # default: s1-flask-catalog
+python3 run_demo.py s2-listmonk      # run a specific subject
+ISOLATION=false python3 run_demo.py  # baseline (no checkpoint isolation)
 ```
 
 Expected output (isolation ON, all suites pass):
@@ -162,20 +202,23 @@ All three suites must show `phase=Succeeded` before running the full experiments
 make generate-mutants
 ```
 
-Runs `mutmut` on `testapp/app.py` and writes `exp_bug_detection/fault-catalog.yaml` (~30s).
-A pre-generated catalog (50 mutants) is already committed — only re-run if `testapp/app.py` changes.
+Runs `mutmut` on `subjects/s1-flask-catalog/testapp/app.py` and writes
+`exp_bug_detection/fault-catalog.yaml` (~30s).
+A pre-generated catalog (50 mutants) is already committed — only re-run if the
+application source changes.
 
-Requires `mutmut==2.4.4` on PATH (`pip install mutmut==2.4.4` then add `~/.local/bin` to PATH).
+Requires `mutmut==2.4.4` on PATH (`pip install mutmut==2.4.4` then add
+`~/.local/bin` to PATH).
 
 ### 5 — Run experiments
 
 ```bash
 make all
 # or individually:
-make exp-flakiness      # RQ1 — ~5h  (30 runs × 2 isolation values)
+make exp-flakiness      # RQ1 — ~5h  (30 runs × 2 isolation values × N subjects)
 make exp-cross-pr       # RQ2 — ~3h
-make exp-performance    # RQ3 — ~2h  (20 runs × 2 isolation values)
-make exp-bug-detection  # RQ4 — ~6h
+make exp-performance    # RQ3 — ~4h  (30 runs × 2 isolation values × N subjects)
+make exp-bug-detection  # RQ4 — ~8h  (3 seed conditions: static, llm_fixed, llm_free)
 make exp-idempotence    # RQ5 — ~2h
 ```
 
@@ -216,22 +259,40 @@ migration → saving → smoke → restore-regression → regression → restore
 
 | Step | What happens |
 |------|-------------|
-| `migration` | alembic upgrade head → schema + seed data |
+| `migration` | Subject migration command → schema + seed data |
 | `saving` | `pg_dump --data-only` → ConfigMap (checkpoint) |
-| `smoke` | 5 API tests via requests |
+| `smoke` | Quick API tests via requests |
 | `restore-regression` | `psql < checkpoint` — DB reset to post-seed state |
-| `regression` | 11 API tests; creates `exp-product`, writes `run_log` |
+| `regression` | API tests; creates test entities, writes `run_log` |
 | `restore-e2e` | `psql < checkpoint` — DB reset again |
-| `e2e` | 8 Playwright tests; checks `run_log` is empty and product count = 5 |
+| `e2e` | End-to-end tests; checks `run_log` is empty and entity count = seed_count |
 
 When `spec.database.isolationEnabled=false`, the `saving` and `restore-*` steps are
 skipped. Suites then share a dirty DB — this is the **baseline** (no isolation) condition.
 
 ---
 
+## RQ4 — Seed conditions
+
+RQ4 uses a three-condition volume-control design to separate quality from diversity effects:
+
+| Condition | AI enrichment | Temperature | Effect isolated |
+|-----------|--------------|-------------|-----------------|
+| `static` | No | — | Baseline (static fixtures only) |
+| `llm_fixed` | Yes | 0.0 (deterministic) | Quality at constant diversity |
+| `llm_free` | Yes | 0.7 (stochastic) | Diversity added on top of quality |
+
+Hypothesis: `detection_rate[llm_free] > detection_rate[llm_fixed] > detection_rate[static]`.
+
+The comparison `static` vs `llm_fixed` isolates content quality at equal volume.
+The comparison `llm_fixed` vs `llm_free` isolates output diversity.
+
+---
+
 ## PR number ranges
 
-Each experiment uses a dedicated range of PR numbers to avoid namespace conflicts when running in parallel:
+Each experiment uses a dedicated range of PR numbers to avoid namespace conflicts
+when running in parallel:
 
 | Experiment | PR range | Config key |
 |-----------|----------|-----------|
@@ -264,7 +325,7 @@ No test logic was added to the operator itself.
 | RQ1 | `failure_rate[OFF] > failure_rate[ON]` | Mann-Whitney U, Vargha-Delaney Â₁₂, Fisher's exact |
 | RQ2 | Failure rate grows with K when isolation=OFF | Mann-Whitney U per K, Â₁₂ |
 | RQ3 | `overhead_pct < 15%` | Descriptive (mean, p95); no NHST needed |
-| RQ4 | `detection_rate[LLM] > detection_rate[static]` | McNemar's test (paired binary per mutant) |
+| RQ4 | `detection_rate[llm_free] > detection_rate[llm_fixed] > detection_rate[static]` | McNemar's test (paired binary per mutant) |
 | RQ5 | `divergence_count = 0` after any restart | Descriptive; convergence time distribution |
 
 All tests use α = 0.05.
@@ -276,9 +337,25 @@ All tests use α = 0.05.
 1. Each Preview gets its own namespace and Postgres deployment — namespace-level isolation is
    always active. This experiment measures **within-preview test-suite state** pollution only.
 2. DB checkpoint content is deterministic for a given seed script (same SQL, same Postgres version).
-3. The LLM seed differs per run (temperature > 0) — this is intentional and models real usage.
+3. The LLM seed differs per run in `llm_free` condition (temperature > 0) — this is intentional
+   and models real usage. The `llm_fixed` condition (temperature = 0) provides a deterministic
+   quality baseline.
 4. mutmut mutants that do not compile are skipped automatically.
 5. `kubectl top` requires metrics-server to be running (installed by `bootstrap-cluster.sh`).
+
+---
+
+## Double-blind submission
+
+To produce an anonymized archive for double-blind review:
+
+```bash
+bash scripts/anonymize.sh            # produces anonymized-submission.tar.gz
+bash scripts/anonymize.sh --dry-run  # preview affected files without modifying
+```
+
+The script replaces all identifying strings (GitHub username, email, AKS endpoint,
+registry URLs) with neutral placeholders and packages the result as a gzip archive.
 
 ---
 
