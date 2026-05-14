@@ -1,28 +1,29 @@
 #!/usr/bin/env bash
-# Apply one mutmut mutant to the app source, rebuild the image, and push to kind.
-# Usage: ./apply-mutant.sh <mutant_id> <image_tag> [cluster_name]
+# Apply one mutmut mutant to testapp/app.py, rebuild and push to ghcr.io.
+# Usage: ./apply-mutant.sh <mutant_id> <image_tag>
 set -euo pipefail
 
-MUTANT_ID="${1:?Usage: apply-mutant.sh <mutant_id> <image_tag> [cluster_name]}"
+MUTANT_ID="${1:?Usage: apply-mutant.sh <mutant_id> <image_tag>}"
 IMAGE_TAG="${2:?}"
-CLUSTER="${3:-preview-exp}"
+REGISTRY="${REGISTRY:-ghcr.io/ihsenalaya/idp-preview}"
+
+export PATH="$PATH:/home/ihsen/.local/bin"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-APP_DIR="$ROOT/../preview/idp-preview"
+APP_DIR="$(cd "$SCRIPT_DIR/../../testapp" && pwd)"
 
 cd "$APP_DIR"
 
 echo "==> Applying mutant $MUTANT_ID..."
-mutmut apply "$MUTANT_ID"
+python3 -m mutmut apply "$MUTANT_ID"
 
-echo "==> Building image idp-preview:$IMAGE_TAG..."
-docker build -t "idp-preview:$IMAGE_TAG" .
+echo "==> Building image ${REGISTRY}:${IMAGE_TAG}..."
+docker build -t "${REGISTRY}:${IMAGE_TAG}" .
 
-echo "==> Loading into Kind cluster '$CLUSTER'..."
-kind load docker-image "idp-preview:$IMAGE_TAG" --name "$CLUSTER"
+echo "==> Pushing to registry..."
+docker push "${REGISTRY}:${IMAGE_TAG}"
 
-echo "==> Reverting mutant $MUTANT_ID (restoring original source)..."
-mutmut revert "$MUTANT_ID"
+echo "==> Reverting mutant $MUTANT_ID..."
+python3 -m mutmut revert "$MUTANT_ID"
 
-echo "Image idp-preview:$IMAGE_TAG ready with mutant $MUTANT_ID"
+echo "Image ${REGISTRY}:${IMAGE_TAG} ready with mutant $MUTANT_ID"

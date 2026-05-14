@@ -43,13 +43,15 @@ def load_catalog(max_mutations: int) -> list[dict]:
     return mutants[:max_mutations]
 
 
-def build_mutant_image(mutant_id: int, tag: str) -> str:
+def build_mutant_image(mutant_id: int, tag: str, cfg: dict) -> str:
+    registry = cfg["app"]["image"].rsplit(":", 1)[0]
     script = Path(__file__).parent / "mutations" / "apply-mutant.sh"
     subprocess.run(
         ["bash", str(script), str(mutant_id), tag],
         check=True,
+        env={**__import__("os").environ, "REGISTRY": registry},
     )
-    return f"idp-preview:{tag}"
+    return f"{registry}:{tag}"
 
 
 def run_with_seed(
@@ -71,10 +73,15 @@ def run_with_seed(
 
     rows = []
     try:
-        factory.create(name, "default", image, isolation_enabled=True, extra_spec=extra)
+        pr_number = cfg["app"].get("pr_number_base", 9000) - 2000 + (hash(run_id) % 900)
+        factory.create(name, "default", image, pr_number=pr_number, isolation_enabled=True, extra_spec=extra)
         factory.wait_until_phase(
             name, "default",
             target_phases=["Running", "Failed"],
+            timeout_s=cfg["experiments"]["bug_detection"]["timeout_minutes"] * 60,
+        )
+        factory.wait_until_tests_done(
+            name, "default",
             timeout_s=cfg["experiments"]["bug_detection"]["timeout_minutes"] * 60,
         )
         status = factory.get_status(name, "default")
@@ -114,7 +121,7 @@ def main():
             print(f"\n==> Mutant {mid} (operator={mutant.get('operator', '?')})")
 
             try:
-                image = build_mutant_image(mid, tag)
+                image = build_mutant_image(mid, tag, cfg)
             except subprocess.CalledProcessError as exc:
                 print(f"  SKIP: failed to build mutant image: {exc}")
                 continue

@@ -1,37 +1,58 @@
 #!/usr/bin/env bash
-# Generate Python mutants with mutmut on idp-preview/app.py.
+# Generate Python mutants with mutmut on testapp/app.py.
 # Outputs a fault-catalog.yaml listing each mutant ID, type, and diff.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-APP_DIR="$ROOT/../preview/idp-preview"
+APP_DIR="$ROOT/testapp"
 CATALOG="$SCRIPT_DIR/../fault-catalog.yaml"
+MAX="${MAX_MUTANTS:-50}"
 
-MUTMUT_VERSION=$(python3 -c "import mutmut; print(mutmut.__version__)" 2>/dev/null || echo "unknown")
+export PATH="$PATH:/home/ihsen/.local/bin"
+
+MUTMUT_VERSION="2.4.4"
 echo "mutmut version: $MUTMUT_VERSION"
 
 cd "$APP_DIR"
-mutmut run --paths-to-mutate app.py --no-progress 2>&1 | tail -5 || true
+python3 -m mutmut run --paths-to-mutate app.py --runner "true" --no-progress 2>&1 | tail -3 || true
 
-echo "---" > "$CATALOG"
-echo "generated_at: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$CATALOG"
-echo "mutmut_version: $MUTMUT_VERSION" >> "$CATALOG"
-echo "source_file: app.py" >> "$CATALOG"
-echo "mutants:" >> "$CATALOG"
+# Expand ranges like "1-166" into individual IDs
+ALL_IDS=$(python3 -m mutmut results 2>/dev/null | grep -oE '[0-9]+-[0-9]+|^[0-9]+' | python3 -c "
+import sys, re
+ids = []
+for line in sys.stdin:
+    line = line.strip()
+    if '-' in line:
+        parts = line.split('-')
+        ids.extend(range(int(parts[0]), int(parts[1])+1))
+    elif line.isdigit():
+        ids.append(int(line))
+for i in ids[:${MAX}]:
+    print(i)
+")
 
-mutmut results 2>/dev/null | grep -E "^[0-9]+" | while IFS= read -r line; do
-    mutant_id=$(echo "$line" | awk '{print $1}')
-    status=$(echo "$line" | awk '{print $2}')
-    diff=$(mutmut show "$mutant_id" 2>/dev/null | head -30 || echo "unavailable")
-    operator=$(echo "$diff" | grep -oE "(AOR|ROR|COI|DDL|SDL|SVR)" | head -1 || echo "unknown")
+TOTAL=$(echo "$ALL_IDS" | wc -l)
+echo "Found $TOTAL mutants (capped at $MAX)"
+
+cat > "$CATALOG" <<HEADER
+---
+generated_at: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+mutmut_version: $MUTMUT_VERSION
+source_file: testapp/app.py
+mutants:
+HEADER
+
+echo "$ALL_IDS" | while IFS= read -r mutant_id; do
+    [ -z "$mutant_id" ] && continue
+    diff=$(python3 -m mutmut show "$mutant_id" 2>/dev/null || echo "unavailable")
+    operator=$(echo "$diff" | grep -oE '\b(AOR|ROR|COI|DDL|SDL|SVR)\b' | head -1 || echo "unknown")
     cat >> "$CATALOG" <<YAML
   - id: $mutant_id
-    status: $status
     operator: $operator
     diff: |
 $(echo "$diff" | sed 's/^/      /')
 YAML
 done
 
-echo "Catalog written to $CATALOG"
+echo "Catalog written to $CATALOG ($(grep '^  - id:' "$CATALOG" | wc -l) mutants)"

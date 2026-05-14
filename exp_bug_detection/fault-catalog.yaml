@@ -1,0 +1,711 @@
+---
+generated_at: 2026-05-14T21:18:24Z
+mutmut_version: 2.4.4
+source_file: testapp/app.py
+mutants:
+  - id: 1
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -7,7 +7,7 @@
+       """
+       import os, sys
+       
+      -if os.environ.get("APP_MODE") == "frontend":
+      +if os.environ.get("XXAPP_MODEXX") == "frontend":
+           from frontend import run_frontend
+           run_frontend()
+           sys.exit(0)
+  - id: 2
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -7,7 +7,7 @@
+       """
+       import os, sys
+       
+      -if os.environ.get("APP_MODE") == "frontend":
+      +if os.environ.get("APP_MODE") != "frontend":
+           from frontend import run_frontend
+           run_frontend()
+           sys.exit(0)
+  - id: 3
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -7,7 +7,7 @@
+       """
+       import os, sys
+       
+      -if os.environ.get("APP_MODE") == "frontend":
+      +if os.environ.get("APP_MODE") == "XXfrontendXX":
+           from frontend import run_frontend
+           run_frontend()
+           sys.exit(0)
+  - id: 4
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -10,7 +10,7 @@
+       if os.environ.get("APP_MODE") == "frontend":
+           from frontend import run_frontend
+           run_frontend()
+      -    sys.exit(0)
+      +    sys.exit(1)
+       
+       import psycopg2, psycopg2.extras
+       from flask import Flask, jsonify, request, abort
+  - id: 5
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -16,7 +16,7 @@
+       from flask import Flask, jsonify, request, abort
+       from flask_cors import CORS
+       
+      -app = Flask(__name__)
+      +app = None
+       CORS(app)
+       DATABASE_URL = os.environ.get("DATABASE_URL", "")
+       
+  - id: 6
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -17,7 +17,7 @@
+       from flask_cors import CORS
+       
+       app = Flask(__name__)
+      -CORS(app)
+      +CORS(None)
+       DATABASE_URL = os.environ.get("DATABASE_URL", "")
+       
+       
+  - id: 7
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -18,7 +18,7 @@
+       
+       app = Flask(__name__)
+       CORS(app)
+      -DATABASE_URL = os.environ.get("DATABASE_URL", "")
+      +DATABASE_URL = os.environ.get("XXDATABASE_URLXX", "")
+       
+       
+       def get_conn():
+  - id: 8
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -18,7 +18,7 @@
+       
+       app = Flask(__name__)
+       CORS(app)
+      -DATABASE_URL = os.environ.get("DATABASE_URL", "")
+      +DATABASE_URL = os.environ.get("DATABASE_URL", "XXXX")
+       
+       
+       def get_conn():
+  - id: 9
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -18,7 +18,7 @@
+       
+       app = Flask(__name__)
+       CORS(app)
+      -DATABASE_URL = os.environ.get("DATABASE_URL", "")
+      +DATABASE_URL = None
+       
+       
+       def get_conn():
+  - id: 10
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -70,7 +70,7 @@
+       try:
+           init_db()
+       except Exception as exc:
+      -    print(f"[warn] init_db: {exc}", flush=True)
+      +    print(f"XX[warn] init_db: {exc}XX", flush=True)
+       
+       
+       # ── helpers ────────────────────────────────────────────────────────────────
+  - id: 11
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -70,7 +70,7 @@
+       try:
+           init_db()
+       except Exception as exc:
+      -    print(f"[warn] init_db: {exc}", flush=True)
+      +    print(f"[warn] init_db: {exc}", flush=False)
+       
+       
+       # ── helpers ────────────────────────────────────────────────────────────────
+  - id: 12
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -80,7 +80,7 @@
+       
+       
+       def _one(cur):
+      -    row = cur.fetchone()
+      +    row = None
+           return dict(row) if row else None
+       
+       
+  - id: 13
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -86,7 +86,7 @@
+       
+       # ── health ─────────────────────────────────────────────────────────────────
+       
+      -@app.get("/healthz")
+      +@app.get("XX/healthzXX")
+       def healthz():
+           return "ok"
+       
+  - id: 14
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -83,10 +83,6 @@
+           row = cur.fetchone()
+           return dict(row) if row else None
+       
+      -
+      -# ── health ─────────────────────────────────────────────────────────────────
+      -
+      -@app.get("/healthz")
+       def healthz():
+           return "ok"
+       
+  - id: 15
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -88,7 +88,7 @@
+       
+       @app.get("/healthz")
+       def healthz():
+      -    return "ok"
+      +    return "XXokXX"
+       
+       
+       @app.get("/api/version")
+  - id: 16
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -91,7 +91,7 @@
+           return "ok"
+       
+       
+      -@app.get("/api/version")
+      +@app.get("XX/api/versionXX")
+       def version():
+           return jsonify({"version": "1.0.0", "app": "preview-exp"})
+       
+  - id: 17
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -90,8 +90,6 @@
+       def healthz():
+           return "ok"
+       
+      -
+      -@app.get("/api/version")
+       def version():
+           return jsonify({"version": "1.0.0", "app": "preview-exp"})
+       
+  - id: 18
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -93,7 +93,7 @@
+       
+       @app.get("/api/version")
+       def version():
+      -    return jsonify({"version": "1.0.0", "app": "preview-exp"})
+      +    return jsonify({"XXversionXX": "1.0.0", "app": "preview-exp"})
+       
+       
+       # ── categories ─────────────────────────────────────────────────────────────
+  - id: 19
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -93,7 +93,7 @@
+       
+       @app.get("/api/version")
+       def version():
+      -    return jsonify({"version": "1.0.0", "app": "preview-exp"})
+      +    return jsonify({"version": "XX1.0.0XX", "app": "preview-exp"})
+       
+       
+       # ── categories ─────────────────────────────────────────────────────────────
+  - id: 20
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -93,7 +93,7 @@
+       
+       @app.get("/api/version")
+       def version():
+      -    return jsonify({"version": "1.0.0", "app": "preview-exp"})
+      +    return jsonify({"version": "1.0.0", "XXappXX": "preview-exp"})
+       
+       
+       # ── categories ─────────────────────────────────────────────────────────────
+  - id: 21
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -93,7 +93,7 @@
+       
+       @app.get("/api/version")
+       def version():
+      -    return jsonify({"version": "1.0.0", "app": "preview-exp"})
+      +    return jsonify({"version": "1.0.0", "app": "XXpreview-expXX"})
+       
+       
+       # ── categories ─────────────────────────────────────────────────────────────
+  - id: 22
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -98,7 +98,7 @@
+       
+       # ── categories ─────────────────────────────────────────────────────────────
+       
+      -@app.get("/api/categories")
+      +@app.get("XX/api/categoriesXX")
+       def list_categories():
+           with get_conn() as c, c.cursor() as cur:
+               cur.execute("""
+  - id: 23
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -95,10 +95,6 @@
+       def version():
+           return jsonify({"version": "1.0.0", "app": "preview-exp"})
+       
+      -
+      -# ── categories ─────────────────────────────────────────────────────────────
+      -
+      -@app.get("/api/categories")
+       def list_categories():
+           with get_conn() as c, c.cursor() as cur:
+               cur.execute("""
+  - id: 24
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -110,7 +110,7 @@
+               return jsonify(_rows(cur))
+       
+       
+      -@app.post("/api/categories")
+      +@app.post("XX/api/categoriesXX")
+       def create_category():
+           body = request.get_json(force=True)
+           if not body.get("name"):
+  - id: 25
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -109,8 +109,6 @@
+               """)
+               return jsonify(_rows(cur))
+       
+      -
+      -@app.post("/api/categories")
+       def create_category():
+           body = request.get_json(force=True)
+           if not body.get("name"):
+  - id: 26
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -112,7 +112,7 @@
+       
+       @app.post("/api/categories")
+       def create_category():
+      -    body = request.get_json(force=True)
+      +    body = request.get_json(force=False)
+           if not body.get("name"):
+               abort(400, "name required")
+           with get_conn() as c, c.cursor() as cur:
+  - id: 27
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -112,7 +112,7 @@
+       
+       @app.post("/api/categories")
+       def create_category():
+      -    body = request.get_json(force=True)
+      +    body = None
+           if not body.get("name"):
+               abort(400, "name required")
+           with get_conn() as c, c.cursor() as cur:
+  - id: 28
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -113,7 +113,7 @@
+       @app.post("/api/categories")
+       def create_category():
+           body = request.get_json(force=True)
+      -    if not body.get("name"):
+      +    if  body.get("name"):
+               abort(400, "name required")
+           with get_conn() as c, c.cursor() as cur:
+               cur.execute(
+  - id: 29
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -113,7 +113,7 @@
+       @app.post("/api/categories")
+       def create_category():
+           body = request.get_json(force=True)
+      -    if not body.get("name"):
+      +    if not body.get("XXnameXX"):
+               abort(400, "name required")
+           with get_conn() as c, c.cursor() as cur:
+               cur.execute(
+  - id: 30
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -114,7 +114,7 @@
+       def create_category():
+           body = request.get_json(force=True)
+           if not body.get("name"):
+      -        abort(400, "name required")
+      +        abort(401, "name required")
+           with get_conn() as c, c.cursor() as cur:
+               cur.execute(
+                   "INSERT INTO categories (name, slug) VALUES (%s, %s) RETURNING *",
+  - id: 31
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -114,7 +114,7 @@
+       def create_category():
+           body = request.get_json(force=True)
+           if not body.get("name"):
+      -        abort(400, "name required")
+      +        abort(400, "XXname requiredXX")
+           with get_conn() as c, c.cursor() as cur:
+               cur.execute(
+                   "INSERT INTO categories (name, slug) VALUES (%s, %s) RETURNING *",
+  - id: 32
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -117,7 +117,7 @@
+               abort(400, "name required")
+           with get_conn() as c, c.cursor() as cur:
+               cur.execute(
+      -            "INSERT INTO categories (name, slug) VALUES (%s, %s) RETURNING *",
+      +            "XXINSERT INTO categories (name, slug) VALUES (%s, %s) RETURNING *XX",
+                   (body["name"], body.get("slug", body["name"].lower().replace(" ", "-"))),
+               )
+               return jsonify(_one(cur)), 201
+  - id: 33
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -118,7 +118,7 @@
+           with get_conn() as c, c.cursor() as cur:
+               cur.execute(
+                   "INSERT INTO categories (name, slug) VALUES (%s, %s) RETURNING *",
+      -            (body["name"], body.get("slug", body["name"].lower().replace(" ", "-"))),
+      +            (body["XXnameXX"], body.get("slug", body["name"].lower().replace(" ", "-"))),
+               )
+               return jsonify(_one(cur)), 201
+       
+  - id: 34
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -118,7 +118,7 @@
+           with get_conn() as c, c.cursor() as cur:
+               cur.execute(
+                   "INSERT INTO categories (name, slug) VALUES (%s, %s) RETURNING *",
+      -            (body["name"], body.get("slug", body["name"].lower().replace(" ", "-"))),
+      +            (body["name"], body.get("XXslugXX", body["name"].lower().replace(" ", "-"))),
+               )
+               return jsonify(_one(cur)), 201
+       
+  - id: 35
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -118,7 +118,7 @@
+           with get_conn() as c, c.cursor() as cur:
+               cur.execute(
+                   "INSERT INTO categories (name, slug) VALUES (%s, %s) RETURNING *",
+      -            (body["name"], body.get("slug", body["name"].lower().replace(" ", "-"))),
+      +            (body["name"], body.get("slug", body["XXnameXX"].lower().replace(" ", "-"))),
+               )
+               return jsonify(_one(cur)), 201
+       
+  - id: 36
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -118,7 +118,7 @@
+           with get_conn() as c, c.cursor() as cur:
+               cur.execute(
+                   "INSERT INTO categories (name, slug) VALUES (%s, %s) RETURNING *",
+      -            (body["name"], body.get("slug", body["name"].lower().replace(" ", "-"))),
+      +            (body["name"], body.get("slug", body["name"].lower().replace("XX XX", "-"))),
+               )
+               return jsonify(_one(cur)), 201
+       
+  - id: 37
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -118,7 +118,7 @@
+           with get_conn() as c, c.cursor() as cur:
+               cur.execute(
+                   "INSERT INTO categories (name, slug) VALUES (%s, %s) RETURNING *",
+      -            (body["name"], body.get("slug", body["name"].lower().replace(" ", "-"))),
+      +            (body["name"], body.get("slug", body["name"].lower().replace(" ", "XX-XX"))),
+               )
+               return jsonify(_one(cur)), 201
+       
+  - id: 38
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -120,7 +120,7 @@
+                   "INSERT INTO categories (name, slug) VALUES (%s, %s) RETURNING *",
+                   (body["name"], body.get("slug", body["name"].lower().replace(" ", "-"))),
+               )
+      -        return jsonify(_one(cur)), 201
+      +        return jsonify(_one(cur)), 202
+       
+       
+       # ── products ───────────────────────────────────────────────────────────────
+  - id: 39
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -125,7 +125,7 @@
+       
+       # ── products ───────────────────────────────────────────────────────────────
+       
+      -@app.get("/api/products")
+      +@app.get("XX/api/productsXX")
+       def list_products():
+           with get_conn() as c, c.cursor() as cur:
+               cur.execute("""
+  - id: 40
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -122,10 +122,6 @@
+               )
+               return jsonify(_one(cur)), 201
+       
+      -
+      -# ── products ───────────────────────────────────────────────────────────────
+      -
+      -@app.get("/api/products")
+       def list_products():
+           with get_conn() as c, c.cursor() as cur:
+               cur.execute("""
+  - id: 41
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -141,7 +141,7 @@
+               return jsonify(_rows(cur))
+       
+       
+      -@app.post("/api/products")
+      +@app.post("XX/api/productsXX")
+       def create_product():
+           body = request.get_json(force=True)
+           if not body.get("name") or body.get("price") is None:
+  - id: 42
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -140,8 +140,6 @@
+               """)
+               return jsonify(_rows(cur))
+       
+      -
+      -@app.post("/api/products")
+       def create_product():
+           body = request.get_json(force=True)
+           if not body.get("name") or body.get("price") is None:
+  - id: 43
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -143,7 +143,7 @@
+       
+       @app.post("/api/products")
+       def create_product():
+      -    body = request.get_json(force=True)
+      +    body = request.get_json(force=False)
+           if not body.get("name") or body.get("price") is None:
+               abort(400, "name and price required")
+           with get_conn() as c, c.cursor() as cur:
+  - id: 44
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -143,7 +143,7 @@
+       
+       @app.post("/api/products")
+       def create_product():
+      -    body = request.get_json(force=True)
+      +    body = None
+           if not body.get("name") or body.get("price") is None:
+               abort(400, "name and price required")
+           with get_conn() as c, c.cursor() as cur:
+  - id: 45
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -144,7 +144,7 @@
+       @app.post("/api/products")
+       def create_product():
+           body = request.get_json(force=True)
+      -    if not body.get("name") or body.get("price") is None:
+      +    if  body.get("name") or body.get("price") is None:
+               abort(400, "name and price required")
+           with get_conn() as c, c.cursor() as cur:
+               cur.execute(
+  - id: 46
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -144,7 +144,7 @@
+       @app.post("/api/products")
+       def create_product():
+           body = request.get_json(force=True)
+      -    if not body.get("name") or body.get("price") is None:
+      +    if not body.get("XXnameXX") or body.get("price") is None:
+               abort(400, "name and price required")
+           with get_conn() as c, c.cursor() as cur:
+               cur.execute(
+  - id: 47
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -144,7 +144,7 @@
+       @app.post("/api/products")
+       def create_product():
+           body = request.get_json(force=True)
+      -    if not body.get("name") or body.get("price") is None:
+      +    if not body.get("name") or body.get("XXpriceXX") is None:
+               abort(400, "name and price required")
+           with get_conn() as c, c.cursor() as cur:
+               cur.execute(
+  - id: 48
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -144,7 +144,7 @@
+       @app.post("/api/products")
+       def create_product():
+           body = request.get_json(force=True)
+      -    if not body.get("name") or body.get("price") is None:
+      +    if not body.get("name") or body.get("price") is not None:
+               abort(400, "name and price required")
+           with get_conn() as c, c.cursor() as cur:
+               cur.execute(
+  - id: 49
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -144,7 +144,7 @@
+       @app.post("/api/products")
+       def create_product():
+           body = request.get_json(force=True)
+      -    if not body.get("name") or body.get("price") is None:
+      +    if not body.get("name") and body.get("price") is None:
+               abort(400, "name and price required")
+           with get_conn() as c, c.cursor() as cur:
+               cur.execute(
+  - id: 50
+    operator: unknown
+    diff: |
+      --- app.py
+      +++ app.py
+      @@ -145,7 +145,7 @@
+       def create_product():
+           body = request.get_json(force=True)
+           if not body.get("name") or body.get("price") is None:
+      -        abort(400, "name and price required")
+      +        abort(401, "name and price required")
+           with get_conn() as c, c.cursor() as cur:
+               cur.execute(
+                   """INSERT INTO products (name, description, category_id, price, stock, discount_pct)
