@@ -24,17 +24,50 @@ def runtime_namespace(pr_number: int) -> str:
 def create(
     name: str,
     cr_namespace: str,
-    image: str,
+    image: str = None,
     branch: str = "main",
     pr_number: int = 1,
     isolation_enabled: bool = True,
     extra_spec: Optional[dict] = None,
+    subject: Optional[dict] = None,
+    subject_image: Optional[str] = None,
+    probe_image: Optional[str] = None,
 ) -> str:
     """
     Create a Preview CR and return its name.
-    The CR lives in cr_namespace (usually 'default').
-    The operator creates the runtime namespace preview-pr-{pr_number}.
+
+    When *subject* is provided (a dict loaded from meta.yaml), services and
+    migration are built from the subject definition.  *image* is still used
+    as the top-level spec.image (for backward-compatible single-image mode).
+
+    When *subject* is None the original S1 hard-coded service layout is used.
     """
+    if subject is not None:
+        services = _build_services(subject, subject_image or image, probe_image or "")
+        migration_cmd = subject.get("migration_command", ["alembic", "upgrade", "head"])
+        top_image = subject_image or image
+    else:
+        services = [
+            {
+                "name": "backend",
+                "image": image,
+                "port": 8080,
+                "pathPrefix": "/api",
+            },
+            {
+                "name": "frontend",
+                "image": image,
+                "port": 3000,
+                "pathPrefix": "/",
+                "env": [
+                    {"name": "APP_MODE",    "value": "frontend"},
+                    {"name": "BACKEND_URL", "value": "http://svc-backend:8080"},
+                ],
+            },
+        ]
+        migration_cmd = ["alembic", "upgrade", "head"]
+        top_image = image
+
     manifest = {
         "apiVersion": "platform.company.io/v1alpha1",
         "kind": "Preview",
@@ -42,34 +75,17 @@ def create(
         "spec": {
             "branch": branch,
             "prNumber": pr_number,
-            "image": image,
+            "image": top_image,
             "ttl": "2h",
             "resourceTier": "medium",
-            "services": [
-                {
-                    "name": "backend",
-                    "image": image,
-                    "port": 8080,
-                    "pathPrefix": "/api",
-                },
-                {
-                    "name": "frontend",
-                    "image": image,
-                    "port": 3000,
-                    "pathPrefix": "/",
-                    "env": [
-                        {"name": "APP_MODE",    "value": "frontend"},
-                        {"name": "BACKEND_URL", "value": "http://svc-backend:8080"},
-                    ],
-                },
-            ],
+            "services": services,
             "database": {
                 "enabled": True,
                 "version": "15",
                 "isolationEnabled": isolation_enabled,
                 "migration": {
                     "enabled": True,
-                    "command": ["alembic", "upgrade", "head"],
+                    "command": migration_cmd,
                 },
             },
             "testSuite": {
@@ -91,6 +107,30 @@ def create(
         check=True,
     )
     return name
+
+
+def _build_services(subject: dict, app_img: str, probe_img: str) -> list:
+    """Translate meta.yaml services[] into Preview CR spec.services[]."""
+    result = []
+    for svc in subject.get("services", []):
+        key = svc.get("image_key", "custom")
+        if key == "app":
+            img = app_img
+        elif key == "probe":
+            img = probe_img
+        else:
+            img = svc.get("image", app_img)
+
+        entry: dict = {
+            "name":       svc["name"],
+            "image":      img,
+            "port":       svc["port"],
+            "pathPrefix": svc.get("path_prefix", "/"),
+        }
+        if svc.get("env"):
+            entry["env"] = svc["env"]
+        result.append(entry)
+    return result
 
 
 def wait_until_phase(

@@ -9,17 +9,17 @@ _RESULTS.mkdir(exist_ok=True)
 
 _SCHEMAS = {
     "run_metrics": [
-        "run_id", "experiment", "preview_name", "namespace",
+        "run_id", "experiment", "subject_id", "preview_name", "namespace",
         "isolation_enabled", "phase", "step", "step_duration_s",
         "total_reconcile_s", "requeue_count", "timestamp_utc",
     ],
     "test_outcomes": [
-        "run_id", "experiment", "preview_name", "isolation_enabled",
+        "run_id", "experiment", "subject_id", "preview_name", "isolation_enabled",
         "suite", "test_name", "outcome", "db_rows_before",
         "db_rows_after", "timestamp_utc",
     ],
     "resource_usage": [
-        "run_id", "experiment", "preview_name", "namespace",
+        "run_id", "experiment", "subject_id", "preview_name", "namespace",
         "timestamp_utc", "cpu_millicores", "mem_mib",
     ],
 }

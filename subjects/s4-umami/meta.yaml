@@ -1,0 +1,44 @@
+id: s4-umami
+name: "Umami Web Analytics"
+description: "Privacy-focused web analytics platform with REST API"
+origin:
+  repo: umami-software/umami
+  version: v2.15.1
+  license: MIT
+language: TypeScript
+framework: Next.js 14
+database: postgresql
+
+seed_entity: websites
+seed_count: 1
+
+# Run Prisma migrations, then seed 1 website via SQL
+migration_command:
+  - sh
+  - -c
+  - |
+    cd /app &&
+    npx prisma migrate deploy 2>&1 | tail -5 &&
+    psql "$DATABASE_URL" -c "
+      INSERT INTO website (id, name, domain, user_id, created_at, updated_at)
+      SELECT gen_random_uuid(), 'Seed Website', 'seed.example.com',
+             (SELECT id FROM user LIMIT 1), NOW(), NOW()
+      WHERE NOT EXISTS (SELECT 1 FROM website WHERE name='Seed Website')
+    " &&
+    echo 'PASS migration umami: OK'
+
+services:
+  - name: backend
+    image_key: app
+    port: 3000
+    path_prefix: /
+  - name: probe
+    image_key: probe
+    port: 9090
+    path_prefix: /probe
+
+notes: |
+  Next.js app wrapped with Python proxy (wrapper.py) for /healthz.
+  Default credentials: admin/umami (set by Umami's first-run seed).
+  Tests authenticate via POST /api/auth/login then use Bearer token.
+  Isolation probes use PROBE_URL=http://svc-probe:9090.

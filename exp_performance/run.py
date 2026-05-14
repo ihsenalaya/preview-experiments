@@ -2,7 +2,7 @@
 RQ3 — Performance overhead of checkpoint isolation.
 
 Protocol:
-  Repeat N=20 times for each isolation value:
+  Repeat N=30 times for each isolation value:
     1. Create Preview, wait for test suite to complete.
     2. Collect K8s Job start/completionTime for each step.
     3. Compute:
@@ -30,15 +30,23 @@ from harness.results_writer import RunWriter
 EXPERIMENT = "performance"
 
 
-def run_once(run_id: str, isolation: bool, cfg: dict) -> list[dict]:
-    image = cfg["app"]["image"]
+def run_once(run_id: str, isolation: bool, cfg: dict,
+             subject: dict, s_image: str, p_image: str) -> list[dict]:
+    subject_id = subject["id"]
+    use_subject = subject_id != "s1-flask-catalog"
     pr_number = cfg["app"].get("pr_number_base", 9000) + (hash(run_id) % 900)
     name = factory.unique_name("perf")
     ns = factory.runtime_namespace(pr_number)
 
     rows = []
     try:
-        factory.create(name, "default", image, pr_number=pr_number, isolation_enabled=isolation)
+        factory.create(
+            name, "default", s_image, pr_number=pr_number,
+            isolation_enabled=isolation,
+            subject=subject if use_subject else None,
+            subject_image=s_image if use_subject else None,
+            probe_image=p_image if use_subject else None,
+        )
         factory.wait_until_phase(
             name, "default",
             target_phases=["Running", "Failed"],
@@ -52,7 +60,6 @@ def run_once(run_id: str, isolation: bool, cfg: dict) -> list[dict]:
         raw_steps = collector.collect_step_timings(ns, name)
         step_timings = {s["step"]: s["duration_s"] for s in raw_steps}
 
-        # pipeline_total_s: first job startTime → last job completionTime
         starts = [s["start_utc"] for s in raw_steps if s["start_utc"]]
         ends   = [s["end_utc"]   for s in raw_steps if s["end_utc"]]
         if starts and ends:
@@ -62,13 +69,13 @@ def run_once(run_id: str, isolation: bool, cfg: dict) -> list[dict]:
             pipeline_total_s = (t1 - t0).total_seconds()
         else:
             pipeline_total_s = None
+
         save_s = step_timings.get("saving")
         restore_reg_s = step_timings.get("restore-regression")
         restore_e2e_s = step_timings.get("restore-e2e")
         checkpoint_total_s = sum(
             v for v in [save_s, restore_reg_s, restore_e2e_s] if v is not None
         ) or None
-
         overhead_pct = (
             round(100 * checkpoint_total_s / pipeline_total_s, 2)
             if checkpoint_total_s and pipeline_total_s else None
@@ -78,6 +85,7 @@ def run_once(run_id: str, isolation: bool, cfg: dict) -> list[dict]:
             rows.append({
                 "run_id": run_id,
                 "experiment": EXPERIMENT,
+                "subject_id": subject_id,
                 "preview_name": name,
                 "namespace": ns,
                 "isolation_enabled": str(isolation),
@@ -92,6 +100,7 @@ def run_once(run_id: str, isolation: bool, cfg: dict) -> list[dict]:
         rows.append({
             "run_id": run_id,
             "experiment": EXPERIMENT,
+            "subject_id": subject_id,
             "preview_name": name,
             "namespace": ns,
             "isolation_enabled": str(isolation),
@@ -113,17 +122,23 @@ def main():
     cfg = cfg_module.load()
     exp_cfg = cfg["experiments"]["performance"]
     n = exp_cfg["n_runs"]
+    subjects = cfg_module.load_enabled_subjects(cfg)
 
     with RunWriter("run_metrics", EXPERIMENT) as writer:
-        for isolation in [True, False]:
-            print(f"\n=== Performance: isolation={isolation}, {n} runs ===")
-            for i in range(n):
-                run_id = f"{EXPERIMENT}-iso{isolation}-{i:03d}-{uuid.uuid4().hex[:6]}"
-                print(f"  Run {i+1}/{n}  run_id={run_id}")
-                rows = run_once(run_id, isolation, cfg)
-                for row in rows:
-                    writer.write(row)
-                time.sleep(5)
+        for subject in subjects:
+            sid = subject["id"]
+            s_image = cfg_module.subject_image(cfg, sid)
+            p_image = cfg_module.probe_image(cfg)
+            print(f"\n{'='*60}\nSubject: {sid}")
+            for isolation in [True, False]:
+                print(f"\n=== Performance: isolation={isolation}, {n} runs ===")
+                for i in range(n):
+                    run_id = f"{EXPERIMENT}-{sid}-iso{isolation}-{i:03d}-{uuid.uuid4().hex[:6]}"
+                    print(f"  Run {i+1}/{n}  run_id={run_id}")
+                    rows = run_once(run_id, isolation, cfg, subject, s_image, p_image)
+                    for row in rows:
+                        writer.write(row)
+                    time.sleep(5)
 
     print(f"\nResults: {writer.path}")
 

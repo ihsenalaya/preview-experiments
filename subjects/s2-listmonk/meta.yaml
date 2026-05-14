@@ -1,0 +1,46 @@
+id: s2-listmonk
+name: "Listmonk Newsletter Manager"
+description: "Self-hosted newsletter and mailing-list manager with a REST API"
+origin:
+  repo: knadh/listmonk
+  version: v2.5.1
+  license: AGPL-3.0
+language: Go
+framework: Chi router
+database: postgresql
+
+seed_entity: lists
+seed_count: 3
+
+# Installs schema then seeds 3 mailing lists
+migration_command:
+  - sh
+  - -c
+  - |
+    /listmonk --config=/tmp/config.toml --install --yes 2>&1 | tail -3 &&
+    psql "$DATABASE_URL" -c "
+      INSERT INTO lists (name, type, optin, tags, created_at, updated_at)
+      SELECT name, type, optin, tags, NOW(), NOW() FROM (VALUES
+        ('Seed List 1','public','single',ARRAY[]::text[]),
+        ('Seed List 2','public','double',ARRAY[]::text[]),
+        ('Seed List 3','private','single',ARRAY[]::text[])
+      ) AS t(name,type,optin,tags)
+      ON CONFLICT DO NOTHING
+    " &&
+    echo 'PASS migration listmonk install+seed: OK'
+
+services:
+  - name: backend
+    image_key: app
+    port: 9000
+    path_prefix: /
+  - name: probe
+    image_key: probe
+    port: 9090
+    path_prefix: /probe
+
+notes: |
+  Go binary wrapped with a Python proxy (wrapper.py) that serves /healthz and
+  forwards other traffic to listmonk running on port 9001.
+  API authentication: HTTP Basic admin:harness123 (set in wrapper.py config).
+  Isolation probes use PROBE_URL=http://svc-probe:9090.

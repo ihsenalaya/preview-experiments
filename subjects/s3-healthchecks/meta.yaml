@@ -1,0 +1,51 @@
+id: s3-healthchecks
+name: "Healthchecks Cron Monitor"
+description: "Django/PostgreSQL cron-job monitoring service with REST API v3"
+origin:
+  repo: healthchecks/healthchecks
+  version: v3.6
+  license: BSD-3-Clause
+language: Python
+framework: Django 5
+database: postgresql
+
+seed_entity: checks
+seed_count: 2
+
+# Migrate, create superuser, seed 2 checks, create API key
+migration_command:
+  - sh
+  - -c
+  - |
+    cd /hcapp &&
+    python manage.py migrate --noinput 2>&1 | tail -5 &&
+    python manage.py shell -c "
+from django.contrib.auth.models import User
+from hc.accounts.models import Profile
+from hc.api.models import Check, Project
+u, _ = User.objects.get_or_create(username='harness',
+    defaults={'email':'harness@exp.local','is_superuser':True,'is_staff':True})
+u.set_password('harness123'); u.save()
+prof, _ = Profile.objects.get_or_create(user=u)
+prof.api_key = 'harness-api-key-exp0000000000000000'; prof.save()
+proj = prof.project if hasattr(prof,'project') else Project.objects.filter(owner=u).first()
+for name in ['Seed Check 1','Seed Check 2']:
+    Check.objects.get_or_create(name=name, project=proj)
+" &&
+    echo 'PASS migration healthchecks: OK'
+
+services:
+  - name: backend
+    image_key: app
+    port: 8000
+    path_prefix: /
+  - name: probe
+    image_key: probe
+    port: 9090
+    path_prefix: /probe
+
+notes: |
+  Django app wrapped with a Python proxy (wrapper.py) that serves /healthz.
+  API key for tests: harness-api-key-exp0000000000000000 (created in migration).
+  Tests use Authorization: ApiKey harness-api-key-exp0000000000000000.
+  Isolation probes use PROBE_URL=http://svc-probe:9090.

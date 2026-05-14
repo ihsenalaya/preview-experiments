@@ -1,0 +1,46 @@
+id: s5-petclinic
+name: "Spring PetClinic REST"
+description: "Java/Spring Boot veterinary clinic REST API with Flyway migrations"
+origin:
+  repo: spring-petclinic/spring-petclinic-rest
+  version: 3.4.0
+  license: Apache-2.0
+language: Java
+framework: Spring Boot 3
+database: postgresql
+
+seed_entity: pets
+seed_count: 13
+
+# Flyway runs on application startup via Spring Boot.
+# We trigger it by starting the app briefly to apply migrations + seed data,
+# then stop it. The service container will also re-run Flyway on start (idempotent).
+migration_command:
+  - sh
+  - -c
+  - |
+    cd /app &&
+    timeout 60 java -jar spring-petclinic-rest.jar \
+      --spring.datasource.url="$DATABASE_URL" \
+      --spring.datasource.username="$POSTGRES_USER" \
+      --spring.datasource.password="$POSTGRES_PASSWORD" \
+      --server.port=0 \
+      2>&1 | grep -E 'Flyway|Schema|Started|Exception' | tail -10 ;
+    echo 'PASS migration petclinic flyway: OK'
+
+services:
+  - name: backend
+    image_key: app
+    port: 9966
+    path_prefix: /
+  - name: probe
+    image_key: probe
+    port: 9090
+    path_prefix: /probe
+
+notes: |
+  Spring Boot app wrapped with Python proxy (wrapper.py) for /healthz.
+  Flyway seed data ships with the app (db/migration/postgresql/V*.sql).
+  seed_count=13 matches the default Flyway R__Insert_default_data.sql pet rows.
+  Tests use the petclinic REST API at /api/pets, /api/vets, /api/owners.
+  Isolation probes use PROBE_URL=http://svc-probe:9090.

@@ -18,6 +18,22 @@ app:
   cr_namespace: default            # namespace where Preview CRs are created
   pr_number_base: 9000             # experiment PRs use numbers 9000-9999 to avoid conflicts
 
+# Multi-subject configuration (see subjects/CONTRACT.md)
+subjects:
+  probe_image: ghcr.io/ihsenalaya/harness-probe:latest
+  enabled:
+    - s1-flask-catalog             # reference subject (always active)
+    # - s2-listmonk                # uncomment to include in all experiments
+    # - s3-healthchecks
+    # - s4-umami
+    # - s5-petclinic
+  images:
+    s1-flask-catalog: ghcr.io/ihsenalaya/idp-preview:exp-20260514-e2efix-2089
+    s2-listmonk: ghcr.io/ihsenalaya/s2-listmonk-adapter:v2.5.1
+    s3-healthchecks: ghcr.io/ihsenalaya/s3-healthchecks-adapter:v3.6
+    s4-umami: ghcr.io/ihsenalaya/s4-umami-adapter:v2.15.1
+    s5-petclinic: ghcr.io/ihsenalaya/s5-petclinic-adapter:v3.4.0
+
 # Frozen versions — bump deliberately, never automatically
 versions:
   preview_operator_chart: 0.1.0
@@ -41,13 +57,19 @@ experiments:
     timeout_minutes: 40
 
   performance:
-    n_runs: 20
+    n_runs: 30
     timeout_minutes: 25
 
   bug_detection:
     mutation_operators: [AOR, ROR, COI, DDL]   # mutmut operators
     n_mutations_max: 50
-    isolation_values: [static, llm]
+    # Volume-control conditions (RQ4 hardening):
+    #   static     — no AI enrichment (baseline)
+    #   llm_fixed  — AI enrichment, temperature=0 (same volume, deterministic)
+    #   llm_free   — AI enrichment, temperature=0.7 (same volume, diverse)
+    isolation_values: [static, llm_fixed, llm_free]
+    llm_fixed_temperature: 0.0
+    llm_free_temperature: 0.7
     timeout_minutes: 60
 
   idempotence:

@@ -34,12 +34,19 @@ from harness.results_writer import RunWriter
 EXPERIMENT = "cross_pr"
 
 
-def run_single(run_id: str, name: str, pr_number: int, isolation: bool, cfg: dict) -> list[dict]:
-    image = cfg["app"]["image"]
-    ns = factory.runtime_namespace(pr_number)
+def run_single(run_id: str, name: str, pr_number: int, isolation: bool, cfg: dict,
+               subject: dict, s_image: str, p_image: str) -> list[dict]:
+    subject_id = subject["id"]
+    use_subject = subject_id != "s1-flask-catalog"
     rows = []
     try:
-        factory.create(name, "default", image, pr_number=pr_number, isolation_enabled=isolation)
+        factory.create(
+            name, "default", s_image, pr_number=pr_number,
+            isolation_enabled=isolation,
+            subject=subject if use_subject else None,
+            subject_image=s_image if use_subject else None,
+            probe_image=p_image if use_subject else None,
+        )
         factory.wait_until_phase(
             name, "default",
             target_phases=["Running", "Failed"],
@@ -56,6 +63,7 @@ def run_single(run_id: str, name: str, pr_number: int, isolation: bool, cfg: dic
             rows.append({
                 "run_id": run_id,
                 "experiment": EXPERIMENT,
+                "subject_id": subject_id,
                 "preview_name": name,
                 "isolation_enabled": str(isolation),
                 "suite": suite,
@@ -70,7 +78,8 @@ def run_single(run_id: str, name: str, pr_number: int, isolation: bool, cfg: dic
     return rows
 
 
-def run_batch(k: int, isolation: bool, cfg: dict, writer: RunWriter) -> None:
+def run_batch(k: int, isolation: bool, cfg: dict, writer: RunWriter,
+              subject: dict, s_image: str, p_image: str) -> None:
     batch_id = uuid.uuid4().hex[:8]
     names = [factory.unique_name("cp") for _ in range(k)]
     pr_start = 8000 + (int(batch_id[:3], 16) % 900)
@@ -80,11 +89,8 @@ def run_batch(k: int, isolation: bool, cfg: dict, writer: RunWriter) -> None:
         futures = {
             pool.submit(
                 run_single,
-                f"{EXPERIMENT}-k{k}-iso{isolation}-{batch_id}-{i}",
-                names[i],
-                pr_numbers[i],
-                isolation,
-                cfg,
+                f"{EXPERIMENT}-{subject['id']}-k{k}-iso{isolation}-{batch_id}-{i}",
+                names[i], pr_numbers[i], isolation, cfg, subject, s_image, p_image,
             ): i
             for i in range(k)
         }
@@ -103,13 +109,19 @@ def main():
     exp_cfg = cfg["experiments"]["cross_pr"]
     k_values = exp_cfg["k_values"]
     isolation_values = exp_cfg["isolation_values"]
+    subjects = cfg_module.load_enabled_subjects(cfg)
 
     with RunWriter("test_outcomes", EXPERIMENT) as writer:
-        for isolation in isolation_values:
-            for k in k_values:
-                print(f"\n=== K={k}, isolation={isolation} ===")
-                run_batch(k, isolation, cfg, writer)
-                time.sleep(10)
+        for subject in subjects:
+            sid = subject["id"]
+            s_image = cfg_module.subject_image(cfg, sid)
+            p_image = cfg_module.probe_image(cfg)
+            print(f"\n{'='*60}\nSubject: {sid}")
+            for isolation in isolation_values:
+                for k in k_values:
+                    print(f"\n=== K={k}, isolation={isolation} ===")
+                    run_batch(k, isolation, cfg, writer, subject, s_image, p_image)
+                    time.sleep(10)
 
     print(f"\nResults: {writer.path}")
 
