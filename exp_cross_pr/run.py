@@ -73,7 +73,8 @@ def run_single(run_id: str, name: str, pr_number: int, isolation: bool, cfg: dic
 def run_batch(k: int, isolation: bool, cfg: dict, writer: RunWriter) -> None:
     batch_id = uuid.uuid4().hex[:8]
     names = [factory.unique_name("cp") for _ in range(k)]
-    pr_numbers = list(range(100 + int(batch_id[:2], 16), 100 + int(batch_id[:2], 16) + k))
+    pr_start = 8000 + (int(batch_id[:3], 16) % 900)
+    pr_numbers = list(range(pr_start, pr_start + k))
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=k) as pool:
         futures = {
