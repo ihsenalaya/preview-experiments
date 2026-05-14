@@ -39,7 +39,7 @@ def kill_operator_pod(operator_ns: str) -> None:
 
 def wait_operator_ready(operator_ns: str, timeout_s: int = 120) -> None:
     subprocess.run(
-        ["kubectl", "rollout", "status", "deployment/preview-operator-controller-manager",
+        ["kubectl", "rollout", "status", "deployment/preview-operator",
          "-n", operator_ns, f"--timeout={timeout_s}s"],
         check=True,
     )
@@ -48,11 +48,12 @@ def wait_operator_ready(operator_ns: str, timeout_s: int = 120) -> None:
 def run_once(run_id: str, kill_step: str, cfg: dict) -> list[dict]:
     image = cfg["app"]["image"]
     operator_ns = cfg["operator"]["namespace"]
+    pr_number = cfg["app"].get("pr_number_base", 9000) - 3000 + (hash(run_id) % 900)
     name = factory.unique_name("idem")
     rows = []
 
     try:
-        factory.create(name, "default", image, isolation_enabled=True)
+        factory.create(name, "default", image, pr_number=pr_number, isolation_enabled=True)
 
         # Wait until the operator has advanced to (or past) the target step
         print(f"    Waiting for step={kill_step}...")
@@ -75,24 +76,26 @@ def run_once(run_id: str, kill_step: str, cfg: dict) -> list[dict]:
         restart_elapsed = time.monotonic() - restart_start
 
         converge_start = time.monotonic()
-        final_phase = factory.wait_until_phase(
+        factory.wait_until_phase(
             name, "default",
             target_phases=["Running", "Failed"],
             timeout_s=cfg["experiments"]["idempotence"]["timeout_minutes"] * 60,
         )
+        tests_phase = factory.wait_until_tests_done(
+            name, "default",
+            timeout_s=cfg["experiments"]["idempotence"]["timeout_minutes"] * 60,
+        )
         converge_elapsed = time.monotonic() - converge_start
 
-        status = factory.get_status(name, "default")
-        tests = status.get("tests") or {}
-        diverged = final_phase == "Failed" and kill_step not in ("e2e",)
+        diverged = tests_phase == "Failed"
 
         rows.append({
             "run_id": run_id,
             "experiment": EXPERIMENT,
             "preview_name": name,
-            "namespace": f"{cfg['app']['namespace_prefix']}-{name}",
+            "namespace": factory.runtime_namespace(pr_number),
             "isolation_enabled": "true",
-            "phase": final_phase,
+            "phase": tests_phase,
             "step": kill_step,
             "step_duration_s": converge_elapsed,
             "total_reconcile_s": restart_elapsed,
