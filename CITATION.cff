@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use this experimental harness, please cite it as follows."
+title: "Preview-Operator Experimental Harness"
+abstract: >
+  Reproducibility artefact for the study:
+  "Checkpoint-based Database Isolation Eliminates Non-deterministic Test Variance
+  in Kubernetes Preview Environments."
+  Includes experiment scripts, statistical analysis, and operator instrumentation.
+version: 1.0.0
+date-released: 2026-05-14
+license: MIT
+repository-code: ""   # fill with Zenodo or GitHub URL after publication
+keywords:
+  - Kubernetes
+  - preview environments
+  - test isolation
+  - checkpoint
+  - database
+  - flakiness
+  - mutation testing
+  - empirical software engineering

@@ -1,0 +1,7 @@
+results/*.csv
+analysis/figures/*.pdf
+analysis/figures/*.png
+analysis/*.ipynb
+__pycache__/
+*.pyc
+.mutmut-cache/

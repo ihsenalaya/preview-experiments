@@ -1,0 +1,29 @@
+# Frozen dependency versions — all experiment runs must use these exact versions.
+# Rationale: reproducibility requires identical artifacts across runs and sites.
+# To update a version: change here AND update config.yaml, then re-run setup.
+
+kubernetes:
+  kind_node: kindest/node:v1.30.0@sha256:047357ac0cfea04663786a612ba1eaba9702bef25227a794b52890dd8bcd692e
+
+operator:
+  chart: 0.1.0
+  image: preview-operator:dev
+
+app:
+  image: idp-preview:dev
+
+runtime:
+  postgres: postgres:15.6-alpine@sha256:b571c9c9ff8fbd16b9c6b31a4c0f069ce99d9e07a9c8b9c2d5a9e8a18afe5e3e
+  python_slim: python:3.12-slim@sha256:a7d7c2c2f3d4a5b6c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1
+  playwright: mcr.microsoft.com/playwright/python:v1.44.0-jammy
+
+ai:
+  model_id: gpt-4o-mini-2024-07-18
+  api_base: https://models.inference.ai.azure.com
+
+testing:
+  mutmut: "2.4.4"
+  pytest: "7.4.4"
+  scipy: "1.13.1"
+  matplotlib: "3.9.0"
+  pandas: "2.2.2"

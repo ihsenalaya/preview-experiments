@@ -1,0 +1,64 @@
+# Single source of truth for all experiment parameters.
+# All scripts read this file; override individual values with env vars prefixed EXP_.
+
+cluster:
+  type: kind           # kind | aks
+  name: preview-exp
+  kubeconfig: ""       # empty = use current kubeconfig context
+
+operator:
+  namespace: preview-operator-system
+  helm_release: preview-operator
+  helm_chart: ../preview-operator/charts/preview-operator
+  image: preview-operator:dev
+
+app:
+  repo: ihsenalaya/idp-preview    # GitHub owner/repo (for diff fetching)
+  image: idp-preview:dev
+  namespace_prefix: exp            # preview namespaces = exp-<run_id>
+
+# Frozen versions — bump deliberately, never automatically
+versions:
+  preview_operator_chart: 0.1.0
+  postgres_image: postgres:15.6-alpine
+  playwright_image: mcr.microsoft.com/playwright/python:v1.44.0-jammy
+  python_slim: python:3.12-slim
+  microcks_chart: 1.9.0
+  kind_node: kindest/node:v1.30.0
+  llm_model: gpt-4o-mini-2024-07-18   # exact model snapshot
+  mutmut_version: "2.4.4"
+
+experiments:
+  flakiness:
+    n_runs: 30
+    isolation_values: [true, false]
+    timeout_minutes: 20
+
+  cross_pr:
+    k_values: [2, 4, 8]
+    isolation_values: [true, false]
+    timeout_minutes: 40
+
+  performance:
+    n_runs: 20
+    timeout_minutes: 25
+
+  bug_detection:
+    mutation_operators: [AOR, ROR, COI, DDL]   # mutmut operators
+    n_mutations_max: 50
+    isolation_values: [static, llm]
+    timeout_minutes: 60
+
+  idempotence:
+    kill_steps:
+      - saving
+      - smoke
+      - restore-regression
+      - regression
+      - restore-e2e
+      - e2e
+    n_restarts_per_step: 3
+    timeout_minutes: 30
+
+results_dir: results
+figures_dir: analysis/figures
