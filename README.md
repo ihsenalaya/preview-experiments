@@ -162,8 +162,10 @@ All three suites must show `phase=Succeeded` before running the full experiments
 make generate-mutants
 ```
 
-Runs `mutmut` on `testapp/app.py` and writes `exp_bug_detection/fault-catalog.yaml`.
-This step is slow (~10 min); results are committed and shipped with the artefact.
+Runs `mutmut` on `testapp/app.py` and writes `exp_bug_detection/fault-catalog.yaml` (~30s).
+A pre-generated catalog (50 mutants) is already committed — only re-run if `testapp/app.py` changes.
+
+Requires `mutmut==2.4.4` on PATH (`pip install mutmut==2.4.4` then add `~/.local/bin` to PATH).
 
 ### 5 — Run experiments
 
@@ -224,6 +226,23 @@ migration → saving → smoke → restore-regression → regression → restore
 
 When `spec.database.isolationEnabled=false`, the `saving` and `restore-*` steps are
 skipped. Suites then share a dirty DB — this is the **baseline** (no isolation) condition.
+
+---
+
+## PR number ranges
+
+Each experiment uses a dedicated range of PR numbers to avoid namespace conflicts when running in parallel:
+
+| Experiment | PR range | Config key |
+|-----------|----------|-----------|
+| RQ1 Flakiness | 9000–9899 | `pr_number_base` + hash % 900 |
+| RQ2 Cross-PR | 8000–8899 | `pr_number_base - 1000` + hex % 900 |
+| RQ3 Performance | 9000–9899 | `pr_number_base` + hash % 900 |
+| RQ4 Bug detection | 7000–7899 | `pr_number_base - 2000` + hash % 900 |
+| RQ5 Idempotence | 6000–6899 | `pr_number_base - 3000` + hash % 900 |
+
+Note: the Preview CR's `status.phase` stays `Running` even after tests complete.
+Test completion is tracked via `status.tests.phase` (Succeeded / Failed).
 
 ---
 
