@@ -17,22 +17,38 @@ migration_command:
   - sh
   - -c
   - |
-    cd /hcapp &&
-    python manage.py migrate --noinput 2>&1 | tail -5 &&
-    python manage.py shell -c "
-from django.contrib.auth.models import User
-from hc.accounts.models import Profile
-from hc.api.models import Check, Project
-u, _ = User.objects.get_or_create(username='harness',
-    defaults={'email':'harness@exp.local','is_superuser':True,'is_staff':True})
-u.set_password('harness123'); u.save()
-prof, _ = Profile.objects.get_or_create(user=u)
-prof.api_key = 'harness-api-key-exp0000000000000000'; prof.save()
-proj = prof.project if hasattr(prof,'project') else Project.objects.filter(owner=u).first()
-for name in ['Seed Check 1','Seed Check 2']:
-    Check.objects.get_or_create(name=name, project=proj)
-" &&
-    echo 'PASS migration healthchecks: OK'
+    python3 << 'PYEOF'
+    import os, urllib.parse, subprocess, sys
+    u = urllib.parse.urlparse(os.environ.get('DATABASE_URL', ''))
+    os.environ['DB'] = 'postgres'
+    os.environ['DB_HOST'] = u.hostname or 'postgres'
+    os.environ['DB_PORT'] = str(u.port or 5432)
+    os.environ['DB_NAME'] = (u.path or '/hc').lstrip('/')
+    os.environ['DB_USER'] = u.username or 'postgres'
+    os.environ['DB_PASSWORD'] = u.password or ''
+    os.environ['DB_SSLMODE'] = 'disable'
+    os.environ['SECRET_KEY'] = 'harness-init-key'
+    os.environ['ALLOWED_HOSTS'] = '*'
+    os.chdir('/opt/healthchecks')
+    r = subprocess.run([sys.executable, 'manage.py', 'migrate', '--noinput'], capture_output=True, text=True)
+    print(r.stdout[-500:] if r.stdout else ''); print(r.stderr[-200:] if r.stderr else '')
+    if r.returncode != 0: sys.exit(1)
+    import django; django.setup()
+    from django.contrib.auth.models import User
+    from hc.accounts.models import Profile
+    from hc.api.models import Check, Project
+    u_obj, _ = User.objects.get_or_create(username='harness',
+        defaults={'email': 'harness@exp.local', 'is_superuser': True, 'is_staff': True})
+    u_obj.set_password('harness123'); u_obj.save()
+    prof, _ = Profile.objects.get_or_create(user=u_obj)
+    prof.api_key = 'harness-api-key-exp0000000000000000'; prof.save()
+    proj = Project.objects.filter(owner=u_obj).first()
+    if not proj:
+        proj = Project.objects.create(owner=u_obj, name='Harness')
+    for name in ['Seed Check 1', 'Seed Check 2']:
+        Check.objects.get_or_create(name=name, project=proj)
+    print('PASS migration healthchecks: OK')
+    PYEOF
 
 services:
   - name: backend

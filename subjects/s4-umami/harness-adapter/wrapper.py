@@ -63,7 +63,7 @@ if __name__ == "__main__":
 
     proc = subprocess.Popen(
         ["node", "server.js"],
-        cwd="/umamiapp",
+        cwd="/app",
         env=env,
     )
 

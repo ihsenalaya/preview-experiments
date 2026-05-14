@@ -1,6 +1,6 @@
 """
 Spring PetClinic harness-adapter entry point.
-Starts Spring Boot on port 9967, proxies on port 9966.
+Starts Spring Boot (Jib-exploded) on port 9967, proxies on port 9966.
 Serves GET /healthz → 200.
 """
 import os
@@ -8,11 +8,13 @@ import subprocess
 import threading
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 PROXY_PORT = 9966
 APP_PORT = 9967
+JAVA = "/opt/java/openjdk/bin/java"
 
 
 class _ProxyHandler(BaseHTTPRequestHandler):
@@ -56,24 +58,26 @@ class _ProxyHandler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+    env = os.environ.copy()
+    env["JAVA_HOME"] = "/opt/java/openjdk"
+    env["PATH"] = "/opt/java/openjdk/bin:" + env.get("PATH", "")
+
     db_url = os.environ.get("DATABASE_URL", "")
-    pg_user = os.environ.get("POSTGRES_USER", "postgres")
-    pg_pass = os.environ.get("POSTGRES_PASSWORD", "postgres")
-    pg_db = os.environ.get("POSTGRES_DB", "postgres")
+    if db_url:
+        u = urllib.parse.urlparse(db_url)
+        jdbc_url = f"jdbc:postgresql://{u.hostname}:{u.port or 5432}{u.path}"
+        env["SPRING_DATASOURCE_URL"] = jdbc_url
+        env["SPRING_DATASOURCE_USERNAME"] = u.username or "postgres"
+        env["SPRING_DATASOURCE_PASSWORD"] = u.password or ""
+    env["SPRING_PROFILES_ACTIVE"] = "postgresql,spring-data-jpa"
+    env["SERVER_PORT"] = str(APP_PORT)
 
-    jvm_args = [
-        "java", "-jar", "/app/spring-petclinic-rest.jar",
-        f"--server.port={APP_PORT}",
-        f"--spring.datasource.url={db_url.replace('postgresql://', 'jdbc:postgresql://').split('?')[0]}",
-        f"--spring.datasource.username={pg_user}",
-        f"--spring.datasource.password={pg_pass}",
-        "--spring.jpa.hibernate.ddl-auto=validate",
-        "--spring.profiles.active=postgresql,spring-data-jpa",
-    ]
+    proc = subprocess.Popen(
+        [JAVA, "-cp", "@/app/jib-classpath-file",
+         "org.springframework.samples.petclinic.PetClinicApplication"],
+        env=env,
+    )
 
-    proc = subprocess.Popen(jvm_args, env=os.environ.copy())
-
-    # Spring Boot typically takes ~20s to start
     time.sleep(25)
 
     server = ThreadingHTTPServer(("0.0.0.0", PROXY_PORT), _ProxyHandler)

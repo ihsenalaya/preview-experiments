@@ -18,14 +18,31 @@ migration_command:
   - -c
   - |
     cd /app &&
-    npx prisma migrate deploy 2>&1 | tail -5 &&
-    psql "$DATABASE_URL" -c "
-      INSERT INTO website (id, name, domain, user_id, created_at, updated_at)
-      SELECT gen_random_uuid(), 'Seed Website', 'seed.example.com',
-             (SELECT id FROM user LIMIT 1), NOW(), NOW()
-      WHERE NOT EXISTS (SELECT 1 FROM website WHERE name='Seed Website')
-    " &&
-    echo 'PASS migration umami: OK'
+    node node_modules/.bin/prisma migrate deploy 2>&1 | tail -5 &&
+    node << 'JSEOF'
+    const {PrismaClient} = require('@prisma/client');
+    const {hashPassword} = require('next-basics');
+    const crypto = require('crypto');
+    const prisma = new PrismaClient();
+    async function main() {
+      const hash = hashPassword('umami');
+      const user = await prisma.user.upsert({
+        where: {username: 'admin'},
+        update: {},
+        create: {id: crypto.randomUUID(), username: 'admin', password: hash, role: 'admin'}
+      });
+      const exists = await prisma.website.findFirst({where: {name: 'Seed Website'}});
+      if (!exists) {
+        await prisma.website.create({
+          data: {id: crypto.randomUUID(), name: 'Seed Website',
+                 domain: 'seed.example.com', userId: user.id, createdBy: user.id}
+        });
+      }
+      await prisma.$disconnect();
+      console.log('PASS migration umami: OK');
+    }
+    main().catch(e => { console.error(e); process.exit(1); });
+    JSEOF
 
 services:
   - name: backend
