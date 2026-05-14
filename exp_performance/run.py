@@ -49,24 +49,19 @@ def run_once(run_id: str, isolation: bool, cfg: dict) -> list[dict]:
             timeout_s=cfg["experiments"]["performance"]["timeout_minutes"] * 60,
         )
 
-        events = collector.list_reconcile_events(name, "default")
-        ts_started = next(
-            (collector.reconcile_event_timestamp(e) for e in events
-             if e.get("spec", {}).get("type") == "TestStarted"), None
-        )
-        ts_finished = next(
-            (collector.reconcile_event_timestamp(e) for e in events
-             if e.get("spec", {}).get("type") == "TestFinished"), None
-        )
-        pipeline_total_s = (
-            (ts_finished - ts_started).total_seconds()
-            if ts_started and ts_finished else None
-        )
+        raw_steps = collector.collect_step_timings(ns, name)
+        step_timings = {s["step"]: s["duration_s"] for s in raw_steps}
 
-        step_timings = {
-            s["step"]: s["duration_s"]
-            for s in collector.collect_step_timings(ns, name)
-        }
+        # pipeline_total_s: first job startTime → last job completionTime
+        starts = [s["start_utc"] for s in raw_steps if s["start_utc"]]
+        ends   = [s["end_utc"]   for s in raw_steps if s["end_utc"]]
+        if starts and ends:
+            from datetime import datetime as _dt
+            t0 = min(_dt.fromisoformat(t.replace("Z", "+00:00")) for t in starts)
+            t1 = max(_dt.fromisoformat(t.replace("Z", "+00:00")) for t in ends)
+            pipeline_total_s = (t1 - t0).total_seconds()
+        else:
+            pipeline_total_s = None
         save_s = step_timings.get("saving")
         restore_reg_s = step_timings.get("restore-regression")
         restore_e2e_s = step_timings.get("restore-e2e")
