@@ -14,8 +14,9 @@ operator:
 
 app:
   repo: ihsenalaya/idp-preview    # GitHub owner/repo (for diff fetching)
-  image: idp-preview:dev
-  namespace_prefix: exp            # preview namespaces = exp-<run_id>
+  image: ghcr.io/ihsenalaya/idp-preview:exp-20260514-e2efix-2089
+  cr_namespace: default            # namespace where Preview CRs are created
+  pr_number_base: 9000             # experiment PRs use numbers 9000-9999 to avoid conflicts
 
 # Frozen versions — bump deliberately, never automatically
 versions:

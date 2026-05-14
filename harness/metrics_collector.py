@@ -65,7 +65,7 @@ def collect_step_timings(namespace: str, preview_name: str) -> list[dict]:
     Return per-step timings derived from K8s Job start/completionTime.
     Each dict: {step, job_name, start_utc, end_utc, duration_s, outcome}
     """
-    jobs = list_jobs(namespace, label_selector=f"platform.company.io/preview={preview_name}")
+    jobs = list_jobs(namespace, label_selector=f"platform.company.io/preview-name={preview_name}")
     rows = []
     for job in jobs:
         name = job["metadata"]["name"]

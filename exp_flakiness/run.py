@@ -31,22 +31,30 @@ EXPERIMENT = "flakiness"
 
 def run_once(run_id: str, isolation: bool, cfg: dict) -> list[dict]:
     image = cfg["app"]["image"]
+    pr_number = cfg["app"].get("pr_number_base", 9000) + (hash(run_id) % 900)
     name = factory.unique_name("fl")
-    ns = f"{cfg['app']['namespace_prefix']}-{name}"
+    ns = factory.runtime_namespace(pr_number)
 
     rows = []
     try:
-        factory.create(name, "default", image, isolation_enabled=isolation)
+        factory.create(name, "default", image, pr_number=pr_number, isolation_enabled=isolation)
 
-        final_phase = factory.wait_until_phase(
+        factory.wait_until_phase(
             name, "default",
             target_phases=["Running", "Failed"],
+            timeout_s=cfg["experiments"]["flakiness"]["timeout_minutes"] * 60,
+        )
+        factory.wait_until_tests_done(
+            name, "default",
             timeout_s=cfg["experiments"]["flakiness"]["timeout_minutes"] * 60,
         )
 
         status = factory.get_status(name, "default")
         tests = status.get("tests") or {}
-        db_rows = collector.count_db_rows(ns) or 0
+        try:
+            db_rows = collector.count_db_rows(ns, db_secret="postgres-credentials") or 0
+        except Exception:
+            db_rows = 0
 
         for suite in ("smoke", "regression", "e2e"):
             suite_status = tests.get(suite.capitalize()) or tests.get(suite) or {}

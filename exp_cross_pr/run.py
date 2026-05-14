@@ -36,13 +36,17 @@ EXPERIMENT = "cross_pr"
 
 def run_single(run_id: str, name: str, pr_number: int, isolation: bool, cfg: dict) -> list[dict]:
     image = cfg["app"]["image"]
-    ns = f"{cfg['app']['namespace_prefix']}-{name}"
+    ns = factory.runtime_namespace(pr_number)
     rows = []
     try:
         factory.create(name, "default", image, pr_number=pr_number, isolation_enabled=isolation)
-        final_phase = factory.wait_until_phase(
+        factory.wait_until_phase(
             name, "default",
             target_phases=["Running", "Failed"],
+            timeout_s=cfg["experiments"]["cross_pr"]["timeout_minutes"] * 60,
+        )
+        factory.wait_until_tests_done(
+            name, "default",
             timeout_s=cfg["experiments"]["cross_pr"]["timeout_minutes"] * 60,
         )
         status = factory.get_status(name, "default")
