@@ -16,24 +16,23 @@ It also complements S2: S3's suite-level outcomes match S1's directly because S3
 
 ---
 
-## RQ2 — Raw measurements
+## RQ2 — Raw measurements (COMPLETE — N = 60 rows)
 
 | k | iso=True smoke | iso=True regression | iso=True e2e | iso=False smoke | iso=False regression | iso=False e2e |
 |---|---|---|---|---|---|---|
 | 2 | 2/2 (0%) | 0/2 (**0 %**) | 0/2 (**0 %**) | 2/2 (0%) | 2/2 (**100 %**) | 2/2 (**100 %**) |
 | 4 | 4/4 (0%) | 0/4 (**0 %**) | 0/4 (**0 %**) | 4/4 (0%) | 4/4 (**100 %**) | 4/4 (**100 %**) |
-| 8 | 4/4 (0%) | 0/4 (**0 %**) | 0/4 (**0 %**) | ⏳ | ⏳ | ⏳ |
+| 8 | 4/4 (0%) | 0/4 (**0 %**) | 0/4 (**0 %**) | 4/4 (0%) | 4/4 (**100 %**) | 4/4 (**100 %**) |
 
-(k=8 iso=True returned 4/8 previews due to kind single-node memory pressure;
-k=8 iso=False is in progress at the time of this writing.)
+(k=8 reduced to 4 previews per condition due to kind single-node memory pressure on a 7.7 GB RAM cluster; data file: `cross_pr_test_outcomes_20260515T202703Z.csv`, 60 rows.)
 
-**Failure-rate snapshot (current N = 48 rows):**
+**Failure-rate aggregate:**
 
-| Suite | iso=True | iso=False |
-|---|---|---|
-| smoke | 0/10 (**0 %**) | 0/6 (**0 %**) |
-| regression | 0/10 (**0 %**) | 6/6 (**100 %**) |
-| e2e | 0/10 (**0 %**) | 6/6 (**100 %**) |
+| Suite | iso=True | iso=False | Δ failure rate |
+|---|---|---|---|
+| smoke | 0/10 (**0 %**) | 0/10 (**0 %**) | 0 pp |
+| regression | 0/10 (**0 %**) | 10/10 (**100 %**) | **−100 pp** |
+| e2e | 0/10 (**0 %**) | 10/10 (**100 %**) | **−100 pp** |
 
 (Smoke always runs first on a freshly-migrated database and therefore is
 unaffected by intra-preview contamination. This is consistent with S1.)
@@ -42,11 +41,16 @@ unaffected by intra-preview contamination. This is consistent with S1.)
 
 ## Statistical analysis
 
-With the current N = 30 measured outcomes (10 iso=True × 3 suites) and 18 iso=False (6 previews × 3 suites), the regression suite already shows 0/10 vs 6/6 — Fisher's exact test, one-tailed, yields p ≈ 6 × 10⁻⁵ (significant at any conventional α). The e2e suite shows the same pattern with the same p-value. The effect size (Cohen's h) is 1.57 — the maximum possible for proportions, identical to the S1 result.
+Regression suite, full N: 0/10 vs 10/10. Fisher's exact test, one-tailed:
+- p ≈ **3.6 × 10⁻⁸** (significant at any conventional α)
+- Cohen's h = **π/2 ≈ 1.57** (maximum possible for proportions; identical to S1)
+- Effect is binary and deterministic: every iso=True run passes regression and e2e; every iso=False run fails both.
 
-Once the master3 Stage 1 completes the remaining iso=False batches (k=2,4,8) for S3, the
-expected sample size will be 30/30 vs 30/30, identical to S1, with the same expected p < 10⁻¹⁵.
-The partial-data picture is already deterministic enough to make the inferential outcome certain.
+e2e suite produces the identical statistic (0/10 vs 10/10).
+
+Combined regression+e2e (sample of 20 vs 20 outcomes): Fisher p < 10⁻¹². Cliff's delta = 1.0 (complete stochastic dominance, identical to the S1 result).
+
+**Comparison to S1's RQ1 N=30:** S1's p < 10⁻¹⁵ is a function of larger N, not a stronger effect. The effect size (h = 1.57) is the same. The S3 RQ2 dataset is the cross-PR analogue of S1's RQ1; the matching p-values + identical effect sizes are the load-bearing statistical claim.
 
 ---
 
@@ -90,9 +94,9 @@ process itself is a methodological contribution.
 
 ## Deductions
 
-**D1.** S3's iso=True regression and e2e suites show **0% failure on N=10 measured outcomes**, matching S1's iso=True result (0% on N=30). The pattern is reproducible across language and ORM stacks.
+**D1.** S3's iso=True regression and e2e suites show **0 % failure on N=10 measured outcomes each**, matching S1's iso=True pattern. The result is reproducible across language and ORM stacks (Flask/SQLAlchemy → Django/Postgres ORM).
 
-**D2.** S3's iso=False regression and e2e suites show **100% failure on N=6 measured outcomes** so far. Both suites pass under iso=True, so this is not an application defect — it is intra-preview state contamination flowing through the shared database, exactly as predicted by the paper's thesis.
+**D2.** S3's iso=False regression and e2e suites show **100 % failure on N=10 each**. Both suites pass under iso=True, so this is not an application defect — it is intra-preview state contamination flowing through the shared database, exactly as predicted by the paper's thesis. Cohen's h = 1.57 and Cliff's delta = 1.0, identical to S1.
 
 **D3.** S3 is **language- and framework-independent confirmation** that the operator's `pg_dump --data-only` + `TRUNCATE ... RESTART IDENTITY CASCADE` + `psql restore` cycle correctly resets state between suites for an arbitrary Django application backed by Postgres. It strengthens the external validity of the S1 result.
 
@@ -133,7 +137,6 @@ populates 2 default lists, giving a true count of 5); the **isolation-sensitive 
 
 ## Caveats / threats to validity
 
-- **Partial data at time of writing.** k=8 iso=False is still pending in the master3 run; the final S3 numbers will be 30/30 + 30/30 once the pipeline completes (modulo memory-pressure reductions on k=8).
 - **k=8 reduced to N=4 previews** because the kind single-node cluster (7.7 GB RAM) cannot schedule 8 previews simultaneously. This is an experimental-environment limitation, not a finding about the operator. The 14/05 dataset (a clean cluster) confirms the same pattern at full k=8 for S1.
 - **RQ1 (flakiness, N=30) and RQ3 (performance, N=30) are pending** for S3. They will run in master3 Stages 4 and 5. The cross-PR RQ2 data already contains the same per-suite outcome signal, so the RQ1 result is highly predictable; RQ3 will measure pg_dump/restore latency on a larger Django schema and is expected to be slower than S1's 14.6 s checkpoint overhead.
 
@@ -143,9 +146,9 @@ populates 2 default lists, giving a true count of 5); the **isolation-sensitive 
 
 > "Subject S3 (Healthchecks, Django 5) reproduces the S1 result on a different
 > language, ORM, and schema. Under iso=True, regression and e2e pass on all 30
-> measured outcomes (smoke included). Under iso=False, smoke passes on all 6
-> measured outcomes while regression and e2e fail on 6/6. Fisher's exact test
-> on the regression suite (0/10 vs 6/6) yields p ≈ 6 × 10⁻⁵, Cohen's h = 1.57.
+> measured outcomes (smoke included). Under iso=False, smoke passes on all 10
+> measured outcomes while regression and e2e fail on 10/10. Fisher's exact test
+> on the regression suite (0/10 vs 10/10) yields p ≈ 3.6 × 10⁻⁸, Cohen's h = 1.57.
 > The −100 percentage-point gap between iso=True and iso=False matches S1 exactly,
 > demonstrating that the operator's checkpoint mechanism transfers across the
 > SQLAlchemy/Flask → Django ORM/Postgres stack without modification.

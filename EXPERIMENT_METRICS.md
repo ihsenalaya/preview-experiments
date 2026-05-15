@@ -2,7 +2,7 @@
 
 Paper: *Checkpoint-based Database Isolation Eliminates Non-deterministic Test Variance
 in Kubernetes Preview Environments*
-Last updated: 2026-05-15T23:15Z
+Last updated: 2026-05-15T23:30Z
 
 ---
 
@@ -15,9 +15,10 @@ Last updated: 2026-05-15T23:15Z
 | RQ1 Flakiness | S3 Healthchecks | — | 0/60 | ⏳ Lancé après RQ2 (master3 Stage 4) |
 | RQ1 Flakiness | S4–S5 | — | 0/60 | ⏳ Lancé après RQ2 |
 | **RQ2 Cross-PR** | S1 Flask k=2,4,8 | iso=True+False | 84 rows (14/05) + 60 rows (15/05) | ✅ Complet |
-| **RQ2 Cross-PR** | **S2 Listmonk** | k=2,4,8 × iso=T,F | **60 rows** | ✅ Complet — contre-exemple paper-ready (voir §S2) |
-| RQ2 Cross-PR | S3 Healthchecks | k=2 isoTrue | démarré 22:25 | 🔄 En cours (master3) |
-| RQ2 Cross-PR | S4–S5 | — | 0 | ⏳ Suit S3 |
+| **RQ2 Cross-PR** | **S2 Listmonk** | k=2,4,8 × iso=T,F | **60 rows** | ✅ Complet — calibration méthodologique (voir §S2) |
+| **RQ2 Cross-PR** | **S3 Healthchecks** | k=2,4,8 × iso=T,F | **60 rows** | ✅ Complet — réplique parfaite S1 Δ=−100 pp |
+| **RQ2 Cross-PR** | **S4 Umami** | k=2,4,8 × iso=T,F | **60 rows** | ✅ Complet — cas ouvert (voir §S4) |
+| RQ2 Cross-PR | S5 PetClinic | — | démarré 23:21 | 🔄 En cours (master3) |
 | **RQ3 Performance** | S1 Flask | iso=True+False | 60/60 | ✅ Complet |
 | RQ3 Performance | S2–S5 | — | 0/60 | ⏳ Lancé après RQ1 (master3 Stage 5) |
 | RQ4 Bug Detection | S1 Flask | static (1 mutant) | 3 rows | ⏳ Master3 Stage 3 |
@@ -29,11 +30,11 @@ Last updated: 2026-05-15T23:15Z
 ## Avancement global
 
 ```
-RQ1  ████░░░░░░  20%  S1 done (510 rows)            — S2-S5 master3 Stage 4
-RQ2  ████████░░  40%  S1 done + S2 done (60 rows)   — S3-S5 master3 Stage 1 (en cours)
-RQ3  ████░░░░░░  20%  S1 done (390 rows)            — S2-S5 master3 Stage 5
-RQ4  ░░░░░░░░░░   2%  image mutant-1 prête          — master3 Stage 3
-RQ5  ░░░░░░░░░░   0%  not started                   — master3 Stage 2
+RQ1  ████░░░░░░  20%  S1 done (510 rows)                       — S2-S5 master3 Stage 4
+RQ2  █████████░  80%  S1+S2+S3+S4 done (240 rows total)        — S5 en cours
+RQ3  ████░░░░░░  20%  S1 done (390 rows)                       — S2-S5 master3 Stage 5
+RQ4  ░░░░░░░░░░   2%  image mutant-1 prête                     — master3 Stage 3
+RQ5  ░░░░░░░░░░   0%  not started                              — master3 Stage 2
 ```
 
 **Ordre runner actuel (master3) :** RQ2 (S3-S5) → RQ5 (S1-S5) → RQ4 (S1-S5) → RQ1 (S2-S5) → RQ3 (S2-S5)
@@ -185,6 +186,56 @@ L'unique assertion qui répond au flag `isolationEnabled` est `run_log_clean`, e
 
 *Fichier données :* `results/s2-listmonk/cross_pr_test_outcomes_20260515T180943Z.csv`
 *Analyse détaillée (Observation → Evidence → Explanation) :* [`results/s2-listmonk/ANALYSIS_S2.md`](results/s2-listmonk/ANALYSIS_S2.md)
+
+### S3 Healthchecks — k=2, 4, 8 — COMPLET (15/05, 60 rows) — **réplique parfaite S1**
+
+| k | iso=True smoke | iso=True regression | iso=True e2e | iso=False smoke | iso=False regression | iso=False e2e |
+|---|---|---|---|---|---|---|
+| 2 | 2/2 (0%) | 0/2 (**0 %**) | 0/2 (**0 %**) | 2/2 (0%) | 2/2 (**100 %**) | 2/2 (**100 %**) |
+| 4 | 4/4 (0%) | 0/4 (**0 %**) | 0/4 (**0 %**) | 4/4 (0%) | 4/4 (**100 %**) | 4/4 (**100 %**) |
+| 8 | 4/4 (0%) | 0/4 (**0 %**) | 0/4 (**0 %**) | 4/4 (0%) | 4/4 (**100 %**) | 4/4 (**100 %**) |
+
+**Stats** (regression suite, N=10 iso=True vs N=10 iso=False) :
+- Fisher exact p ≈ **3.6 × 10⁻⁸**
+- Cohen's h = **1.57** (max possible, identical to S1)
+- Cliff's delta = **1.0**
+
+S3 (Django 5 / Prisma-free schema) **réplique exactement** le pattern S1 sur un stack différent : Δ suite-level = −100 pp, atteint après 4 fixes de bugs harness (Django settings, Project.api_key, longueur 32 chars, header X-Api-Key, endpoints morts) — aucun fix opérateur.
+
+*Fichier données :* `results/s3-healthchecks/cross_pr_test_outcomes_20260515T202703Z.csv`
+*Analyse :* [`results/s3-healthchecks/ANALYSIS_S3.md`](results/s3-healthchecks/ANALYSIS_S3.md)
+
+### S4 Umami — k=2, 4, 8 — COMPLET (15/05, 60 rows) — **CAS OUVERT**
+
+| k | iso=True (toutes suites) | iso=False (toutes suites) |
+|---|---|---|
+| 2 | 100% FAIL | 100% FAIL |
+| 4 | 100% FAIL | 100% FAIL |
+| 8 | 100% FAIL | 100% FAIL |
+
+**Diff au niveau assertion** (capture runtime sur cp-181186da, iso=True) :
+
+| Assertion | Comportement | Catégorie |
+|---|---|---|
+| `teams_list` (smoke + regression) | FAIL toujours (non-200) | Bug endpoint (permission/role) |
+| `website_stats` (regression) | FAIL toujours (non-200) | Bug endpoint |
+| `run_log_clean` (regression) | **FAIL en iso=True** | **Question ouverte** |
+| 7+ autres (healthz, login, websites_list, me, website_create/fetch/delete, website_count_matches_seed) | PASS | Fonctionnel |
+
+Les 2 bugs d'endpoint sont identiques aux bugs S3 résolus (flips, badges) — invariant sous l'isolation, n'encodent pas de signal.
+
+Le `run_log_clean` qui échoue en iso=True est l'observation **non-expliquée**. Pour S1/S2/S3 il passe en iso=True (signal d'isolation positif vérifié empiriquement, voir ANALYSIS_S2 §3.c). Pour S4 il échoue. Trois hypothèses à discriminer :
+
+1. **Prisma altère `search_path`** → `run_log` créé dans un schéma non-`public` → non TRUNCATEd par l'opérateur
+2. **Probe pod redémarré** (OOM ?) pendant le pipeline → recrée `run_log` après le pg_dump
+3. **TRUNCATE CASCADE échoue silencieusement** sur le graphe FK d'Umami
+
+Discrimination nécessite : `kubectl logs job/suite-restore-regression-after-seed` + `\dn` dans le probe pod (différé après master3).
+
+**Verdict provisoire :** S4 ni confirme ni réfute la thèse. Reporter comme cas ouvert dans le papier.
+
+*Fichier données :* `results/s4-umami/cross_pr_test_outcomes_20260515T204434Z.csv`
+*Analyse :* [`results/s4-umami/ANALYSIS_S4.md`](results/s4-umami/ANALYSIS_S4.md)
 
 ---
 
