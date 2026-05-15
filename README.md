@@ -89,38 +89,74 @@ equal model temperature.
 
 ## Subject Applications
 
-The harness supports five subject applications. Each subject ships a
-`harness-adapter/` directory containing a `Dockerfile`, a `wrapper.py` proxy
-entrypoint, a test suite, and a `meta.yaml` describing migration commands and
-service layout. A shared `probe/` sidecar manages the `run_log` isolation table
-and is injected into every S2–S5 preview.
+The harness evaluates five real open-source applications. Each subject is integrated
+without modifying its upstream source code. Integration consists of three added
+artefacts only: a `Dockerfile` layered on top of the upstream image, a `wrapper.py`
+proxy entrypoint, and a harness-specific test suite. A shared `probe/` sidecar
+manages the `run_log` isolation table and is injected into every S2–S5 preview.
 
-| ID | Name | Stack | Adapter image | Port |
+### Subject overview
+
+| ID | Application | Upstream repository | License | Pinned version |
 |---|---|---|---|---|
-| `s1-flask-catalog` | Flask Catalog | Python / Flask / Playwright | `ghcr.io/ihsenalaya/idp-preview` | 8080 |
-| `s2-listmonk` | Listmonk Newsletter | Go / Chi router | `ghcr.io/ihsenalaya/s2-listmonk-adapter:v2.5.1` | 9000 |
-| `s3-healthchecks` | Healthchecks | Python / Django / uWSGI | `ghcr.io/ihsenalaya/s3-healthchecks-adapter:v3.6` | 8000 |
-| `s4-umami` | Umami Analytics | Next.js / Node.js | `ghcr.io/ihsenalaya/s4-umami-adapter:v2.15.1` | 3000 |
-| `s5-petclinic` | Spring PetClinic REST | Java / Spring Boot / Flyway (Jib) | `ghcr.io/ihsenalaya/s5-petclinic-adapter:v3.4.0` | 9966 |
+| `s1-flask-catalog` | Flask Product Catalog | internal (custom-built reference) | internal | `exp-20260514` |
+| `s2-listmonk` | Listmonk Newsletter Manager | [knadh/listmonk](https://github.com/knadh/listmonk) | AGPL-3.0 | `v2.5.1` |
+| `s3-healthchecks` | Healthchecks Cron Monitor | [healthchecks/healthchecks](https://github.com/healthchecks/healthchecks) | BSD-3-Clause | `v3.6` |
+| `s4-umami` | Umami Web Analytics | [umami-software/umami](https://github.com/umami-software/umami) | MIT | `v2.15.1` |
+| `s5-petclinic` | Spring PetClinic REST | [spring-petclinic/spring-petclinic-rest](https://github.com/spring-petclinic/spring-petclinic-rest) | Apache-2.0 | `3.4.0` |
+
+### Detailed subject table
+
+| Attribute | S1 Flask Catalog | S2 Listmonk | S3 Healthchecks | S4 Umami | S5 PetClinic |
+|---|---|---|---|---|---|
+| **Language** | Python 3 | Go | Python 3 | TypeScript | Java |
+| **Framework** | Flask 3 | Chi router | Django 5 | Next.js 14 | Spring Boot 3 |
+| **Database** | PostgreSQL | PostgreSQL | PostgreSQL | PostgreSQL | PostgreSQL |
+| **Migration mechanism** | Alembic | `listmonk --install` | `manage.py migrate` | Prisma migrate | Flyway (auto on startup) |
+| **Seed entity** | products (5 rows) | mailing lists (3 rows) | cron checks (2 rows) | websites (1 row) | pets (13 rows, Flyway) |
+| **Upstream image used** | custom (`idp-preview`) | `listmonk/listmonk:v2.5.1` | `healthchecks/healthchecks:v3.6` | `ghcr.io/umami-software/umami:postgresql-v2.15.1` | `springcommunity/spring-petclinic-rest:3.4.0` |
+| **Adapter image** | `ghcr.io/ihsenalaya/idp-preview` | `ghcr.io/ihsenalaya/s2-listmonk-adapter:v2.5.1` | `ghcr.io/ihsenalaya/s3-healthchecks-adapter:v3.6` | `ghcr.io/ihsenalaya/s4-umami-adapter:v2.15.1` | `ghcr.io/ihsenalaya/s5-petclinic-adapter:v3.4.0` |
+| **Test origin** | written for harness | added by harness | added by harness | added by harness | added by harness |
+| **Test scope** | REST CRUD + run_log probe | REST API (lists, subscribers) | REST API v3 (checks, pings) | REST API (auth, pageviews) | REST API (pets, vets, owners) |
+| **Added wrapper files** | — (source is the image) | `wrapper.py`, `Dockerfile`, `tests/`, `requirements.txt` | `wrapper.py`, `Dockerfile`, `tests/` | `wrapper.py`, `Dockerfile`, `tests/`, `requirements.txt` | `wrapper.py`, `Dockerfile`, `tests/`, `requirements.txt` |
+| **Upstream source modified** | N/A | No | No | No | No |
+| **Probe sidecar** | embedded in app | shared `harness-probe` | shared `harness-probe` | shared `harness-probe` | shared `harness-probe` |
+| **RQ4 mutation target** | `testapp/app.py` | — | — | — | — |
+
+**Test origin note:** the upstream applications do not ship REST integration test
+suites compatible with the harness pipeline. For S2–S5, all test scripts
+(`smoke.py`, `regression.py`, `e2e.py`) were written for this study, targeting each
+application's public REST API with scenarios exercising the seeded entities. No
+upstream unit or integration tests were modified or reused.
 
 ### Adapter architecture
 
-Each adapter image is built on top of the upstream application image (not a
-separate base image), adding only `python3`, the wrapper proxy, and the test suite:
+Each adapter image is built on top of the upstream official Docker image without
+modifying the application binary:
 
 ```
-FROM <upstream-image>          # e.g. springcommunity/spring-petclinic-rest:3.4.0
+FROM <upstream-official-image>     # e.g. springcommunity/spring-petclinic-rest:3.4.0
 USER root
-RUN <install python3 + pip>
-COPY tests/ /app/tests/
+RUN <install python3 + pip>        # alpine: apk; debian: apt-get
+COPY tests/     /app/tests/
 COPY wrapper.py /wrapper.py
+EXPOSE <port>
 CMD ["python3", "/wrapper.py"]
 ```
 
 `wrapper.py` starts the upstream process, waits for it to become ready, then serves:
 
-- `GET /healthz` → `200 ok` (liveness probe)
-- All other paths → transparent reverse proxy to the upstream port
+- `GET /healthz` → `200 ok` (liveness probe for the operator)
+- All other paths → transparent HTTP reverse proxy to the upstream port
+
+The upstream process start command varies by subject:
+
+| Subject | Start command |
+|---|---|
+| S2 Listmonk | `/listmonk --config=/tmp/listmonk-config.toml` |
+| S3 Healthchecks | `uwsgi --http-socket 0.0.0.0:8001 --module hc.wsgi:application` |
+| S4 Umami | `node server.js` (Next.js production server) |
+| S5 PetClinic | `java -cp @/app/jib-classpath-file org.springframework.samples.petclinic.PetClinicApplication` (Jib exploded JAR) |
 
 ### Probe sidecar
 
@@ -130,10 +166,14 @@ exposes `/probe` endpoints consumed by test suites.
 
 ### S1 reference subject
 
-- Source directory: `testapp/`
+S1 is a custom-built Flask/PostgreSQL REST API written for this study. It is the
+sole mutation target for RQ4. Its source lives in `testapp/` and is not colocated
+under `subjects/s1-flask-catalog/` for historical reasons.
+
+- Source: `testapp/`
 - Metadata: `subjects/s1-flask-catalog/meta.yaml`
 - Tests: `testapp/tests/smoke.py`, `testapp/tests/regression.py`, `testapp/tests/e2e.py`
-- Mutation targets: `testapp/app.py` (used by RQ4 only)
+- Mutation targets: `testapp/app.py` (RQ4 only)
 
 ---
 
