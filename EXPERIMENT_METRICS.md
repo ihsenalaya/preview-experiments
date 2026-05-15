@@ -47,6 +47,26 @@ RQ5  ░░░░░░░░░░   0%  not started               — démarre
 
 ---
 
+## Durées réelles par expérience — S1 Flask Catalog
+
+> Mesurées à partir des timestamps dans les CSV (UTC)
+
+| Expérience | Sujet | Runs | Durée totale | Durée/run | Statut |
+|---|---|---|---|---|---|
+| **RQ1 Flakiness** | S1 | 60 runs (30+30) | **1h 13m** | ~73 s/run | ✅ Terminé |
+| **RQ3 Performance** | S1 | 60 runs (30+30) | **1h 13m** | ~73 s/run | ✅ Terminé |
+| **RQ2 Cross-PR** | S1 | 6 batchs (k=2,4,8 × iso=T/F) | **12 min** | ~122 s/batch | ✅ Terminé |
+| RQ1 Flakiness | S2–S5 | 60 runs × 4 sujets | **~4h 52m** estimé | ~73 s/run | ⏳ À faire |
+| RQ3 Performance | S2–S5 | 60 runs × 4 sujets | **~4h 52m** estimé | ~73 s/run | ⏳ À faire |
+| RQ2 Cross-PR | S2–S5 | 6 batchs × 4 sujets | **~48 min** estimé | ~122 s/batch | ⏳ À faire |
+| **RQ5 Idempotence** | S1–S5 | 6 steps × 3 restarts × 5 sujets | **~12–15 h** estimé | — | ⏳ Pas démarré |
+| **RQ4 Bug Detection** | S1 | 50 mutations × 3 conditions | **~62 h** estimé | — | ⏳ Pas démarré |
+
+**Temps restant total (cluster local séquentiel) :** ~80 h  
+**Temps restant total (avec vrai cluster parallèle) :** ~8–10 h
+
+---
+
 ## Durées des tests — S1 Flask Catalog (vue synthétique)
 
 > Source : `performance_run_metrics_20260515T125712Z.csv` — N=30 runs par condition
