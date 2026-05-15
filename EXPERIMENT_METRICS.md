@@ -204,11 +204,13 @@ RQ5  ░░░░░░░░░░   0%  not started               — démarre
 
 > Source : `postgres-migrate` mesuré (N=30, σ=0.75 s) — migration reset est **théorique**, dérivé des mêmes données.
 
-| Condition | Mécanisme | Correctness | Overhead isolation | Pipeline total |
+| Condition | Mécanisme | Résultat regression+e2e | Overhead isolation | Pipeline total (mesuré/théorique) |
 |---|---|---|---|---|
-| **No isolation** | État partagé | ❌ 100% fail | 0 s | 37.8 s (incomplet) |
-| **Migration reset** | Re-run migration × 2 | ✅ Élimine flakiness | **37.6 s** (2 × 18.8 s, CI [37.0, 38.2]) | **80.7 s** (théorique) |
-| **Checkpoint restore** | pg_dump → psql × 2 | ✅ Élimine flakiness | **14.6 s** (CI [14.2, 15.0]) | **73.2 s** (mesuré) |
+| **No isolation** | État partagé | ❌ 100% fail (DB polluée par smoke) | 0 s | **37.8 s** mesuré — toutes les suites s'exécutent, regression+e2e échouent |
+| **Migration reset** | Re-run migration × 2 | ✅ 0% fail | **37.6 s** (2 × 18.8 s, CI [37.0, 38.2]) | **80.7 s** théorique |
+| **Checkpoint restore** | pg_dump → psql × 2 | ✅ 0% fail | **14.6 s** (CI [14.2, 15.0]) | **73.2 s** mesuré |
+
+> **Note :** iso=False exécute bien les 3 suites (smoke, regression, e2e). Les 37.8 s sont réels et incluent les suites en échec. La différence avec iso=True (73.2 s) vient à la fois de l'overhead checkpoint (14.6 s) et du fait que regression+e2e terminent normalement sous iso=True (vs échec rapide sous iso=False).
 
 **Checkpoint est 2.57× plus rapide** que migration reset pour l'overhead d'isolation (14.6 / 37.6).  
 **Économie par lifecycle :** 37.6 − 14.6 = **23.0 s** par run.  

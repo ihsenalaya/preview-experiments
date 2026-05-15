@@ -134,11 +134,16 @@ full database migration (schema + seed) before each dependent suite, restoring t
 database to its post-migration state without maintaining a snapshot. This comparison
 is derived theoretically from the measured `postgres-migrate` step duration.
 
-| Condition | Isolation mechanism | Correctness | Overhead | Pipeline total |
+| Condition | Isolation mechanism | regression+e2e outcome | Overhead | Pipeline total |
 |---|---|---|---|---|
-| **No isolation** | None — shared dirty state | ❌ 100% fail rate | 0 s | 37.8 s (incomplete) |
-| **Migration reset** | Re-run full migration × 2 | ✅ Eliminates flakiness | **37.6 s** (2 × 18.8 s) | **80.7 s** (theoretical) |
-| **Checkpoint restore** | pg_dump → psql restore × 2 | ✅ Eliminates flakiness | **14.6 s** | **73.2 s** (measured) |
+| **No isolation** | None — shared dirty state | ❌ 100% fail (DB polluted by smoke) | 0 s | **37.8 s** measured — all suites execute, regression+e2e fail |
+| **Migration reset** | Re-run full migration × 2 | ✅ 0% fail | **37.6 s** (2 × 18.8 s, CI [37.0, 38.2]) | **80.7 s** theoretical |
+| **Checkpoint restore** | pg_dump → psql restore × 2 | ✅ 0% fail | **14.6 s** (CI [14.2, 15.0]) | **73.2 s** measured |
+
+> **Important:** iso=False runs all three suites (smoke, regression, e2e). The 37.8 s
+> is the real measured total and includes the failing suites. The gap vs iso=True
+> (73.2 s) reflects both the checkpoint overhead (14.6 s) and the fact that
+> regression+e2e complete normally under iso=True versus failing quickly under iso=False.
 
 ```
 Migration reset pipeline (theoretical):
