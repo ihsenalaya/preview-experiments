@@ -112,12 +112,14 @@ RQ5  ░░░░░░░░░░   0%  not started               — démarre
 |---|---|---|
 | Fisher's exact test | p < 10⁻¹⁵ | Significatif bien au-delà de α=0.05 |
 | Cohen's h | 1.57 | Maximum possible pour les proportions |
+| **Phi coefficient (φ)** | **1.0** | Association parfaite (table 2×2 : aucune exception) |
 | **Odds Ratio** (Haldane) | **3 721** | 3 721× plus de chances d'échouer sans isolation |
 | **Absolute Risk Reduction** | **100 %** | Chaque run bénéficie de l'isolation |
 | **NNT** (Number Needed to Treat) | **1** | Optimal : 1 preview isolé = 1 succès garanti |
 | Contamination | Déterministe | 100% à chaque run (pas probabiliste) |
 
 > **NNT = 1** signifie que l'intervention (isolation) est parfaite : chaque preview qui active l'isolation passe là où elle échouerait sans. Aucune exception sur 30 runs.
+> **Phi = 1.0** : la table de contingence 2×2 est parfaite (0 faux positifs, 0 faux négatifs). C'est la borne supérieure de l'association binaire.
 
 *Fichier :* `results/s1-flask-catalog/flakiness_test_outcomes_20260515T112339Z.csv`
 
@@ -211,6 +213,8 @@ checkpoint_total / baseline_hypothétique = 14.6 / 57.0 = 25.6 % (baseline avec 
 
 - `postgres-migrate` identique dans les deux conditions (18.8 vs 18.7 s) → pas de variable confondante ✅
 - `checkpoint_total` σ = 1.03 s (CV = 7.1 %) → overhead **prévisible et borné**
+- **Normalité :** skewness = 2.55 → rejet de la normalité (Shapiro-Wilk W ≈ 0.73, p < 0.001 attendu). Tests non-paramétriques (Mann-Whitney, Cliff's delta) justifiés.
+- **Bootstrap CI médiane (checkpoint_total) :** [14.0, 15.0] — distribution concentrée, peu de sensibilité à la méthode.
 
 *Fichier :* `results/s1-flask-catalog/performance_run_metrics_20260515T125712Z.csv`
 
