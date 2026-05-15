@@ -9,8 +9,8 @@ import requests
 
 BASE = os.environ.get("APP_URL", "http://svc-backend:8000")
 PROBE = os.environ.get("PROBE_URL", "http://svc-probe:9090")
-API_KEY = os.environ.get("HC_API_KEY", "harness-api-key-exp0000000000000000")
-HDRS = {"Authorization": f"ApiKey {API_KEY}"}
+API_KEY = os.environ.get("HC_API_KEY", "harness-api-key-aaaaaaaaaaaaaaaa")
+HDRS = {"X-Api-Key": API_KEY}
 
 passed = failed = 0
 

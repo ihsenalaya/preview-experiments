@@ -29,7 +29,9 @@ migration_command:
     os.environ['DB_SSLMODE'] = 'disable'
     os.environ['SECRET_KEY'] = 'harness-init-key'
     os.environ['ALLOWED_HOSTS'] = '*'
+    os.environ['DJANGO_SETTINGS_MODULE'] = 'hc.settings'
     os.chdir('/opt/healthchecks')
+    sys.path.insert(0, '/opt/healthchecks')
     r = subprocess.run([sys.executable, 'manage.py', 'migrate', '--noinput'], capture_output=True, text=True)
     print(r.stdout[-500:] if r.stdout else ''); print(r.stderr[-200:] if r.stderr else '')
     if r.returncode != 0: sys.exit(1)
@@ -41,10 +43,13 @@ migration_command:
         defaults={'email': 'harness@exp.local', 'is_superuser': True, 'is_staff': True})
     u_obj.set_password('harness123'); u_obj.save()
     prof, _ = Profile.objects.get_or_create(user=u_obj)
-    prof.api_key = 'harness-api-key-exp0000000000000000'; prof.save()
     proj = Project.objects.filter(owner=u_obj).first()
     if not proj:
         proj = Project.objects.create(owner=u_obj, name='Harness')
+    # Healthchecks REST API auth: Project.api_key (NOT Profile.api_key);
+    # X-Api-Key header; key length must be exactly 32 chars.
+    proj.api_key = 'harness-api-key-aaaaaaaaaaaaaaaa'  # 32 chars
+    proj.save()
     for name in ['Seed Check 1', 'Seed Check 2']:
         Check.objects.get_or_create(name=name, project=proj)
     print('PASS migration healthchecks: OK')
