@@ -31,7 +31,8 @@ migration_command:
     print('Config written to /tmp/listmonk-config.toml')
     PYEOF
     /listmonk/listmonk --config=/tmp/listmonk-config.toml --install --yes 2>&1 | tail -3 &&
-    apt-get install -y -q postgresql-client 2>/dev/null | tail -1 &&
+    apt-get update -q 2>/dev/null &&
+    apt-get install -y postgresql-client 2>/dev/null &&
     psql "$DATABASE_URL" -c "INSERT INTO lists (name, type, optin, tags, created_at, updated_at) SELECT name, type, optin, tags, NOW(), NOW() FROM (VALUES ('Seed List 1','public','single',ARRAY[]::text[]),('Seed List 2','public','double',ARRAY[]::text[]),('Seed List 3','private','single',ARRAY[]::text[])) AS t(name,type,optin,tags) ON CONFLICT DO NOTHING" &&
     echo 'PASS migration listmonk install+seed: OK'
 
