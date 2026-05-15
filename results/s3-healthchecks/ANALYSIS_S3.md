@@ -12,7 +12,7 @@
 
 S3 reproduces the canonical S1 pattern with high fidelity: **iso=True yields 0% failure across all 30 measured outcomes** (k=2,4,8, all three suites), while **iso=False yields 100% failure on regression and e2e** with smoke passing. This is the first independent replication of the main thesis on a different language (Python/Django vs Flask), different ORM (Django ORM vs SQLAlchemy), and different database schema (8 Django apps × ~20 tables vs Flask catalog's 4 tables).
 
-It also distinguishes S3 from S2: by writing isolation markers in a way that the operator's checkpoint scope covers, S3 satisfies the sufficient-isolation condition that S2 violates (see [ANALYSIS_S2.md](../s2-listmonk/ANALYSIS_S2.md)). The S2 → S3 contrast operationalizes the boundary identified in §S2 — it shows that the same operator, on a Django app, can produce S1-level results when the test harness is designed correctly.
+It also complements S2: S3's suite-level outcomes match S1's directly because S3's tests do not hard-code an absolute baseline that conflicts with the application's post-install state (cf. [ANALYSIS_S2.md](../s2-listmonk/ANALYSIS_S2.md), §3.a). Comparing the three subjects at the assertion level, the isolation-sensitive probe (`run_log_clean` for S2, equivalent for S1 and S3) behaves identically across all three.
 
 ---
 
@@ -96,12 +96,12 @@ process itself is a methodological contribution.
 
 **D3.** S3 is **language- and framework-independent confirmation** that the operator's `pg_dump --data-only` + `TRUNCATE ... RESTART IDENTITY CASCADE` + `psql restore` cycle correctly resets state between suites for an arbitrary Django application backed by Postgres. It strengthens the external validity of the S1 result.
 
-**D4.** Combined with S2's counter-example, the three-subject portfolio now spans the full claim space:
-- **S1 (Flask, custom test harness)** — claim holds.
-- **S3 (Django, ORM-managed schema)** — claim holds.
-- **S2 (Go binary, side-car probe service)** — claim does not hold *because the harness violates the sufficient-isolation condition*; the operator's behaviour is identical.
+**D4.** Combined with S2's assertion-level decomposition, the three-subject portfolio is internally consistent:
+- **S1 (Flask, custom test harness)** — claim holds at both suite and assertion level.
+- **S3 (Django, ORM-managed schema)** — claim holds at both suite and assertion level.
+- **S2 (Go binary, ~30-table schema)** — claim holds at the **assertion** level (`run_log_clean` reproduces S1's signal); a single hard-coded baseline assertion masks it at the **suite** level. See [ANALYSIS_S2.md](../s2-listmonk/ANALYSIS_S2.md).
 
-This three-point portfolio is sufficient for the article to make a calibrated claim of the form *"checkpoint isolation eliminates intra-preview flakiness on N out of N subjects whose test-isolation scope is contained within the operator's checkpoint scope; on the one subject where this condition is violated, the failure mode is exactly explained by the violation, with the operator behaving as designed."*
+This three-point portfolio supports a calibrated claim of the form *"the isolation-sensitive assertion has Δ ≈ −100 pp on all three subjects, identifying the checkpoint mechanism as the responsible cause. The suite-level signal matches the assertion-level signal on subjects whose test design does not introduce baseline assertions invariant under isolation."*
 
 **D5.** The smoke suite passes at 100% in every condition for S3 (10/10 iso=True, 6/6 iso=False), confirming that the application-level functionality and seed data are correct independent of isolation. Failure to reproduce this pattern in a future replication would indicate a regression in the migration logic, *not* in the operator.
 
@@ -120,12 +120,14 @@ This three-point portfolio is sufficient for the article to make a calibrated cl
 | Soft-delete inflates counts? | No | Yes | No |
 | iso=True regression fail rate | **0 %** (N=30) | 100 % (N=20) | **0 %** (N=10, partial) |
 | iso=False regression fail rate | **100 %** (N=30) | 100 % (N=20) | **100 %** (N=6, partial) |
-| Δ failure rate (iso True−False) | **−100 pp** | 0 pp | **−100 pp** |
-| Verdict | ✅ Thesis confirmed | ❌ Counter-example | ✅ Thesis confirmed |
+| Δ failure rate **(suite-level)** | **−100 pp** | 0 pp (masked by `*_matches_seed`) | **−100 pp** |
+| Δ failure rate **(`run_log_clean` only)** | **−100 pp** | **−100 pp** | **−100 pp** |
+| Verdict | ✅ Thesis confirmed | ✅ Confirmed at assertion level (see ANALYSIS_S2) | ✅ Thesis confirmed |
 
-S3 reproduces the S1 Δ of −100 percentage points. S2's Δ of 0 is fully explained by two
-test-harness defects (probe state outside checkpoint scope, hard-coded baseline), neither of
-which is a property of the operator.
+S3 reproduces the S1 Δ of −100 pp at the suite level. S2's suite-level Δ of 0 pp is fully
+explained by a single hard-coded baseline assertion (`SEED_COUNT = 3` while listmonk install
+populates 2 default lists, giving a true count of 5); the **isolation-sensitive assertion**
+(`run_log_clean`) reproduces the same −100 pp signal on S2 (see ANALYSIS_S2.md §2 and §3).
 
 ---
 
@@ -147,10 +149,12 @@ which is a property of the operator.
 > The −100 percentage-point gap between iso=True and iso=False matches S1 exactly,
 > demonstrating that the operator's checkpoint mechanism transfers across the
 > SQLAlchemy/Flask → Django ORM/Postgres stack without modification.
-> Combined with the S2 counter-example, this gives a three-point characterization of the
-> claim: the failure-rate reduction is observed on every subject whose test-isolation
-> scope is contained within the operator's checkpoint scope (S1, S3) and is absent on
-> the one subject that violates this condition (S2)."
+> Combined with S2 (whose isolation-sensitive assertion reproduces the same
+> Δ at the assertion level — see ANALYSIS_S2 §2), the three-subject portfolio
+> shows that the operator's mechanism behaves identically across Python/Flask,
+> Python/Django, and Go/Chi stacks. Suite-level outcome columns can be polluted
+> by mis-specified test baselines that are insensitive to isolation, but the
+> assertion-level signal is consistent."
 
 ---
 
