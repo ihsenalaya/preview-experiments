@@ -2,7 +2,7 @@
 
 Paper: *Checkpoint-based Database Isolation Eliminates Non-deterministic Test Variance
 in Kubernetes Preview Environments*
-Last updated: 2026-05-15T15:45Z
+Last updated: 2026-05-15T16:14Z
 
 ---
 
@@ -17,27 +17,31 @@ Last updated: 2026-05-15T15:45Z
 | RQ1 Flakiness | S4 Umami | — | 0/30 | ❌ → à relancer |
 | RQ1 Flakiness | S5 PetClinic | — | 0/30 | ❌ → à relancer |
 | **RQ2 Cross-PR** | S1 Flask k=2,4,8 | iso=True+False | complet | ✅ Données 14/05 (84 rows) |
-| RQ2 Cross-PR | S1 Flask (re-run) | — | 36 rows | 🔄 En cours (k=8-isoFalse) |
-| RQ2 Cross-PR | S2–S5 | — | 0 | ❌ → à relancer |
+| RQ2 Cross-PR | S1 Flask (re-run) | k=2,4 | 37 rows | ✅ Confirmé (k2+k4 iso=True+False) |
+| RQ2 Cross-PR | S1 Flask (re-run) | k=8 | — | ❌ Timeout mémoire (données 14/05 valides) |
+| RQ2 Cross-PR | S2 Listmonk | — | 0 | 🔄 En cours — migration Failed (attendu, timeout ~18h47) |
+| RQ2 Cross-PR | S3–S5 | — | 0 | ⏳ En attente (après crash S2) |
 | **RQ3 Performance** | S1 Flask | iso=True | 30/30 | ✅ Complet |
 | **RQ3 Performance** | S1 Flask | iso=False | 30/30 | ✅ Complet |
 | RQ3 Performance | S2–S5 | — | 0/30 | ❌ → à relancer (méta corrigé) |
-| RQ4 Bug Detection | S1 Flask | static (1 mutant) | 3 rows | 🔄 Image mutante prête, Preview en cours |
+| RQ4 Bug Detection | S1 Flask | static (1 mutant) | 3 rows | ⏳ Image mutant-1 pushée sur ghcr.io — démarre après RQ5 |
 | RQ4 Bug Detection | S1 Flask | llm_fixed + llm_free | 0 | ⏳ En attente |
 | RQ4 Bug Detection | S1 Flask | 49 mutants restants | 0 | ⏳ En attente (~62 h) |
-| RQ5 Idempotence | S1–S5 | — | 0 | ⏳ En attente |
+| RQ5 Idempotence | S1–S5 | — | 0 | ⏳ En attente (démarre après RQ2) |
 
 ---
 
 ## Avancement global
 
 ```
-RQ1  ████░░░░░░  20%  S1 done (510 rows) — S2-S5 pending
-RQ2  ████░░░░░░  20%  S1 done (84 rows)  — S2-S5 pending
-RQ3  ████░░░░░░  20%  S1 done (390 rows) — S2-S5 pending
-RQ4  ░░░░░░░░░░   2%  1/50 mutants, 1/3 conditions
-RQ5  ░░░░░░░░░░   0%  not started
+RQ1  ████░░░░░░  20%  S1 done (510 rows)        — S2-S5 à relancer
+RQ2  █████░░░░░  22%  S1 done + re-run k2/k4    — S2 en cours (crash), S3-S5 pending
+RQ3  ████░░░░░░  20%  S1 done (390 rows)        — S2-S5 à relancer
+RQ4  ░░░░░░░░░░   2%  image mutant-1 prête      — démarre après RQ5
+RQ5  ░░░░░░░░░░   0%  not started               — démarre après RQ2
 ```
+
+**Ordre runner actuel :** RQ2 (en cours) → RQ5 → RQ4
 
 **Données paper-ready :** RQ1 + RQ2 + RQ3 pour S1 sont complets, analysés, poussés sur remote.
 
@@ -65,15 +69,16 @@ RQ5  ░░░░░░░░░░   0%  not started
 
 **S1 Flask Catalog — k=2, 4, 8 previews simultanées — COMPLET (données 14/05)**
 
-| k | iso=False regression | iso=False e2e | iso=True (toutes suites) |
-|---|---|---|---|
-| 2 | 2/2 fail **100 %** | 2/2 fail **100 %** | 0/6 fail **0 %** |
-| 4 | 4/4 fail **100 %** | 4/4 fail **100 %** | 0/12 fail **0 %** |
-| 8 | 8/8 fail **100 %** | 8/8 fail **100 %** | 0/24 fail **0 %** |
+| k | iso=False regression | iso=False e2e | iso=True (toutes suites) | Source |
+|---|---|---|---|---|
+| 2 | 2/2 fail **100 %** | 2/2 fail **100 %** | 0/6 fail **0 %** | 14/05 + ✅ confirmé 15/05 |
+| 4 | 4/4 fail **100 %** | 4/4 fail **100 %** | 0/12 fail **0 %** | 14/05 + ✅ confirmé 15/05 |
+| 8 | 8/8 fail **100 %** | 8/8 fail **100 %** | 0/24 fail **0 %** | 14/05 uniquement |
 
 - Taux d'échec **constant** quel que soit k → contamination intra-preview, pas cross-PR
 - Hypothèse initiale (croissance avec k) **réfutée** → découverte architecturale
 - Isolation checkpoint efficace à **tous** les niveaux de concurrence
+- **Re-run 15/05 confirme k=2 et k=4** — résultats reproductibles
 
 *Fichier :* `results/cross_pr_test_outcomes_20260514T211354Z.csv`
 
