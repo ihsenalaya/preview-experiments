@@ -47,6 +47,33 @@ RQ5  ░░░░░░░░░░   0%  not started               — démarre
 
 ---
 
+## Durées des tests — S1 Flask Catalog (vue synthétique)
+
+> Source : `performance_run_metrics_20260515T125712Z.csv` — N=30 runs par condition
+
+| Étape du pipeline | iso=True | iso=True σ | iso=False | Rôle |
+|---|---|---|---|---|
+| `postgres-migrate` | **18.8 s** | ±0.75 s | 18.7 s | Migration DB + seed |
+| `smoke` | **4.8 s** | ±0.61 s | 4.5 s | Suite de tests 1 (toujours OK) |
+| `saving` | **4.2 s** | ±0.63 s | — | pg_dump → ConfigMap |
+| `regression` | **4.7 s** | ±0.45 s | — | Suite de tests 2 |
+| `restore-regression` | **5.2 s** | ±0.41 s | — | psql restore avant regression |
+| `e2e` | **14.8 s** | ±1.46 s | — | Suite de tests 3 |
+| `restore-e2e` | **5.2 s** | ±0.41 s | — | psql restore avant e2e |
+| **`checkpoint_total`** | **14.6 s** | ±1.03 s | — | **Total overhead isolation** |
+| **Pipeline total** | **73.2 s** | ±2.48 s | **37.8 s** ±1.02 s | Lifecycle complet |
+
+**Lecture rapide :**
+- Durée d'un test smoke : **4.8 s**
+- Durée d'un test regression : **4.7 s**
+- Durée d'un test e2e : **14.8 s** (le plus long — end-to-end browser)
+- Coût d'un restore (psql) : **5.2 s**
+- Coût d'un save (pg_dump) : **4.2 s**
+- Pipeline complet **avec** isolation : **73.2 s** (~1 min 13 s)
+- Pipeline complet **sans** isolation : **37.8 s** (~38 s) — mais regression + e2e échouent
+
+---
+
 ## RQ1 — Test Flakiness
 
 **S1 Flask Catalog — n=30 par condition — COMPLET**
