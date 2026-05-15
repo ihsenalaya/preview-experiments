@@ -13,6 +13,7 @@ seed_entity: lists
 seed_count: 3
 
 # Installs schema then seeds 3 mailing lists
+# Fix: binary is at /listmonk/listmonk (directory), psql installed at runtime
 migration_command:
   - sh
   - -c
@@ -29,7 +30,8 @@ migration_command:
     open('/tmp/listmonk-config.toml', 'w').write(cfg)
     print('Config written to /tmp/listmonk-config.toml')
     PYEOF
-    /listmonk --config=/tmp/listmonk-config.toml --install --yes 2>&1 | tail -3 &&
+    /listmonk/listmonk --config=/tmp/listmonk-config.toml --install --yes 2>&1 | tail -3 &&
+    apt-get install -y -q postgresql-client 2>/dev/null | tail -1 &&
     psql "$DATABASE_URL" -c "INSERT INTO lists (name, type, optin, tags, created_at, updated_at) SELECT name, type, optin, tags, NOW(), NOW() FROM (VALUES ('Seed List 1','public','single',ARRAY[]::text[]),('Seed List 2','public','double',ARRAY[]::text[]),('Seed List 3','private','single',ARRAY[]::text[])) AS t(name,type,optin,tags) ON CONFLICT DO NOTHING" &&
     echo 'PASS migration listmonk install+seed: OK'
 

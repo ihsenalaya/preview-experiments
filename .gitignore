@@ -5,3 +5,5 @@ analysis/*.ipynb
 __pycache__/
 *.pyc
 .mutmut-cache/
+testapp/.mutmut-cache
+logs/
