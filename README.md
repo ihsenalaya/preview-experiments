@@ -3,155 +3,190 @@
 ## Title
 
 This repository contains the experimental harness used to evaluate checkpoint-based
-database isolation in Kubernetes preview environments. It is intended as a
-reproducibility-oriented artefact for an empirical software engineering paper and
-documents the current state of the harness conservatively, without claiming
-artefacts, results, or subject integrations that are not present in the repository.
+database isolation in Kubernetes preview environments. It is a reproducibility-oriented
+artefact for an empirical software engineering paper targeting a Q1 IEEE/Springer venue.
 
 ## Problem Statement
 
 Preview environments execute migrations, seed data, and multiple test suites inside
 ephemeral Kubernetes namespaces. Without explicit database reset points, state
-created by one suite can leak into later suites, which may increase failure
-variability and complicate interpretation of test outcomes. This repository studies
-whether checkpoint-based restoration mitigates such state pollution, what runtime
-overhead it introduces, and how robust the operator remains under concurrency,
-mutation-based fault seeding, and controller restarts.
+created by one suite can leak into later suites, increasing failure variability and
+complicating interpretation of test outcomes. This repository studies whether
+checkpoint-based restoration mitigates such state pollution, what runtime overhead it
+introduces, and how robust the operator remains under concurrency, mutation-based
+fault seeding, and controller restarts.
 
-This repository should be described as `preview-experiments` or
-`experimentation/`. Several names coexist in the tree and must be interpreted
-carefully:
+Naming conventions used in this tree:
 
-- `preview-operator` refers to the operator repository used by the harness, not to this repository.
-- `idp-preview` refers to the current application image/repository configured in `config.yaml`.
-- `s1-flask-catalog` is the canonical identifier of the current reference subject.
-- `testapp/` contains the source code of the current reference subject.
-- `preview-env` is not a repository or directory name in this tree and should be avoided in the paper text.
+- `preview-operator` — the operator repository consumed by the harness (separate repo).
+- `idp-preview` — the application image for the S1 reference subject.
+- `s1-flask-catalog` — canonical identifier of the reference subject.
+- `testapp/` — source code of the S1 reference subject.
+- `subjects/sN-*/harness-adapter/` — adapter image source for subjects S2–S5.
+
+---
 
 ## Research Questions
 
 ### RQ1 — Flakiness reduction with checkpoint-based database isolation
 
-- Objective: Evaluate whether checkpoint save/restore reduces suite-level failure variability relative to a no-isolation baseline.
+- Objective: evaluate whether checkpoint save/restore reduces suite-level failure variability relative to a no-isolation baseline.
 - Independent variables: `isolation_enabled ∈ {true, false}`; subject ID.
-- Metrics measured: `failure_rate`, `suite_pass_rate`; step-level timings are also captured and can support contextual interpretation. `flaky_test_rate` and `state_contamination_rate` are desirable reporting metrics but are not yet emitted directly as dedicated CSV columns.
-- Number of runs: 30 runs per isolation condition per enabled subject, as specified in `config.yaml`.
-- Expected output: `results/flakiness_test_outcomes_<timestamp>.csv`.
-- Planned statistical test: Mann-Whitney U, Fisher's exact test, and Vargha-Delaney effect size.
+- Metrics: `failure_rate`, `suite_pass_rate`; step-level timings.
+- Runs: 30 per isolation condition per subject (`config.yaml`).
+- Output: `results/flakiness_test_outcomes_<timestamp>.csv`.
+- Statistical test: Mann-Whitney U, Fisher's exact test, Vargha-Delaney effect size.
 
-### RQ2 — Cross-preview / cross-PR state pollution under concurrency
+### RQ2 — Cross-preview state pollution under concurrency
 
-- Objective: Evaluate whether higher concurrency amplifies failure rates when isolation is disabled.
+- Objective: evaluate whether higher concurrency amplifies failure rates when isolation is disabled.
 - Independent variables: `concurrency_K ∈ {2, 4, 8}`; `isolation_enabled ∈ {true, false}`; subject ID.
-- Metrics measured: `cross_preview_failure_rate`, `suite_pass_rate`; `queueing_delay_sec` is desirable but not currently emitted as a dedicated metric.
-- Number of runs: the current implementation launches one concurrent batch per `K × isolation × subject` for each invocation of `exp_cross_pr/run.py`. Additional replications require rerunning the script and aggregating CSV files.
-- Expected output: `results/cross_pr_test_outcomes_<timestamp>.csv`.
-- Planned statistical test: Mann-Whitney U and Vargha-Delaney effect size per concurrency level.
+- Metrics: `cross_preview_failure_rate`, `suite_pass_rate`.
+- Runs: one concurrent batch per `K × isolation × subject` per script invocation.
+- Output: `results/cross_pr_test_outcomes_<timestamp>.csv`.
+- Statistical test: Mann-Whitney U and Vargha-Delaney effect size per concurrency level.
 
 ### RQ3 — Performance overhead of checkpoint/restore isolation
 
-- Objective: Quantify the time cost of checkpoint save/restore relative to overall pipeline duration.
+- Objective: quantify the time cost of checkpoint save/restore relative to overall pipeline duration.
 - Independent variables: `isolation_enabled ∈ {true, false}`; subject ID.
-- Metrics measured: `checkpoint_save_time_sec`, `checkpoint_restore_time_sec`, `pipeline_duration_sec`, `overhead_pct`. CPU and memory summaries are desirable but are not written automatically by the current experiment scripts.
-- Number of runs: 30 runs per isolation condition per enabled subject. This README documents 30 runs to align RQ3 with the RQ1 protocol, and `config.yaml` already sets `experiments.performance.n_runs: 30`.
-- Expected output: `results/performance_run_metrics_<timestamp>.csv`.
-- Planned statistical test: descriptive statistics are currently implemented; if inferential comparison is added later, it should be reported explicitly.
+- Metrics: `checkpoint_save_time_sec`, `checkpoint_restore_time_sec`, `pipeline_duration_sec`, `overhead_pct`.
+- Runs: 30 per isolation condition per subject.
+- Output: `results/performance_run_metrics_<timestamp>.csv`.
+- Statistical test: descriptive statistics; inferential comparison if added before submission.
 
 ### RQ4 — Mutation-based bug detection with seed conditions
 
-- Objective: Evaluate whether richer seed data improves mutation detection, while separating data-volume effects from semantic-diversity effects.
+- Objective: evaluate whether richer seed data improves mutation detection, while separating data-volume effects from semantic-diversity effects.
 - Independent variables: seed condition; mutant ID; subject ID.
-- Metrics measured: `killed_mutants`, `survived_mutants`, `mutation_score`, `detection_rate_by_seed_condition`.
-- Number of runs: one execution per `mutant × seed condition × subject` in the current implementation, after mutant generation.
-- Expected output: `results/bug_detection_test_outcomes_<timestamp>.csv`.
-- Planned statistical test: McNemar's test on paired mutant-detection outcomes.
+- Metrics: `killed_mutants`, `survived_mutants`, `mutation_score`, `detection_rate_by_seed_condition`.
+- Runs: one per `mutant × seed condition × subject`.
+- Output: `results/bug_detection_test_outcomes_<timestamp>.csv`.
+- Statistical test: McNemar's test on paired mutant-detection outcomes.
 
-Protocol-level seed conditions for the paper should be:
+Seed conditions (submission-facing names):
 
-- `static`: static seed data only.
-- `llm_matched_volume`: LLM-generated seed data constrained to the same number of rows per table as the static seed.
-- `llm_free_volume`: LLM-generated seed data with unconstrained volume.
+| Internal name | Paper name | Description |
+|---|---|---|
+| `static` | `static` | Static seed data only (baseline) |
+| `llm_fixed` | `llm_matched_volume` | LLM-generated, temperature=0, same row count as static |
+| `llm_free` | `llm_free_volume` | LLM-generated, temperature=0.7, unconstrained volume |
 
-This distinction is methodologically important because it separates the effect of
-row-count volume from the effect of semantic diversity or relevance.
-
-Current repository status:
-
-- The current configuration implements `static`, `llm_fixed`, and `llm_free`.
-- The repository does not yet provide explicit artefacts proving per-table row-count matching for `llm_matched_volume`.
-- The analysis script still reflects an older two-condition parsing assumption and must be updated before submission.
-
-Accordingly, `llm_matched_volume` and `llm_free_volume` should be treated as the
-documented target protocol for the paper, not as fully implemented repository
-artefacts at present.
+This design separates semantic diversity from volume effects: `static` vs `llm_fixed`
+isolates quality at equal volume; `llm_fixed` vs `llm_free` isolates diversity at
+equal model temperature.
 
 ### RQ5 — Operator idempotence and convergence after restart
 
-- Objective: Evaluate whether the operator converges to a consistent end state after controller restarts during pipeline execution.
+- Objective: evaluate whether the operator converges to a consistent end state after controller restarts during pipeline execution.
 - Independent variables: restart step; subject ID.
-- Metrics measured: `convergence_time_sec`, `duplicate_job_count`, `lost_status_count`, `final_state_consistent`.
-- Number of runs: 3 restarts per configured pipeline step per enabled subject, as specified in `config.yaml`.
-- Expected output: `results/idempotence_run_metrics_<timestamp>.csv`.
-- Planned statistical test: descriptive analysis of convergence time and divergence counts.
+- Metrics: `convergence_time_sec`, `duplicate_job_count`, `lost_status_count`, `final_state_consistent`.
+- Runs: 3 restarts per pipeline step per subject.
+- Output: `results/idempotence_run_metrics_<timestamp>.csv`.
+- Statistical test: descriptive analysis of convergence time and divergence counts.
 
-## Experimental Design
+---
 
-The harness evaluates a preview pipeline in which a Preview custom resource creates
-an application instance, a PostgreSQL instance, and sequential test jobs. The core
-comparison for RQ1 and RQ3 is between two operator configurations:
+## Subject Applications
 
-- Isolation ON: database checkpointing is enabled and restore jobs execute between suites.
-- Isolation OFF: checkpoint save/restore jobs are skipped and suites share state.
+The harness supports five subject applications. Each subject ships a
+`harness-adapter/` directory containing a `Dockerfile`, a `wrapper.py` proxy
+entrypoint, a test suite, and a `meta.yaml` describing migration commands and
+service layout. A shared `probe/` sidecar manages the `run_log` isolation table
+and is injected into every S2–S5 preview.
 
-The current repository supports the following experiment drivers:
+| ID | Name | Stack | Adapter image | Port |
+|---|---|---|---|---|
+| `s1-flask-catalog` | Flask Catalog | Python / Flask / Playwright | `ghcr.io/ihsenalaya/idp-preview` | 8080 |
+| `s2-listmonk` | Listmonk Newsletter | Go / Chi router | `ghcr.io/ihsenalaya/s2-listmonk-adapter:v2.5.1` | 9000 |
+| `s3-healthchecks` | Healthchecks | Python / Django / uWSGI | `ghcr.io/ihsenalaya/s3-healthchecks-adapter:v3.6` | 8000 |
+| `s4-umami` | Umami Analytics | Next.js / Node.js | `ghcr.io/ihsenalaya/s4-umami-adapter:v2.15.1` | 3000 |
+| `s5-petclinic` | Spring PetClinic REST | Java / Spring Boot / Flyway (Jib) | `ghcr.io/ihsenalaya/s5-petclinic-adapter:v3.4.0` | 9966 |
 
-- `exp_flakiness/run.py`
-- `exp_cross_pr/run.py`
-- `exp_performance/run.py`
-- `exp_bug_detection/run.py`
-- `exp_idempotence/run.py`
+### Adapter architecture
 
-The harness writes timestamped CSV files under `results/` and analysis scripts under
-`analysis/` consume these files to generate tables and figures. The documentation in
-this README is intentionally restricted to what these scripts and files currently
-support.
+Each adapter image is built on top of the upstream application image (not a
+separate base image), adding only `python3`, the wrapper proxy, and the test suite:
+
+```
+FROM <upstream-image>          # e.g. springcommunity/spring-petclinic-rest:3.4.0
+USER root
+RUN <install python3 + pip>
+COPY tests/ /app/tests/
+COPY wrapper.py /wrapper.py
+CMD ["python3", "/wrapper.py"]
+```
+
+`wrapper.py` starts the upstream process, waits for it to become ready, then serves:
+
+- `GET /healthz` → `200 ok` (liveness probe)
+- All other paths → transparent reverse proxy to the upstream port
+
+### Probe sidecar
+
+All S2–S5 previews receive a shared probe container (`ghcr.io/ihsenalaya/harness-probe:latest`)
+running on port 9090. It manages the `run_log` table used by isolation probes and
+exposes `/probe` endpoints consumed by test suites.
+
+### S1 reference subject
+
+- Source directory: `testapp/`
+- Metadata: `subjects/s1-flask-catalog/meta.yaml`
+- Tests: `testapp/tests/smoke.py`, `testapp/tests/regression.py`, `testapp/tests/e2e.py`
+- Mutation targets: `testapp/app.py` (used by RQ4 only)
+
+---
+
+## Test Pipeline
+
+For each preview run the operator executes the following sequential steps:
+
+```
+migration → saving → smoke → restore-regression → regression → restore-e2e → e2e
+```
+
+- `migration`: runs database schema + seed data commands from `meta.yaml`.
+- `saving`: `pg_dump --data-only` → stored in a ConfigMap as a checkpoint.
+- `restore-regression` / `restore-e2e`: `psql < checkpoint` before each subsequent suite.
+- With `isolation_enabled: false` the saving and restore steps are skipped.
+
+The operator exposes completion status through `status.tests.phase` on the Preview CR.
+Pipeline completion is detected by the harness via `wait_until_tests_done()`.
+
+---
 
 ## Repository Structure
 
 ```text
 experimentation/
-├── README.md
-├── CITATION.cff
-├── LICENSE
-├── Makefile
-├── config.yaml
-├── run_demo.py
-├── run-all-experiments.sh
+├── config.yaml                    # single source of truth for all parameters
+├── run_demo.py                    # smoke-test a single subject end-to-end
+├── run-all-experiments.sh         # sequential batch entry point (local)
 ├── analysis/
 │   ├── 01_flakiness.py
 │   ├── 02_cross_pr.py
 │   ├── 03_performance.py
 │   ├── 04_bug_detection.py
 │   ├── 05_idempotence.py
-│   ├── requirements.txt
-│   └── shared/
+│   └── requirements.txt
 ├── exp_bug_detection/
-│   ├── fault-catalog.yaml
+│   ├── fault-catalog.yaml         # generated mutant diffs
 │   ├── mutations/
+│   │   ├── apply-mutant.sh        # applies catalog diff via patch(1); no mutmut cache
+│   │   └── generate-mutants.sh
 │   └── run.py
 ├── exp_cross_pr/run.py
-├── exp_flakiness/
-│   ├── README.md
-│   └── run.py
+├── exp_flakiness/run.py
 ├── exp_idempotence/run.py
 ├── exp_performance/run.py
 ├── harness/
 │   ├── config.py
 │   ├── metrics_collector.py
-│   ├── preview_factory.py
-│   ├── results_writer.py
+│   ├── preview_factory.py         # create/wait/delete Preview CRs via kubectl
+│   ├── results_writer.py          # timestamped CSV writer
 │   └── schemas/
-├── results/
+├── logs/                          # experiment run logs (gitignored)
+├── results/                       # timestamped CSV outputs
 ├── scripts/
 │   └── anonymize.sh
 ├── setup/
@@ -161,244 +196,268 @@ experimentation/
 │   └── versions.lock.yaml
 ├── subjects/
 │   ├── CONTRACT.md
-│   ├── probe/
+│   ├── probe/                     # shared sidecar for S2–S5
 │   ├── s1-flask-catalog/meta.yaml
-│   ├── s2-listmonk/meta.yaml
-│   ├── s3-healthchecks/meta.yaml
-│   ├── s4-umami/meta.yaml
-│   └── s5-petclinic/meta.yaml
-└── testapp/
+│   ├── s2-listmonk/
+│   │   ├── meta.yaml
+│   │   └── harness-adapter/       # Dockerfile, wrapper.py, tests/
+│   ├── s3-healthchecks/
+│   │   ├── meta.yaml
+│   │   └── harness-adapter/
+│   ├── s4-umami/
+│   │   ├── meta.yaml
+│   │   └── harness-adapter/
+│   └── s5-petclinic/
+│       ├── meta.yaml
+│       └── harness-adapter/
+└── testapp/                       # S1 source code (Flask Catalog)
     ├── app.py
-    ├── frontend.py
     ├── migrations/
     ├── requirements.txt
     ├── seeds/
     └── tests/
 ```
 
-Important scope notes:
+---
 
-- `subjects/` currently contains a formal contract, metadata files, and the shared `probe/` service.
-- The source tree of the reference subject is currently stored in `testapp/`, not under `subjects/s1-flask-catalog/testapp/`.
-- The repository does not currently contain committed `harness-adapter/` directories for `s2` to `s5`; only metadata files are present.
+## Infrastructure
 
-## Subject Applications
+### Local execution (WSL2)
 
-### Current subject
+The harness Python scripts run locally and orchestrate Preview CRs on AKS via
+`kubectl`. This approach is simple but stops if the machine sleeps or restarts.
 
-- Subject ID: `s1-flask-catalog`
-- Source directory: `testapp/`
-- Metadata file: `subjects/s1-flask-catalog/meta.yaml`
-- Stack: Python, Flask, Playwright-based UI tests, PostgreSQL
-- Database: PostgreSQL
-- Tests available: `testapp/tests/smoke.py`, `testapp/tests/regression.py`, `testapp/tests/e2e.py`
-- Current limitations: the source tree and the metadata tree are not colocated, which is acceptable for internal use but less tidy for an archival artefact
+### Remote execution on Azure VM (recommended)
 
-### Planned extension
+A dedicated Azure VM (`exp-runner`, `Standard_B2s`, `eastus`) is provisioned in the
+`kubebuilder` resource group for persistent experiment execution. All five experiment
+scripts run in the background via `nohup` and are independent of the local machine.
 
-- `subjects/CONTRACT.md` defines the expected structure for external subjects.
-- Metadata stubs already exist for:
-  - `s2-listmonk`
-  - `s3-healthchecks`
-  - `s4-umami`
-  - `s5-petclinic`
-- Future repository cleanup may move the reference application under `subjects/s1-flask-catalog/`.
-- Additional open-source subjects should not be claimed as integrated until their adapter code, tests, and build artefacts are committed.
+```
+Resource group : kubebuilder
+VM name        : exp-runner
+Size           : Standard_B2s (2 vCPU, 4 GB RAM)
+OS             : Ubuntu 22.04 LTS
+Location       : eastus (same region as AKS cluster)
+SSH key        : ~/.ssh/exp_runner
+```
 
-## Test Pipeline
+**Connect to the VM:**
 
-The intended pipeline for each preview run is:
+```bash
+ssh -i ~/.ssh/exp_runner ihsen@172.190.167.113
+```
 
-1. deploy preview environment
-2. run migrations
-3. load seed data
-4. save database checkpoint
-5. run smoke tests
-6. restore checkpoint
-7. run regression tests
-8. restore checkpoint
-9. run e2e tests
-10. collect metrics
-11. cleanup environment
+**Start all experiments on the VM:**
 
-Current implementation notes:
+```bash
+ssh -i ~/.ssh/exp_runner ihsen@172.190.167.113 "bash ~/run-all.sh"
+```
 
-- The operator-level step names visible through Kubernetes Jobs are `migration`, `saving`, `smoke`, `restore-regression`, `regression`, `restore-e2e`, and `e2e`.
-- The current S1 test suites emit parseable `PASS` / `FAIL` lines plus a final summary line.
-- A structured `harness-v1` JSON output format is not yet implemented in the repository and should be treated as planned work.
-- The shell wrappers `smoke.sh`, `regression.sh`, and `e2e.sh` do not exist in this repository. The current executable suites are Python scripts under `testapp/tests/`.
+**Monitor experiment progress:**
 
-## Metrics Collected
+```bash
+ssh -i ~/.ssh/exp_runner ihsen@172.190.167.113 "tail -f ~/experiments/logs/rq1.log"
+ssh -i ~/.ssh/exp_runner ihsen@172.190.167.113 "kubectl get previews -A"
+```
 
-The table below distinguishes between metrics that are currently emitted or directly
-derivable from repository outputs and metrics that are desirable for the paper but
-not yet first-class artefacts in the repository.
+**Retrieve results:**
 
-| Metric | Status | Current source or note |
-|---|---|---|
-| `failure_rate` | available | Derivable from `*_test_outcomes_*.csv` suite outcomes |
-| `flaky_test_rate` | planned | Requires a stable per-test flakiness definition and per-test outcome capture |
-| `suite_pass_rate` | available | Derivable from suite-level outcomes |
-| `state_contamination_rate` | partial | Proxied by restore-sensitive suite failures; not emitted as a dedicated column |
-| `checkpoint_save_time_sec` | available | `run_metrics.step == saving` |
-| `checkpoint_restore_time_sec` | available | `run_metrics.step ∈ {restore-regression, restore-e2e}` |
-| `restore_success_rate` | partial | Indirectly inferable; not emitted explicitly |
-| `dirty_state_detected` | partial | Indirectly inferable from restore-sensitive failures; not emitted explicitly |
-| `run_log_clean` | planned as first-class metric | Tested in S1 Python suites, but not persisted as a named CSV metric today |
-| `provisioning_time_sec` | planned | Not emitted as a dedicated field |
-| `pipeline_duration_sec` | available | Stored as `total_reconcile_s` in `performance` outputs |
-| `overhead_pct` | available | Stored in `performance` outputs using the `requeue_count` field as a carrier |
-| `cpu_avg` / `cpu_p95` | planned or manual | `kubectl top` collection exists in `harness.metrics_collector`, but experiment scripts do not persist these summaries automatically |
-| `memory_avg` / `memory_p95` | planned or manual | Same status as CPU summaries |
-| `concurrency_K` | available | Encoded in RQ2 run identifiers |
-| `cross_preview_failure_rate` | partial | Derivable from RQ2 suite failures; not emitted as a dedicated field |
-| `queueing_delay_sec` | planned | Not emitted today |
-| `killed_mutants` | derivable | Derivable from failed mutant runs |
-| `survived_mutants` | derivable | Derivable from non-failed mutant runs |
-| `mutation_score` | derivable | Computed during analysis from mutant outcomes |
-| `detection_rate_by_seed_condition` | derivable | Computed during analysis |
-| `convergence_time_sec` | available | `idempotence` uses `step_duration_s` for convergence time |
-| `duplicate_job_count` | planned | Not emitted today |
-| `lost_status_count` | planned | Not emitted today |
-| `final_state_consistent` | partial | Inferred through successful completion and zero divergence flags |
+```bash
+scp -i ~/.ssh/exp_runner -r ihsen@172.190.167.113:~/experiments/results/ ./results/
+```
+
+The VM has Docker installed and can run RQ4 `docker build` + `docker push` without
+the credential-helper limitation that affects WSL2 background processes.
+
+### AKS cluster
+
+```
+Cluster : preview-cluster
+RG      : kubebuilder
+Region  : eastus
+Operator namespace : preview-operator-system
+```
+
+---
 
 ## Configuration
 
-The single source of truth for experiment parameters is `config.yaml`, with optional
-environment-variable overrides through the `EXP_...` prefix.
+`config.yaml` is the single source of truth for all experiment parameters.
+All values can be overridden with `EXP_`-prefixed environment variables.
 
-Current noteworthy configuration values are:
+Current active configuration:
 
-- Cluster mode: `kind` by default
-- Operator namespace: `preview-operator-system`
-- Preview CR namespace: `default`
-- Enabled subject list: currently only `s1-flask-catalog` is enabled by default
-- RQ1 run count: `experiments.flakiness.n_runs = 30`
-- RQ3 run count: `experiments.performance.n_runs = 30`
-- RQ5 restart count: `experiments.idempotence.n_restarts_per_step = 3`
+```yaml
+subjects:
+  enabled:
+    - s1-flask-catalog
+    - s2-listmonk
+    - s3-healthchecks
+    - s4-umami
+    - s5-petclinic
 
-Current naming inconsistencies that should be interpreted carefully:
+experiments:
+  flakiness:    { n_runs: 30, isolation_values: [true, false], timeout_minutes: 20 }
+  cross_pr:     { k_values: [2, 4, 8], isolation_values: [true, false], timeout_minutes: 40 }
+  performance:  { n_runs: 30, timeout_minutes: 25 }
+  bug_detection:
+    n_mutations_max: 50
+    isolation_values: [static, llm_fixed, llm_free]
+    llm_fixed_temperature: 0.0
+    llm_free_temperature:  0.7
+    timeout_minutes: 60
+  idempotence:
+    kill_steps: [saving, smoke, restore-regression, regression, restore-e2e, e2e]
+    n_restarts_per_step: 3
+    timeout_minutes: 30
+```
 
-- `app.repo` and image tags still reference `ihsenalaya/idp-preview`.
-- `subjects.images.s1-flask-catalog` points to the same application image.
-- RQ4 currently uses `static`, `llm_fixed`, and `llm_free` in `config.yaml`; the paper protocol should rename these to `static`, `llm_matched_volume`, and `llm_free_volume` once implementation and analysis are aligned.
+PR number ranges (to avoid collisions between parallel experiments):
+
+| Experiment | PR range |
+|---|---|
+| RQ1 Flakiness | 9000–9899 |
+| RQ3 Performance | 9000–9899 |
+| RQ2 Cross-PR | 8000–8899 |
+| RQ4 Bug Detection | 7000–7899 |
+| RQ5 Idempotence | 6000–6899 |
+
+---
 
 ## How to Run Experiments
 
 ### Prerequisites
 
-- Docker
-- `kubectl`
-- Helm
-- Python 3
-- `pip`
-- `jupytext` for notebook conversion
-- `mutmut` for RQ4 mutant generation
-- A Kubernetes cluster reachable through the active kubeconfig
+| Tool | Version | Purpose |
+|---|---|---|
+| Docker | ≥ 24 | Build and push adapter images |
+| kubectl | ≥ 1.29 | Cluster interaction |
+| helm | ≥ 3.14 | Operator install |
+| Python | ≥ 3.10 | Harness + analysis |
+| yq | ≥ 4 | Parse config.yaml in shell scripts |
+| mutmut | 2.4.4 | Mutant generation (RQ4 only) |
+| patch | any | Apply mutant diffs (RQ4 only) |
 
-Exact versions should be frozen using:
+### Build and push adapter images (S2–S5)
 
-- `setup/versions.lock.yaml`
-- `config.yaml`
-- `analysis/requirements.txt`
-
-### Recommended execution sequence
+Each adapter image is built from its `harness-adapter/` directory:
 
 ```bash
-make setup
-make bootstrap
-python3 run_demo.py
-make exp-flakiness
-make exp-cross-pr
-make exp-performance
-make generate-mutants
-make exp-bug-detection
-make exp-idempotence
-make notebooks
+# S2 — Listmonk
+docker build -t ghcr.io/ihsenalaya/s2-listmonk-adapter:v2.5.1 \
+  subjects/s2-listmonk/harness-adapter/
+docker push ghcr.io/ihsenalaya/s2-listmonk-adapter:v2.5.1
+
+# S3 — Healthchecks
+docker build -t ghcr.io/ihsenalaya/s3-healthchecks-adapter:v3.6 \
+  subjects/s3-healthchecks/harness-adapter/
+docker push ghcr.io/ihsenalaya/s3-healthchecks-adapter:v3.6
+
+# S4 — Umami
+docker build -t ghcr.io/ihsenalaya/s4-umami-adapter:v2.15.1 \
+  subjects/s4-umami/harness-adapter/
+docker push ghcr.io/ihsenalaya/s4-umami-adapter:v2.15.1
+
+# S5 — PetClinic
+docker build -t ghcr.io/ihsenalaya/s5-petclinic-adapter:v3.4.0 \
+  subjects/s5-petclinic/harness-adapter/
+docker push ghcr.io/ihsenalaya/s5-petclinic-adapter:v3.4.0
 ```
 
-An alternative batch entry point is:
+### Run all experiments (on Azure VM — recommended)
+
+```bash
+ssh -i ~/.ssh/exp_runner ihsen@172.190.167.113
+cd ~/experiments && git pull
+bash ~/run-all.sh
+```
+
+### Run all experiments (locally)
+
+```bash
+nohup python3 exp_flakiness/run.py    >> logs/rq1.log 2>&1 &
+nohup python3 exp_cross_pr/run.py     >> logs/rq2.log 2>&1 &
+nohup python3 exp_performance/run.py  >> logs/rq3.log 2>&1 &
+nohup python3 exp_bug_detection/run.py >> logs/rq4.log 2>&1 &
+nohup python3 exp_idempotence/run.py  >> logs/rq5.log 2>&1 &
+```
+
+Or using the batch entry point:
 
 ```bash
 bash run-all-experiments.sh
 ```
 
-Examples of parameter overrides:
+### Run a single subject demo
+
+```bash
+python3 run_demo.py                          # S1 only
+SUBJECT=s2-listmonk python3 run_demo.py     # specific subject
+```
+
+### Generate mutants for RQ4
+
+```bash
+bash exp_bug_detection/mutations/generate-mutants.sh
+# Produces: exp_bug_detection/fault-catalog.yaml
+```
+
+Mutants are applied at runtime by `apply-mutant.sh`, which extracts the diff from
+`fault-catalog.yaml` and applies it with `patch(1)`. This avoids the `mutmut` cache
+invalidation that occurs when the source file is restored via `git checkout`.
+
+### Parameter overrides
 
 ```bash
 EXP_EXPERIMENTS_FLAKINESS_N_RUNS=5 python3 exp_flakiness/run.py
 EXP_EXPERIMENTS_PERFORMANCE_N_RUNS=5 python3 exp_performance/run.py
-ISOLATION=false python3 run_demo.py
 ```
+
+---
 
 ## Expected Outputs
 
-The following outputs are expected from the current repository state:
+| File pattern | Produced by |
+|---|---|
+| `results/flakiness_test_outcomes_<ts>.csv` | `exp_flakiness/run.py` |
+| `results/cross_pr_test_outcomes_<ts>.csv` | `exp_cross_pr/run.py` |
+| `results/performance_run_metrics_<ts>.csv` | `exp_performance/run.py` |
+| `results/bug_detection_test_outcomes_<ts>.csv` | `exp_bug_detection/run.py` |
+| `results/idempotence_run_metrics_<ts>.csv` | `exp_idempotence/run.py` |
+| `analysis/figures/*.pdf` | `analysis/0*.py` |
+| `anonymized-submission.tar.gz` | `scripts/anonymize.sh` |
 
-- `results/flakiness_test_outcomes_<timestamp>.csv`
-- `results/cross_pr_test_outcomes_<timestamp>.csv`
-- `results/performance_run_metrics_<timestamp>.csv`
-- `results/bug_detection_test_outcomes_<timestamp>.csv`
-- `results/idempotence_run_metrics_<timestamp>.csv`
-- `results/run-all-<timestamp>.log` when `run-all-experiments.sh` is used
-- `analysis/0*.ipynb` after `make notebooks`
-- `analysis/figures/*.pdf` after running the analysis scripts
-- `anonymized-submission.tar.gz` after running `scripts/anonymize.sh`
+CSV schemas are in `harness/schemas/`.
 
-CSV schemas currently present in the repository are:
+---
 
-- `harness/schemas/test_outcomes.schema.csv`
-- `harness/schemas/run_metrics.schema.csv`
-- `harness/schemas/resource_usage.schema.csv`
+## Metrics Collected
 
-The repository currently stores raw CSV files under `results/`. It does not yet
-ship a dedicated manifest that binds a paper figure to a specific raw CSV file and
-analysis command; that mapping should be finalized before submission.
+| Metric | Status | Source |
+|---|---|---|
+| `failure_rate` | available | `*_test_outcomes_*.csv` suite outcomes |
+| `suite_pass_rate` | available | suite-level outcomes |
+| `checkpoint_save_time_sec` | available | `run_metrics.step == saving` |
+| `checkpoint_restore_time_sec` | available | `run_metrics.step ∈ {restore-regression, restore-e2e}` |
+| `pipeline_duration_sec` | available | `total_reconcile_s` in performance outputs |
+| `overhead_pct` | available | performance outputs |
+| `concurrency_K` | available | encoded in RQ2 run identifiers |
+| `killed_mutants` / `survived_mutants` | derivable | mutant run outcomes |
+| `mutation_score` | derivable | computed during analysis |
+| `detection_rate_by_seed_condition` | derivable | computed during analysis |
+| `convergence_time_sec` | available | `idempotence` step durations |
+| `flaky_test_rate` | planned | requires per-test outcome capture |
+| `state_contamination_rate` | partial | proxied by restore-sensitive failures |
+| `queueing_delay_sec` | planned | not emitted |
+| `duplicate_job_count` | planned | not emitted |
+| `cpu_avg` / `memory_avg` | planned | helpers exist; not persisted automatically |
+
+---
 
 ## Statistical Analysis
 
-The repository contains analysis scripts for each research question:
-
-- `analysis/01_flakiness.py`
-- `analysis/02_cross_pr.py`
-- `analysis/03_performance.py`
-- `analysis/04_bug_detection.py`
-- `analysis/05_idempotence.py`
-
-Current statistical plan:
-
-- RQ1: Mann-Whitney U, Fisher's exact test, Vargha-Delaney effect size
-- RQ2: Mann-Whitney U and Vargha-Delaney effect size per concurrency level
-- RQ3: descriptive statistics for step durations and overhead
-- RQ4: McNemar's test on paired mutant outcomes
-- RQ5: descriptive statistics for convergence times and divergence counts
-
-Important caveats before submission:
-
-- `analysis/03_performance.py` still contains a stale caption mentioning `N=20`; the documented protocol and `config.yaml` both use 30 runs.
-- `analysis/04_bug_detection.py` still reflects an outdated two-condition parsing assumption and should be aligned with the three-condition protocol before publication.
-
-## Reproducibility
-
-To support reproducibility, the following should be fixed and archived for every
-reported run:
-
-- cluster and container versions from `setup/versions.lock.yaml`
-- experiment parameters from `config.yaml`
-- Python dependencies from `analysis/requirements.txt`
-- raw CSV outputs from `results/`
-- generated figures from `analysis/figures/`
-- analysis scripts under `analysis/`
-- mutant catalog `exp_bug_detection/fault-catalog.yaml` when RQ4 is reported
-- `CITATION.cff`, which is present in the repository
-
-Suggested minimal reproduction workflow:
-
 ```bash
-make setup
-make bootstrap
-python3 run_demo.py
-bash run-all-experiments.sh
 python3 analysis/01_flakiness.py
 python3 analysis/02_cross_pr.py
 python3 analysis/03_performance.py
@@ -406,90 +465,82 @@ python3 analysis/04_bug_detection.py
 python3 analysis/05_idempotence.py
 ```
 
-Expected reproducibility artefacts:
+Planned tests:
 
-- raw CSV files under `results/`
-- generated PDF figures under `analysis/figures/`
-- optional `.ipynb` notebooks generated from the analysis scripts
+- RQ1: Mann-Whitney U, Fisher's exact test, Vargha-Delaney A
+- RQ2: Mann-Whitney U and Vargha-Delaney A per concurrency level
+- RQ3: descriptive statistics for step durations and overhead
+- RQ4: McNemar's test on paired mutant outcomes across seed conditions
+- RQ5: descriptive statistics for convergence times and divergence counts
 
-Zenodo status:
+---
 
-- `CITATION.cff` exists.
-- A Zenodo archive is planned but no DOI is recorded in the repository yet.
+## Reproducibility
+
+Archive the following for every reported run:
+
+- `config.yaml` — experiment parameters
+- `setup/versions.lock.yaml` — cluster and container versions
+- `analysis/requirements.txt` — Python dependencies
+- `results/*.csv` — raw outputs
+- `analysis/figures/*.pdf` — generated figures
+- `exp_bug_detection/fault-catalog.yaml` — mutant catalog (RQ4)
+- `CITATION.cff`
+
+---
 
 ## Anonymization for Double-Blind Submission
-
-An IEEE-style double-blind package should remove or replace:
-
-- personal names
-- GitHub owner names
-- `ghcr.io/<owner>` registry paths
-- personal email addresses
-- private domains or endpoints
-
-The repository already contains `scripts/anonymize.sh`, which currently supports:
-
-- `--dry-run`
-- default archive creation to `anonymized-submission.tar.gz`
-
-Recommended submission-facing interface:
 
 ```bash
 bash scripts/anonymize.sh --dry-run
 bash scripts/anonymize.sh --apply
-bash scripts/anonymize.sh --check
 ```
 
-Current limitation:
+The script strips personal names, GitHub owner names, `ghcr.io/<owner>` registry
+paths, personal email addresses, and private endpoints.
 
-- `--apply` and `--check` are not implemented today and should be treated as TODO items.
+---
 
-## Known Limitations / TODO
+## Known Limitations
 
-- The repository documents multi-subject experimentation, but only the S1 reference subject is materially present as source code in `testapp/`.
-- `subjects/s2-*` to `subjects/s5-*` currently provide metadata only; committed adapter source trees are absent.
-- The RQ4 implementation currently uses `static`, `llm_fixed`, and `llm_free` rather than the submission-facing names `static`, `llm_matched_volume`, and `llm_free_volume`.
-- The repository does not yet provide explicit row-count auditing that proves `llm_matched_volume` matches the static seed volume table by table.
-- `analysis/04_bug_detection.py` must be updated to consume the three-condition protocol correctly.
-- `analysis/03_performance.py` still contains stale `N=20` text even though the documented and configured protocol uses 30 runs.
-- The current CSV outputs are suite-level for most experiments and do not yet persist all per-test isolation probes as first-class metrics.
-- `smoke.sh`, `regression.sh`, and `e2e.sh` do not exist; the current tests are Python scripts.
-- A `harness-v1` JSON result format is not yet implemented.
-- CPU and memory sampling helpers exist, but the experiment drivers do not yet persist `cpu_avg`, `cpu_p95`, `memory_avg`, or `memory_p95` automatically.
-- Queueing delay, duplicate job counts, and lost status counts are not yet emitted as dedicated metrics.
+- RQ4 iterates over all five subjects, but `fault-catalog.yaml` mutations target
+  `testapp/app.py` (S1 Flask app only). For S2–S5 the mutated flask image is injected
+  as the main app image, which is architecturally inconsistent with the subject's own
+  adapter image. RQ4 results for S2–S5 should be interpreted cautiously or restricted
+  to S1 before submission.
+- The RQ4 internal names (`static`, `llm_fixed`, `llm_free`) must be renamed to
+  (`static`, `llm_matched_volume`, `llm_free_volume`) in code and analysis before
+  publication.
+- `analysis/04_bug_detection.py` still reflects a two-condition parsing assumption
+  and must be updated for the three-condition protocol.
+- `analysis/03_performance.py` contains a stale `N=20` caption; the configured and
+  documented protocol uses 30 runs.
+- CPU and memory summaries are not persisted automatically by experiment drivers.
 - A figure-to-data provenance manifest is not yet committed.
-- A finalized Zenodo archive and DOI are not yet present.
-- An anonymization script with `--dry-run`, `--apply`, and `--check` parity is not yet available.
-
-## Planned / TODO
-
-The following items are methodologically desirable for a camera-ready artefact but
-should not be described as already implemented:
-
-- Rename the RQ4 seed conditions in code and analysis to `static`, `llm_matched_volume`, and `llm_free_volume`.
-- Add explicit per-table seed-volume validation for the matched-volume condition.
-- Persist per-test outcomes, not only suite outcomes, in raw CSV files.
-- Add structured `harness-v1` JSON outputs alongside `PASS` / `FAIL` text outputs.
-- Move the S1 source tree under `subjects/s1-flask-catalog/` or document the split layout with a formal rationale.
-- Commit adapter implementations for the planned external subjects before claiming cross-subject validation.
-
-## Citation
-
-This repository includes `CITATION.cff`. At present, no Zenodo DOI is recorded in
-that file. Until a DOI is minted, cite the artefact using its repository title and
-state clearly that it is the experimental harness accompanying the study of
-checkpoint-based database isolation in Kubernetes preview environments.
+- A Zenodo archive and DOI are not yet present.
+- `anonymize.sh --check` is not yet implemented.
 
 ## Submission Readiness Checklist
 
-- [ ] all test scripts exist
-- [x] outputs are parseable
-- [ ] config matches documented protocol
-- [x] RQ3 uses 30 runs
-- [ ] RQ4 controls seed volume
-- [x] raw CSV files are generated
-- [ ] statistical scripts are reproducible
-- [ ] figures are generated from raw data
-- [ ] artifact archive is prepared
-- [ ] anonymization check passes
-- [x] multi-subject validation is available or clearly marked as planned
+- [x] all experiment drivers exist and produce output
+- [x] all five subjects have adapter images and harness-adapter source
+- [x] all subjects enabled in `config.yaml`
+- [x] outputs are parseable (timestamped CSV)
+- [x] RQ1, RQ3 use 30 runs
+- [x] RQ4 uses three seed conditions
+- [x] `fault-catalog.yaml` generated with `patch`-based apply
+- [x] Azure VM provisioned for persistent experiment execution
+- [ ] RQ4 scope restricted to S1 or cross-subject protocol clarified
+- [ ] RQ4 seed condition names aligned with paper
+- [ ] `analysis/04_bug_detection.py` updated for three conditions
+- [ ] `analysis/03_performance.py` N=20 caption fixed
+- [ ] figure-to-data provenance manifest committed
+- [ ] Zenodo archive and DOI
+- [ ] anonymization `--check` implemented
+
+## Citation
+
+This repository includes `CITATION.cff`. No Zenodo DOI is recorded yet. Until a DOI
+is minted, cite using the repository title and state that it is the experimental
+harness accompanying the study of checkpoint-based database isolation in Kubernetes
+preview environments.
