@@ -92,7 +92,7 @@ class _ProxyHandler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     _write_config()
-    proc = subprocess.Popen(["/listmonk", f"--config={CONFIG_PATH}"])
+    proc = subprocess.Popen(["/listmonk/listmonk", f"--config={CONFIG_PATH}"])
 
     # Give listmonk a moment to bind its port
     time.sleep(3)
