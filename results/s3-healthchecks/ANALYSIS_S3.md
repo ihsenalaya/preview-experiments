@@ -52,6 +52,27 @@ Combined regression+e2e (sample of 20 vs 20 outcomes): Fisher p < 10⁻¹². Cli
 
 **Comparison to S1's RQ1 N=30:** S1's p < 10⁻¹⁵ is a function of larger N, not a stronger effect. The effect size (h = 1.57) is the same. The S3 RQ2 dataset is the cross-PR analogue of S1's RQ1; the matching p-values + identical effect sizes are the load-bearing statistical claim.
 
+### Wall-clock duration
+
+Derived from `timestamp_utc` between the first and last row of each batch:
+
+| Batch | Start offset (s) | Inter-batch gap (s) | N rows |
+|---|---|---|---|
+| k=2 iso=True | 0 | 0 | 6 |
+| k=4 iso=True | 110 | 110 | 12 |
+| k=8 iso=True | 420 | 272 | 12 |
+| k=2 iso=False | 537 | 84 | 6 |
+| k=4 iso=False | 636 | 94 | 12 |
+| k=8 iso=False | 911 | 242 | 12 |
+| **Total** | **946 s ≈ 15.8 min** | — | **60** |
+
+S3 is the **fastest** of the four RQ2 runs measured so far (S1: 38.2 min, S2: 32.5 min, S3: 15.8 min, S4: 36.9 min). Possible drivers:
+- Django migrations are pre-baked and execute in a single command (no large schema parsing);
+- the test pods exit quickly because most assertions succeed under iso=True and fail fast under iso=False (no slow timeouts on broken endpoints);
+- the smaller Healthchecks image (111 MB) pulls and starts faster than Umami (197 MB) or PetClinic (179 MB).
+
+Per-step latency (pg_dump duration, restore-regression duration, individual suite durations) for S3 will be measured separately during master3 Stage 5 (RQ3 performance), where each run records `step_duration_s` in `performance_run_metrics_*.csv`.
+
 ---
 
 ## Bug-fix chain that made this data possible

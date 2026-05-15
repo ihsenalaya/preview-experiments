@@ -150,6 +150,31 @@ After these three fixes, re-run S4 RQ2 (and RQ1 + RQ3 in the master3 pipeline) t
 
 ---
 
+## Wall-clock duration
+
+Derived from `timestamp_utc` between the first and last row of each batch:
+
+| Batch | Start offset (s) | Inter-batch gap (s) | N rows |
+|---|---|---|---|
+| k=2 iso=True | 0 | 0 | 6 |
+| k=4 iso=True | 105 | 105 | 12 |
+| k=8 iso=True | 1634 | **1496** | 12 |
+| k=2 iso=False | 1772 | 90 | 6 |
+| k=4 iso=False | 1879 | 107 | 12 |
+| k=8 iso=False | 2174 | 250 | 12 |
+| **Total** | **2216 s ≈ 36.9 min** | — | **60** |
+
+S4 is the **second slowest** RQ2 run (S1: 38.2 min, S4: 36.9 min, S2: 32.5 min, S3: 15.8 min). The k=8 iso=True batch took **1496 s ≈ 25 minutes** alone — three times longer than the same batch in S3 (272 s). Two compounding causes:
+
+1. **Image size** — Umami's adapter image is 197 MB (vs 111 MB for S3). On a memory-pressed kind cluster, image pulls and pod scheduling stretch out.
+2. **Failure latency** — the 3 failing regression assertions (`run_log_clean`, `website_stats`, `teams_list`) each round-trip to Umami's API and incur a 5 s `timeout=5` ceiling. Three failures × ~5 s × 4 previews × 3 suites ≈ 180 s of timeout slack per batch in iso=True, compared to ~0 s in S1/S3 where all assertions succeed quickly.
+
+The 1496 s gap also includes time waiting for k=8 isoFalse to schedule once isoTrue completes; on a cluster at 86 % memory, scheduling is constrained.
+
+This timing observation reinforces the §2 finding that S4's failures are dominated by **timeout-bound retries** on broken endpoints, which is consistent with the endpoint-bug hypothesis (§3.a).
+
+---
+
 ## Cross-subject comparison
 
 | Property | S1 | S2 | S3 | S4 |

@@ -47,22 +47,32 @@ RQ5  ░░░░░░░░░░   0%  not started                           
 
 ---
 
-## Durées réelles par expérience — S1 Flask Catalog
+## Durées réelles par expérience
 
 > Mesurées à partir des timestamps dans les CSV (UTC)
+
+### Wall-clock RQ2 Cross-PR par sujet (mesuré sur master3, k=8 réduit à 4 previews/condition par pression mémoire)
+
+| Sujet | N rows | Durée totale RQ2 | Durée moyenne / batch | Notes |
+|---|---|---|---|---|
+| **S1** Flask | 60 | **38.2 min** (2294 s) | ~382 s | Re-run du 15/05 — confirme données 14/05 (84 rows) |
+| **S2** Listmonk | 60 | **32.5 min** (1950 s) | ~325 s | Migration Listmonk plus rapide qu'attendu |
+| **S3** Healthchecks | 60 | **15.8 min** (946 s) | ~158 s | **Le plus rapide** — Django migrations efficientes |
+| **S4** Umami | 60 | **36.9 min** (2216 s) | ~369 s | Bugs endpoint + run_log_clean échec → timeouts |
+| **Total RQ2 (S1-S4)** | **240** | **123.4 min** (≈ 2h 03m) | ~308 s/batch | Master2/3 avec rebuild S3 + restart Docker |
+
+### Pipeline per-step (RQ3) — S1 disponible, S2-S5 à venir
 
 | Expérience | Sujet | Runs | Durée totale | Durée/run | Statut |
 |---|---|---|---|---|---|
 | **RQ1 Flakiness** | S1 | 60 runs (30+30) | **1h 13m** | ~73 s/run | ✅ Terminé |
 | **RQ3 Performance** | S1 | 60 runs (30+30) | **1h 13m** | ~73 s/run | ✅ Terminé |
-| **RQ2 Cross-PR** | S1 | 6 batchs (k=2,4,8 × iso=T/F) | **12 min** | ~122 s/batch | ✅ Terminé |
-| RQ1 Flakiness | S2–S5 | 60 runs × 4 sujets | **~4h 52m** estimé | ~73 s/run | ⏳ À faire |
-| RQ3 Performance | S2–S5 | 60 runs × 4 sujets | **~4h 52m** estimé | ~73 s/run | ⏳ À faire |
-| RQ2 Cross-PR | S2–S5 | 6 batchs × 4 sujets | **~48 min** estimé | ~122 s/batch | ⏳ À faire |
-| **RQ5 Idempotence** | S1–S5 | 6 steps × 3 restarts × 5 sujets | **~12–15 h** estimé | — | ⏳ Pas démarré |
-| **RQ4 Bug Detection** | S1 | 50 mutations × 3 conditions | **~62 h** estimé | — | ⏳ Pas démarré |
+| RQ1 Flakiness | S2–S5 | 60 runs × 4 sujets | ~4h 52m estimé | ~73 s/run | ⏳ Master3 Stage 4 |
+| RQ3 Performance | S2–S5 | 60 runs × 4 sujets | ~4h 52m estimé | ~73 s/run | ⏳ Master3 Stage 5 |
+| **RQ5 Idempotence** | S1–S5 | 6 steps × 3 restarts × 5 sujets | ~12–15 h estimé | — | ⏳ Master3 Stage 2 |
+| **RQ4 Bug Detection** | S1 | 50 mutations × 3 conditions | ~62 h estimé | — | ⏳ Master3 Stage 3 |
 
-**Temps restant total (cluster local séquentiel) :** ~80 h  
+**Temps restant total (cluster local séquentiel) :** ~80 h
 **Temps restant total (avec vrai cluster parallèle) :** ~8–10 h
 
 ---
