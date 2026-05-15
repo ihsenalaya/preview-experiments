@@ -16,13 +16,58 @@ checkpoint-based restoration mitigates such state pollution, what runtime overhe
 introduces, and how robust the operator remains under concurrency, mutation-based
 fault seeding, and controller restarts.
 
-Naming conventions used in this tree:
+### Naming conventions used in this tree
 
-- `preview-operator` — the operator repository consumed by the harness (separate repo).
-- `idp-preview` — the application image for the S1 reference subject.
-- `s1-flask-catalog` — canonical identifier of the reference subject.
-- `testapp/` — source code of the S1 reference subject.
-- `subjects/sN-*/harness-adapter/` — adapter image source for subjects S2–S5.
+**Repositories and images**
+
+| Name | What it refers to |
+|---|---|
+| `preview-experiments` | this repository (the experimental harness) |
+| `preview-operator` | the Kubernetes operator repository (separate repo, not modified by this study) |
+| `idp-preview` | the container image name for the S1 reference subject (`ghcr.io/ihsenalaya/idp-preview`) |
+| `harness-probe` | shared sidecar image injected into S2–S5 previews (`ghcr.io/ihsenalaya/harness-probe`) |
+| `sN-<name>-adapter` | adapter image for subject N (e.g. `s2-listmonk-adapter`) |
+
+**Directories**
+
+| Path | What it contains |
+|---|---|
+| `testapp/` | source code of the S1 reference subject (Flask Catalog) |
+| `subjects/s1-flask-catalog/` | metadata only; S1 source lives in `testapp/` |
+| `subjects/sN-*/harness-adapter/` | Dockerfile, wrapper.py, and tests for subjects S2–S5 |
+| `subjects/probe/` | source of the shared `harness-probe` sidecar |
+| `exp_*/` | one directory per experiment (RQ1–RQ5), each with a `run.py` driver |
+| `harness/` | shared Python library used by all experiment drivers |
+| `results/` | timestamped CSV outputs written by experiment drivers |
+| `logs/` | experiment run logs (gitignored) |
+| `analysis/` | statistical analysis scripts and generated figures |
+| `setup/` | cluster bootstrap and teardown scripts |
+| `scripts/` | utility scripts (anonymization, etc.) |
+
+**Kubernetes and operator concepts**
+
+| Term | What it refers to |
+|---|---|
+| `Preview` | custom resource (`platform.company.io/v1alpha1`) that the operator reconciles |
+| `status.tests.phase` | field used by the harness to detect test completion (not `status.phase`) |
+| `preview-operator-system` | Kubernetes namespace where the operator pod runs |
+| `preview-pr-<N>` | namespace created by the operator for each Preview CR |
+| `run_log` | PostgreSQL table managed by the probe sidecar, used as an isolation probe |
+
+**Configuration and data files**
+
+| File | What it contains |
+|---|---|
+| `config.yaml` | single source of truth for all experiment parameters; overridable via `EXP_` env vars |
+| `subjects/sN-*/meta.yaml` | subject metadata: upstream origin, migration command, service layout, seed count |
+| `subjects/CONTRACT.md` | integration contract defining what a conformant subject must provide |
+| `exp_bug_detection/fault-catalog.yaml` | generated catalog of mutant diffs used by RQ4 |
+| `setup/versions.lock.yaml` | pinned versions for cluster, images, and tools |
+
+**Terms to avoid in paper text**
+
+- `preview-env` — not a directory or repository name in this tree.
+- `harness-adapter` used alone — always qualify with the subject ID (e.g. "the S2 harness adapter").
 
 ---
 
