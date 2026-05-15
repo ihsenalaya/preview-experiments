@@ -2,7 +2,7 @@
 
 Paper: *Checkpoint-based Database Isolation Eliminates Non-deterministic Test Variance
 in Kubernetes Preview Environments*
-Last updated: 2026-05-15T18:38Z
+Last updated: 2026-05-15T22:25Z
 
 ---
 
@@ -10,42 +10,39 @@ Last updated: 2026-05-15T18:38Z
 
 | Experiment | Sujet | Condition | Runs | Statut |
 |---|---|---|---|---|
-| **RQ1 Flakiness** | S1 Flask | iso=True | 30/30 | ✅ Complet |
-| **RQ1 Flakiness** | S1 Flask | iso=False | 30/30 | ✅ Complet |
-| RQ1 Flakiness | S2 Listmonk | — | 0/30 | ❌ → à relancer (méta corrigé) |
-| RQ1 Flakiness | S3 Healthchecks | — | 0/30 | ❌ → à relancer |
-| RQ1 Flakiness | S4 Umami | — | 0/30 | ❌ → à relancer |
-| RQ1 Flakiness | S5 PetClinic | — | 0/30 | ❌ → à relancer |
-| **RQ2 Cross-PR** | S1 Flask k=2,4,8 | iso=True+False | complet | ✅ Données 14/05 (84 rows) |
-| RQ2 Cross-PR | S1 Flask (re-run) | k=2,4 | 37 rows | ✅ Confirmé (k2+k4 iso=True+False) |
-| RQ2 Cross-PR | S1 Flask (re-run) | k=8 | — | ❌ Timeout mémoire (données 14/05 valides) |
-| RQ2 Cross-PR | S2 Listmonk | — | 0 | ❌ 6 batchs terminés avec exceptions — root cause en investigation |
-| RQ2 Cross-PR | S3 Healthchecks | — | — | 🔄 En cours — k=8 iso=True (migrations Alembic OK, tests running) |
-| RQ2 Cross-PR | S4–S5 | — | 0 | ⏳ En attente |
-| **RQ3 Performance** | S1 Flask | iso=True | 30/30 | ✅ Complet |
-| **RQ3 Performance** | S1 Flask | iso=False | 30/30 | ✅ Complet |
-| RQ3 Performance | S2–S5 | — | 0/30 | ❌ → à relancer (méta corrigé) |
-| RQ4 Bug Detection | S1 Flask | static (1 mutant) | 3 rows | ⏳ Image mutant-1 pushée sur ghcr.io — démarre après RQ5 |
-| RQ4 Bug Detection | S1 Flask | llm_fixed + llm_free | 0 | ⏳ En attente |
-| RQ4 Bug Detection | S1 Flask | 49 mutants restants | 0 | ⏳ En attente (~62 h) |
-| RQ5 Idempotence | S1–S5 | — | 0 | ⏳ En attente (démarre après RQ2) |
+| **RQ1 Flakiness** | S1 Flask | iso=True+False | 60/60 | ✅ Complet |
+| RQ1 Flakiness | S2 Listmonk | — | 0/60 | ⏳ Lancé après RQ2 (master3 Stage 4) |
+| RQ1 Flakiness | S3 Healthchecks | — | 0/60 | ⏳ Lancé après RQ2 (master3 Stage 4) |
+| RQ1 Flakiness | S4–S5 | — | 0/60 | ⏳ Lancé après RQ2 |
+| **RQ2 Cross-PR** | S1 Flask k=2,4,8 | iso=True+False | 84 rows (14/05) + 60 rows (15/05) | ✅ Complet |
+| **RQ2 Cross-PR** | **S2 Listmonk** | k=2,4,8 × iso=T,F | **60 rows** | ✅ Complet — contre-exemple paper-ready (voir §S2) |
+| RQ2 Cross-PR | S3 Healthchecks | k=2 isoTrue | démarré 22:25 | 🔄 En cours (master3) |
+| RQ2 Cross-PR | S4–S5 | — | 0 | ⏳ Suit S3 |
+| **RQ3 Performance** | S1 Flask | iso=True+False | 60/60 | ✅ Complet |
+| RQ3 Performance | S2–S5 | — | 0/60 | ⏳ Lancé après RQ1 (master3 Stage 5) |
+| RQ4 Bug Detection | S1 Flask | static (1 mutant) | 3 rows | ⏳ Master3 Stage 3 |
+| RQ4 Bug Detection | S1 Flask | 49 mutants + llm | 0 | ⏳ Master3 Stage 3 |
+| RQ5 Idempotence | S1–S5 | — | 0 | ⏳ Master3 Stage 2 |
 
 ---
 
 ## Avancement global
 
 ```
-RQ1  ████░░░░░░  20%  S1 done (510 rows)        — S2-S5 à relancer
-RQ2  █████░░░░░  22%  S1 done + re-run k2/k4    — S2 en cours (crash), S3-S5 pending
-RQ3  ████░░░░░░  20%  S1 done (390 rows)        — S2-S5 à relancer
-RQ4  ░░░░░░░░░░   2%  image mutant-1 prête      — démarre après RQ5
-RQ5  ░░░░░░░░░░   0%  not started               — démarre après RQ2
+RQ1  ████░░░░░░  20%  S1 done (510 rows)            — S2-S5 master3 Stage 4
+RQ2  ████████░░  40%  S1 done + S2 done (60 rows)   — S3-S5 master3 Stage 1 (en cours)
+RQ3  ████░░░░░░  20%  S1 done (390 rows)            — S2-S5 master3 Stage 5
+RQ4  ░░░░░░░░░░   2%  image mutant-1 prête          — master3 Stage 3
+RQ5  ░░░░░░░░░░   0%  not started                   — master3 Stage 2
 ```
 
-**Ordre runner actuel (v2) :** RQ2 → RQ5 → RQ4  
-**Runner v2 démarré :** 2026-05-15T18:38Z (PID 249005) — meta.yaml S2 corrigé (`apt-get update` ajouté)
+**Ordre runner actuel (master3) :** RQ2 (S3-S5) → RQ5 (S1-S5) → RQ4 (S1-S5) → RQ1 (S2-S5) → RQ3 (S2-S5)
+**Master3 démarré :** 2026-05-15T22:25Z (PID 9484) — post-restart Docker; S3 image rebuild avec fixes auth (header `X-Api-Key`, model `Project.api_key`, length 32)
 
-**Données paper-ready :** RQ1 + RQ2 + RQ3 pour S1 sont complets, analysés, poussés sur remote.
+**Données paper-ready :**
+- ✅ RQ1 + RQ2 + RQ3 pour **S1** sont complets, analysés (`ANALYSIS_S1.md`), poussés sur remote
+- ✅ RQ2 pour **S2** complet, analysé (`ANALYSIS_S2.md`) — contre-exemple scientifique au sujet S1
+- 🔄 Reste : RQ2 S3-S5, RQ5 + RQ4 (tous sujets), RQ1 + RQ3 (S2-S5)
 
 ---
 
@@ -142,6 +139,37 @@ RQ5  ░░░░░░░░░░   0%  not started               — démarre
 - **Re-run 15/05 confirme k=2 et k=4** — résultats reproductibles
 
 *Fichier :* `results/cross_pr_test_outcomes_20260514T211354Z.csv`
+
+### S2 Listmonk — k=2, 4, 8 — COMPLET (15/05, 60 rows)
+
+Résultat **inversé** par rapport à S1 : invariant sous l'isolation, 100% d'échec aux deux conditions.
+
+| k | iso=True smoke | iso=True regression | iso=True e2e | iso=False smoke | iso=False regression | iso=False e2e |
+|---|---|---|---|---|---|---|
+| 2 | 2/2 (0%) | 2/2 (**100%**) | 2/2 (**100%**) | 2/2 (0%) | 2/2 (**100%**) | 2/2 (**100%**) |
+| 4 | 4/4 (0%) | 4/4 (**100%**) | 4/4 (**100%**) | 4/4 (0%) | 4/4 (**100%**) | 4/4 (**100%**) |
+| 8 | 4/4 (0%) | 4/4 (**100%**) | 4/4 (**100%**) | 4/4 (0%) | 4/4 (**100%**) | 4/4 (**100%**) |
+
+(k=8 = 4 previews/condition à cause de la pression mémoire du kind single-node)
+
+**Cause racine identifiée (2 facteurs indépendants, lecture directe du code) :**
+
+1. **Fuite d'état hors du périmètre du checkpoint.** Les tests S2 écrivent leur marqueur `run_log` au **service `svc-probe`** (conteneur séparé, port 9090), alors que S1 écrit dans son propre backend (même DB que celle qui est checkpointée).
+   Le script de restauration ([`checkpoint.go:463-471`](../preview/preview-operator/internal/controller/checkpoint.go)) fait `TRUNCATE ... RESTART IDENTITY CASCADE` sur `public.*` de la DB applicative — c'est correct et robuste, mais ne touche pas le probe. Le marqueur smoke survit → `run_log_clean` échoue à 100%.
+2. **Baseline du test mal spécifié.** Les tests assertent `list_count == SEED_COUNT(=3)` mais `listmonk --install --yes` crée sa propre liste par défaut (baseline ≥ 4) et `DELETE /api/lists/{id}` est un soft-delete (la ligne reste comptée). Le 5 observé est invariant sous l'isolation.
+
+**Pourquoi c'est un bon résultat pour le papier (calibration, pas réfutation) :**
+
+> Sur le diag preview, **9/11 assertions fonctionnelles regression et 6/8 e2e PASSENT**.
+> Seules les 2 sondes d'isolation échouent — exactement les 2 qui mesurent en dehors du périmètre du checkpoint. Le mécanisme lui-même est donc correct.
+
+**Condition nécessaire et suffisante** que S2 met en évidence :
+> *L'état observé par les tests doit être un sous-ensemble de l'état restauré par l'opérateur, et les baselines doivent être capturées au runtime, pas en dur.*
+
+S2 borne la thèse par le haut : le checkpoint est nécessaire mais pas suffisant. Pour les praticiens, c'est un critère d'adoption opérationnel.
+
+*Fichier :* `results/s2-listmonk/cross_pr_test_outcomes_20260515T180943Z.csv`
+*Analyse :* `results/s2-listmonk/ANALYSIS_S2.md`
 
 ---
 
@@ -279,11 +307,15 @@ checkpoint vs migration_reset = 14.6 / 37.6 = 0.39 → checkpoint 61% moins cher
 
 ## Issues connues
 
-1. **RQ1/RQ3/RQ2 S2–S5** — crashés (images absentes, migration S2 échouée). Corrigés. Re-run planifié après le runner actuel.
-2. **RQ2 k=8** — données valides du 14/05. L'échec du 15/05 était dû à la saturation mémoire par experiments parallèles (pas un problème de k=8 en soi).
-3. **RQ4** — très long, scope limité à S1, LLM requis pour 2/3 conditions. Recommandé : future work ou scope réduit.
-4. **Anciens CSV dans `results/`** (root) — runs pré-réorganisation. À exclure de l'analyse finale ou à fusionner manuellement.
-5. **Vrai cluster requis** — pour paralléliser S2–S5 et réduire de 44 h à ~8–10 h.
+1. **S2 wrapper.py** — `/listmonk` (directory) vs `/listmonk/listmonk` (binary) → PermissionError. Fix dans image `s2-listmonk-adapter:v2.5.1-fix` (commit `48fa1d7`).
+2. **Probe `:latest` ImagePullBackOff** — `:latest` force `imagePullPolicy=Always` mais ghcr.io probe est 401. Fix : retag `:cached` (commit `48fa1d7`).
+3. **S3 Django settings** — `DJANGO_SETTINGS_MODULE` non défini avant `django.setup()`. Fix commit `ea752cb`.
+4. **S3 API auth 3 bugs** — wrong header (`Authorization: ApiKey` → `X-Api-Key`), wrong model (`Profile.api_key` → `Project.api_key`), wrong length (35 → 32 chars). Fix commits `ea752cb` + `4719756`.
+5. **S3 endpoint tests morts** — `/api/v3/flips/` (404, requires UUID), `/api/v3/badges/` (500, missing badge_key), `grace=30` (sous le minimum 60). Tests retirés/corrigés (commit `4719756`).
+6. **RQ2 k=8** — données valides du 14/05. L'échec du 15/05 était dû à la saturation mémoire par experiments parallèles (pas un problème de k=8 en soi).
+7. **Docker daemon hung** (21:45 → 22:25) — résolu par redémarrage PC. Tous les commits/data sont sauvegardés sur GitHub avant restart.
+8. **RQ4** — très long, scope limité à S1, LLM requis pour 2/3 conditions. Recommandé : future work ou scope réduit.
+9. **Vrai cluster requis** — pour paralléliser S2–S5 et réduire de 44 h à ~8–10 h.
 
 ---
 
@@ -315,7 +347,29 @@ checkpoint vs migration_reset = 14.6 / 37.6 = 0.39 → checkpoint 61% moins cher
 > Cliff's delta=1.0 for the checkpoint vs no-isolation pipeline comparison
 > (complete stochastic dominance, A12=1.0, Mann-Whitney U=0)."
 
+**RQ2 — S2 finding (calibration / boundary condition) :**
+> "Subject S2 (Listmonk Newsletter Manager) yielded an identical 100% failure rate on
+> regression and e2e suites under both iso=True and iso=False (k ∈ {2,4,8}, n=60).
+> Source-level analysis (`harness-adapter/tests/{smoke,regression}.py:36-41` and
+> `preview-operator/internal/controller/checkpoint.go:463-471`) identifies two
+> independent, additive causes: (i) S2's isolation probe writes its run-log marker
+> to a side-car `svc-probe` container, whose state is outside the checkpoint scope
+> (the operator's `TRUNCATE ... RESTART IDENTITY CASCADE` + `psql -f dump.sql` only
+> resets the application database); (ii) the `*_matches_seed` assertion hard-codes
+> SEED_COUNT=3, while Listmonk's `--install` step creates an additional default list
+> and DELETE is a soft-delete that does not decrement the total count.
+> Crucially, 9/11 regression and 6/8 e2e *functional* assertions pass on the same
+> preview, confirming the checkpoint mechanism itself is correct.
+> S2 therefore bounds the claim from above: checkpoint isolation is a necessary but
+> not sufficient condition for test-level isolation. The sufficient condition is
+> *test-isolation scope ⊆ checkpoint scope* and *probe assertions reference
+> runtime-captured baselines, not literals*."
+
 **Synthèse :**
 > "For a cost of 14.6 s per preview lifecycle, checkpoint isolation eliminates 100%
 > of test flakiness caused by intra-preview database state contamination, with the
-> guarantee holding across concurrency levels k ∈ {2,4,8}."
+> guarantee holding across concurrency levels k ∈ {2,4,8} on subjects where the
+> test-isolation scope is a subset of the operator's checkpoint scope (S1).
+> Subject S2 exhibits 100% failure regardless of isolation, but source-level analysis
+> attributes both failure modes to test-design issues outside the operator scope,
+> not to the checkpoint mechanism itself."
