@@ -178,6 +178,8 @@ RQ5  ░░░░░░░░░░   0%  not started               — démarre
 | **Cliff's delta** | **1.0000** | Toutes les runs iso=True > toutes les iso=False |
 | **Vargha-Delaney A12** | **1.0000** | Domination stochastique complète |
 | Mann-Whitney U | U = 0 | Séparation parfaite des distributions |
+| **95% CI pour Δ** | **[34.4 s, 36.4 s]** | SE = 0.490 s → overhead mesuré avec haute précision |
+| **Analyse de puissance** | N_min = 2 | Power=0.8, d=18.67, α=0.05 → N=30 ×15 fois suralimenté |
 
 ### checkpoint_total — distribution
 
