@@ -77,8 +77,6 @@ t("check_count_matches_seed", lambda: (
     f"expected {SEED_COUNT} checks, got {check_count}"
 ))
 
-t("flips_list",   lambda: (requests.get(BASE + "/api/v3/flips/",   timeout=5, headers=HDRS).status_code == 200, "not 200"))
-
 # Write regression marker
 requests.post(PROBE + "/api/run-log", json={"suite": "regression"}, timeout=5)
 

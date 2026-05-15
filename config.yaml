@@ -30,7 +30,7 @@ subjects:
   images:
     s1-flask-catalog: ghcr.io/ihsenalaya/idp-preview:exp-20260514-e2efix-2089
     s2-listmonk: ghcr.io/ihsenalaya/s2-listmonk-adapter:v2.5.1-fix
-    s3-healthchecks: ghcr.io/ihsenalaya/s3-healthchecks-adapter:v3.6
+    s3-healthchecks: ghcr.io/ihsenalaya/s3-healthchecks-adapter:v3.6-fix
     s4-umami: ghcr.io/ihsenalaya/s4-umami-adapter:v2.15.1
     s5-petclinic: ghcr.io/ihsenalaya/s5-petclinic-adapter:v3.4.0
 

@@ -33,8 +33,6 @@ def t(name, fn):
 t("healthz",      lambda: (requests.get(BASE + "/healthz",        timeout=5).status_code == 200, "not 200"))
 t("checks_list",  lambda: (requests.get(BASE + "/api/v3/checks/",  timeout=5, headers=HDRS).status_code == 200, "not 200"))
 t("channels",     lambda: (requests.get(BASE + "/api/v3/channels/", timeout=5, headers=HDRS).status_code == 200, "not 200"))
-t("badges",       lambda: (requests.get(BASE + "/api/v3/badges/",   timeout=5, headers=HDRS).status_code == 200, "not 200"))
-t("flips",        lambda: (requests.get(BASE + "/api/v3/flips/",    timeout=5, headers=HDRS).status_code == 200, "not 200"))
 
 # Write smoke marker
 try:

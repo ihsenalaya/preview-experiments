@@ -50,7 +50,7 @@ t("entity_count_matches_seed", lambda: (
 t("healthz", lambda: (requests.get(BASE + "/healthz", timeout=5).status_code == 200, "not 200"))
 
 r = requests.post(BASE + "/api/v3/checks/",
-                  json={"name": "e2e-check", "tags": "e2e", "timeout": 1800, "grace": 30},
+                  json={"name": "e2e-check", "tags": "e2e", "timeout": 1800, "grace": 60},
                   timeout=5, headers=HDRS)
 t("e2e_create_check", lambda: (r.status_code == 201, f"status {r.status_code}"))
 
