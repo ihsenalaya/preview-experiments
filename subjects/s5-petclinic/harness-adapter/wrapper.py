@@ -69,8 +69,9 @@ if __name__ == "__main__":
         env["SPRING_DATASOURCE_URL"] = jdbc_url
         env["SPRING_DATASOURCE_USERNAME"] = u.username or "postgres"
         env["SPRING_DATASOURCE_PASSWORD"] = u.password or ""
-    env["SPRING_PROFILES_ACTIVE"] = "postgresql,spring-data-jpa"
+    env["SPRING_PROFILES_ACTIVE"] = "postgres,spring-data-jpa"
     env["SERVER_PORT"] = str(APP_PORT)
+    env["SERVER_SERVLET_CONTEXT_PATH"] = "/"
 
     proc = subprocess.Popen(
         [JAVA, "-cp", "@/app/jib-classpath-file",

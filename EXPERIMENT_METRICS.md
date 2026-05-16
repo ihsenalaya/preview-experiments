@@ -2,7 +2,7 @@
 
 Paper: *Checkpoint-based Database Isolation Eliminates Non-deterministic Test Variance
 in Kubernetes Preview Environments*
-Last updated: 2026-05-15T23:30Z
+Last updated: 2026-05-16T14:50Z
 
 ---
 
@@ -11,39 +11,81 @@ Last updated: 2026-05-15T23:30Z
 | Experiment | Sujet | Condition | Runs | Statut |
 |---|---|---|---|---|
 | **RQ1 Flakiness** | S1 Flask | iso=True+False | 60/60 | ✅ Complet |
-| RQ1 Flakiness | S2 Listmonk | — | 0/60 | ⏳ Lancé après RQ2 (master3 Stage 4) |
-| RQ1 Flakiness | S3 Healthchecks | — | 0/60 | ⏳ Lancé après RQ2 (master3 Stage 4) |
-| RQ1 Flakiness | S4–S5 | — | 0/60 | ⏳ Lancé après RQ2 |
+| **RQ1 Flakiness** | **S2 Listmonk** | iso=True+False | 🔄 en cours | 🔄 AKS run 2026-05-16T14:22Z (PID 69912) |
+| **RQ1 Flakiness** | **S3 Healthchecks** | iso=True+False | ⏳ après S2 | ⏳ AKS run même process |
+| **RQ1 Flakiness** | **S4 Umami** | iso=True+False | ⏳ après S3 | ⏳ AKS run même process |
+| RQ1 Flakiness | S5 PetClinic | — | 0/60 | ⏸ disabled — wrapper backend bug à fixer |
 | **RQ2 Cross-PR** | S1 Flask k=2,4,8 | iso=True+False | 84 rows (14/05) + 60 rows (15/05) | ✅ Complet |
 | **RQ2 Cross-PR** | **S2 Listmonk** | k=2,4,8 × iso=T,F | **60 rows** | ✅ Complet — calibration méthodologique (voir §S2) |
 | **RQ2 Cross-PR** | **S3 Healthchecks** | k=2,4,8 × iso=T,F | **60 rows** | ✅ Complet — réplique parfaite S1 Δ=−100 pp |
 | **RQ2 Cross-PR** | **S4 Umami** | k=2,4,8 × iso=T,F | **60 rows** | ✅ Complet — cas ouvert (voir §S4) |
-| RQ2 Cross-PR | S5 PetClinic | — | démarré 23:21 | 🔄 En cours (master3) |
+| RQ2 Cross-PR | S5 PetClinic | — | 0 rows | ⏸ master3 mort 15/05; reporté à fix S5 |
 | **RQ3 Performance** | S1 Flask | iso=True+False | 60/60 | ✅ Complet |
-| RQ3 Performance | S2–S5 | — | 0/60 | ⏳ Lancé après RQ1 (master3 Stage 5) |
-| RQ4 Bug Detection | S1 Flask | static (1 mutant) | 3 rows | ⏳ Master3 Stage 3 |
-| RQ4 Bug Detection | S1 Flask | 49 mutants + llm | 0 | ⏳ Master3 Stage 3 |
-| RQ5 Idempotence | S1–S5 | — | 0 | ⏳ Master3 Stage 2 |
+| **RQ3 Performance** | **S2 Listmonk** | iso=True+False | 🔄 en cours | 🔄 AKS run 2026-05-16T14:22Z (PID 69914) |
+| **RQ3 Performance** | **S3 Healthchecks** | iso=True+False | ⏳ après S2 | ⏳ AKS run même process |
+| **RQ3 Performance** | **S4 Umami** | iso=True+False | ⏳ après S3 | ⏳ AKS run même process |
+| RQ3 Performance | S5 PetClinic | — | 0/60 | ⏸ disabled |
+| **RQ4 Bug Detection** | **S1 Flask** | static + llm_fixed + llm_free | 🔄 en cours | 🔄 AKS run 2026-05-16T14:47Z (PID 97335, _run_bug_detection_s1s2.py) |
+| **RQ4 Bug Detection** | **S2 Listmonk** | static + llm_fixed + llm_free | 🔄 en cours | 🔄 même process (architecturally inconsistent — interpréter avec prudence) |
+| RQ4 Bug Detection | S3+S4+S5 | — | 0 | ⏸ disabled |
+| RQ5 Idempotence | **S2 Listmonk** | 6 kill_steps × 3 | partial — killed 14:44Z | ⏸ killed (cause crash S3) → relancé après autres terminés |
+| RQ5 Idempotence | S3 Healthchecks | — | 0 | ⏸ après autres |
+| RQ5 Idempotence | S4 Umami | — | 0 | ⏸ après autres |
+| RQ5 Idempotence | S1+S5 | — | 0 | ⏸ disabled |
 
 ---
 
 ## Avancement global
 
 ```
-RQ1  ████░░░░░░  20%  S1 done (510 rows)                       — S2-S5 master3 Stage 4
-RQ2  █████████░  80%  S1+S2+S3+S4 done (240 rows total)        — S5 en cours
-RQ3  ████░░░░░░  20%  S1 done (390 rows)                       — S2-S5 master3 Stage 5
-RQ4  ░░░░░░░░░░   2%  image mutant-1 prête                     — master3 Stage 3
-RQ5  ░░░░░░░░░░   0%  not started                              — master3 Stage 2
+RQ1  ████░░░░░░  20%  S1 done (510 rows)              — S2 en cours (AKS), S3+S4 en file
+RQ2  █████████░  80%  S1+S2+S3+S4 done (240 rows)     — S5 reporté
+RQ3  ████░░░░░░  20%  S1 done (390 rows)              — S2 en cours (AKS), S3+S4 en file
+RQ4  █░░░░░░░░░   5%  mutant-1 build+push OK, run S1 en cours — S1+S2 only (PID 97335)
+RQ5  █░░░░░░░░░  10%  S2 démarré (AKS)                — S3+S4 en file
 ```
 
-**Ordre runner actuel (master3) :** RQ2 (S3-S5) → RQ5 (S1-S5) → RQ4 (S1-S5) → RQ1 (S2-S5) → RQ3 (S2-S5)
-**Master3 démarré :** 2026-05-15T22:25Z (PID 9484) — post-restart Docker; S3 image rebuild avec fixes auth (header `X-Api-Key`, model `Project.api_key`, length 32)
+**Migration vers AKS (2026-05-16T14:22Z) + bascule parallélisation per-subject (14:40Z) :**
+- master3 (Kind, PID 9484) → mort avant 14:00, aucune ligne écrite dans `logs/rq2_master3.log` (0 bytes)
+- **Première vague AKS (14:22Z → 14:37Z, arrêtée)** : 3 procs (1 par expérience, séquence S2→S3→S4 interne), trop lent (ETA ~6h). Partial CSVs S2 supprimés.
+- **Vague actuelle AKS (depuis 14:40Z) : 7 procs en parallèle :**
+  - flakiness × {S2, S3, S4} via `_run_one_subject.py` (3 procs)
+  - performance × {S2, S3, S4} via `_run_one_subject.py` (3 procs)
+  - bug_detection × {S1, S2} via `_run_bug_detection_s1s2.py` ajouté 14:47Z (1 proc)
+  - idempotence séquentiel — killed at 14:44Z après crash S3 par kill operator pod ; sera relancé après les autres
+- **Incident 14:43Z :** flakiness-s3 + performance-s3 ont crashé sur `kubectl apply Preview` retournant non-zero ; cause = idempotence en parallèle tue le pod operator → webhook validating injoignable → admission rejette les autres CR. Procs relancés à 14:45Z avec idempotence kill. Partial CSVs S3 supprimés (1.6 KB chacun).
+- ETA recalculée : ~**2h** au lieu de 6h
+- Cluster AKS : preview-operator 1.0.43, cert-manager, ingress-nginx, OTel + Jaeger, kagent + agent troubleshooter, Microcks, runner. 2× D4s_v3 free tier.
+- Cluster usage observé sous 7 Previews concurrentes : ~13% CPU + 36% RAM → large marge
+- Pull-secret AKS résolu par 2 watchers déployés dans `kube-system` : `ghcr-propagator` (copie secret + patch SA `default` à chaque ns) + `ghcr-killloop` (kill pods en ImagePullBackOff toutes les 5s pour la race condition avec création de Job par opérateur)
+- 3 images locales jamais publiées sur GHCR ont été push avant lancement : `s2-listmonk-adapter:v2.5.1-fix`, `s3-healthchecks-adapter:v3.6-fix`, `harness-probe:cached`
+
+**S5 PetClinic — investigation 2026-05-16T15:00-15:20Z :**
+
+Tour d'horizon : 4 bugs distincts, 3/4 fixés dans `s5-petclinic-adapter:v3.4.0-fix2` (push GHCR à 15:08Z).
+
+| Bug | Description | Cause | Fix appliqué |
+|---|---|---|---|
+| 1. wrapper.py jamais exécuté | Procès container = `java ... python3 /wrapper.py` (python3 /wrapper.py passé en args à Java au lieu de comme commande) | Dockerfile FROM Jib image: ENTRYPOINT `java -cp ... PetClinicApplication` non écrasé, CMD `["python3","/wrapper.py"]` devient args | Dockerfile : ajouté `ENTRYPOINT ["python3"]`, CMD `["/wrapper.py"]` |
+| 2. smoke + regression: `sh: 1: python: not found` | Test command `["python", ...]` mais base image n'a que `python3` | Pas de symlink python→python3 | Dockerfile : `RUN ln -sf /usr/bin/python3 /usr/local/bin/python` |
+| 3. e2e: `JSONDecodeError` sur `/api/pets` | Spring Boot configuré avec `server.servlet.context-path=/petclinic`, donc `/api/pets` retourne 404 HTML | application.properties du base image | wrapper.py : `env["SERVER_SERVLET_CONTEXT_PATH"] = "/"` (env Spring Boot, override propre) |
+| 4. **/api/pets → HTTP 500 InvalidDataAccessResourceUsage** : `relation "pets" does not exist` | DB vide (seule `run_log` créée par probe) | PetClinic n'utilise PAS Flyway mais `spring.sql.init` via profil Spring. **Profil mal nommé** : `SPRING_PROFILES_ACTIVE=postgresql` au lieu de `postgres` (correspondant à `application-postgres.properties` baked dans l'image). Sans profil correct, fallback sur `application.properties` qui utilise `database=hsqldb` (HSQL in-memory) → aucune table dans postgres. | meta.yaml + wrapper.py : `postgresql` → `postgres` |
+
+**Verdict :** ✅ **S5 fixé end-to-end.** Image `ghcr.io/ihsenalaya/s5-petclinic-adapter:v3.4.0-fix3` valide :
+- /healthz → 200 ✓
+- /api/pets → 200 (**13 items** — matche `seed_count=13`)
+- /api/vets → 200 (6 items)
+- /api/owners → 200 (10 items)
+
+S5 réactivé dans `config.yaml`. **Launch différé** : cluster AKS actuellement saturé sur CPU requests (9 procs running + bug_detection produisent ~10 Previews concurrentes simultanément). Un Preview S5 supplémentaire ne peut pas schedule (`svc-probe Pending: 0/2 nodes available, 2 Insufficient cpu`). Lancement flak/perf S5 après que les 9 procs actuels terminent (~16:30Z) — sinon Failed parasites polluent les CSVs.
 
 **Données paper-ready :**
-- ✅ RQ1 + RQ2 + RQ3 pour **S1** sont complets, analysés (`ANALYSIS_S1.md`), poussés sur remote
-- ✅ RQ2 pour **S2** complet, analysé (`ANALYSIS_S2.md`) — contre-exemple scientifique au sujet S1
-- 🔄 Reste : RQ2 S3-S5, RQ5 + RQ4 (tous sujets), RQ1 + RQ3 (S2-S5)
+- ✅ RQ1 + RQ2 + RQ3 pour **S1** sont complets, analysés (`ANALYSIS_S1.md`)
+- ✅ RQ2 pour **S2** complet, analysé (`ANALYSIS_S2.md`) — calibration méthodologique
+- ✅ RQ2 pour **S3** complet, analysé (`ANALYSIS_S3.md`) — réplique parfaite Δ=−100 pp
+- ✅ RQ2 pour **S4** complet, analysé (`ANALYSIS_S4.md`) — cas ouvert
+- 🔄 En cours : RQ1+RQ3+RQ5 pour S2/S3/S4 (parallèle AKS, ETA ~4-5h)
+- ⏸ Reporté : RQ2 S5, RQ4 (tous), tout S5, RQ1+RQ3+RQ5 pour S1+S5
 
 ---
 
