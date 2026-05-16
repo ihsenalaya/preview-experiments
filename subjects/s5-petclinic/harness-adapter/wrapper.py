@@ -79,7 +79,31 @@ if __name__ == "__main__":
         env=env,
     )
 
-    time.sleep(25)
+    # Poll Spring Boot until it actually answers /api/vets — the operator's readiness
+    # probe hits /healthz on the wrapper, and tests immediately follow. If we opened
+    # the proxy at t+25s (old behavior) the wrapper-side /healthz returned 200 while
+    # Spring Boot was still booting (47-75s), making smoke/regression/e2e fail with
+    # 502s until Spring Boot finished. We now block here until /api/vets returns 200,
+    # so /healthz is only served by a *fully-functional* backend.
+    print(f"[wrapper] waiting for Spring Boot on :{APP_PORT} ...", flush=True)
+    deadline = time.monotonic() + 180  # 3 min cap (well beyond observed 75s startup)
+    while time.monotonic() < deadline:
+        if proc.poll() is not None:
+            print(f"[wrapper] Spring Boot exited prematurely with {proc.returncode}", flush=True)
+            exit(proc.returncode or 1)
+        try:
+            with urllib.request.urlopen(f"http://127.0.0.1:{APP_PORT}/api/vets", timeout=2) as r:
+                if r.status == 200:
+                    print(f"[wrapper] Spring Boot ready on :{APP_PORT} after "
+                          f"{int(180 - (deadline - time.monotonic()))}s", flush=True)
+                    break
+        except Exception:
+            pass
+        time.sleep(2)
+    else:
+        print(f"[wrapper] Spring Boot did not become ready within 180s", flush=True)
+        proc.terminate()
+        exit(1)
 
     server = ThreadingHTTPServer(("0.0.0.0", PROXY_PORT), _ProxyHandler)
     thr = threading.Thread(target=server.serve_forever, daemon=True)

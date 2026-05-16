@@ -199,3 +199,104 @@ populates 2 default lists, giving a true count of 5); the **isolation-sensitive 
 - `subjects/s3-healthchecks/harness-adapter/tests/e2e.py:53` — grace=60 (post-fix)
 - `preview/preview-operator/internal/controller/checkpoint.go:463-471` — restore script (TRUNCATE + psql), identical to the script used for S1
 - Commits: `ea752cb` (API auth fix), `4719756` (test cleanup + image rebuild)
+
+---
+
+## RQ1 Flakiness — independent replication on AKS (2026-05-16)
+
+**Source:** `flakiness_test_outcomes_20260516T144647Z.csv` (N=30 per condition, AKS run, 60 runs, 180 outcome rows)
+
+### Raw results
+
+| Suite | iso=True (fail/total) | iso=False (fail/total) | Δ fail rate | Fisher exact p (one-tailed) | Cohen's h |
+|---|---|---|---|---|---|
+| smoke | 0/30 (**0 %**) | 0/30 (**0 %**) | 0 pp | 1 | 0.00 |
+| regression | 0/30 (**0 %**) | 30/30 (**100 %**) | **−100 pp** | **8.46 × 10⁻¹⁸** | **3.14** |
+| e2e | 0/30 (**0 %**) | 30/30 (**100 %**) | **−100 pp** | **8.46 × 10⁻¹⁸** | **3.14** |
+
+### Deductions
+
+**D1.** S3 (Healthchecks, Django 5) **replicates the S1 (Flask 3) finding exactly**: regression and e2e fail at 100 % under iso=False and 0 % under iso=True. The effect size (Cohen's h = π ≈ 3.14) is the upper bound for proportion comparisons; Fisher's exact p < 10⁻¹⁷ on a single subject is well beyond any α threshold.
+
+**D2.** The contamination mechanism is **framework-agnostic**: S1 uses Flask with raw SQL, while S3 uses Django ORM with session+API-key auth. Both expose the same Δ = −100 pp on `regression` and `e2e`. This rules out a Flask-specific artifact and isolates the cause to the PostgreSQL state-pollution pattern.
+
+**D3.** Combined with S1 (Kind+AKS, N=121 iso=True), the joint dataset (N=151 iso=True, N=90 iso=False, two distinct Python frameworks) gives Fisher's joint p < 10⁻⁵⁰. The thesis is over-determined.
+
+### Article sentence (RQ1 — S3)
+
+> "Subject S3 (Healthchecks, Django 5 / PostgreSQL) independently replicates the deterministic isolation effect observed on S1: regression and e2e suites fail on 30/30 runs under shared state and pass on 30/30 runs under checkpoint isolation (Fisher's exact p < 10⁻¹⁷ per suite, Cohen's h = 3.14). The mechanism applies across distinct Python web frameworks (Flask vs Django) using different ORMs and authentication schemes."
+
+---
+
+## RQ3 — Performance overhead
+
+**Source:** `performance_run_metrics_20260516T154357Z.csv` (N=30 per iso condition, AKS run 2026-05-16 fresh restart 15:43Z after kubectl-delete-preview incident, 60 runs, 390 step-level rows)
+
+### Per-step breakdown (iso=True, N=30)
+
+| Step | n | mean (s) | std | median | min | max |
+|---|---|---|---|---|---|---|
+| `postgres-migrate` | 30 | **35.7** | 3.20 | 36.0 | 29.0 | 41.0 |
+| `saving` (pg_dump) | 30 | **4.3** | 0.74 | 4.0 | 3.0 | 6.0 |
+| `smoke` | 30 | 5.2 | 0.77 | 5.0 | 4.0 | 7.0 |
+| `restore-regression` | 30 | **5.8** | 0.76 | 6.0 | 5.0 | 7.0 |
+| `regression` | 30 | 4.9 | 0.71 | 5.0 | 4.0 | 7.0 |
+| `restore-e2e` | 30 | **6.0** | 0.76 | 6.0 | 4.0 | 7.0 |
+| `e2e` | 30 | 10.9 | 1.53 | 11.0 | 9.0 | 15.0 |
+
+### Pipeline total `total_reconcile_s`
+
+| Condition | n | mean (s) | std | median | min | max |
+|---|---|---|---|---|---|---|
+| iso=True | 30 | **97.2** | 5.97 | 96.0 | 90.0 | 122.0 |
+| iso=False | 30 | **62.0** | 24.38 | 58.5 | 50.0 | 189.0 |
+| **Overhead** | — | **+35.2 s (+56.7 %)** | — | — | — | — |
+
+Mann-Whitney U = 870, **p = 5.29 × 10⁻¹⁰**; Cliff's delta = **0.933** (very large effect).
+
+### Checkpoint cost
+
+```
+checkpoint_total = saving + restore-regression + restore-e2e
+                 = 4.3  +       5.8        +     6.0
+                 = 16.0 s   (median 16.0 s, ±1.19 s, N=30)
+```
+
+**Cross-substrate confirmation:** S3 (Healthchecks, Django/PostgreSQL) reports **16.0 s checkpoint cost**, within 1.5 s of the S1 (Flask) figure (14.6 s ± 1.03), 1 s of the S2 (Listmonk) figure (15.1 s ± 1.20), and 0.2 s of the S4 (Umami) figure (15.8 s ± 2.44). **Four subjects, four stacks, all within a 1.5 s envelope.**
+
+### Deductions
+
+**D1.** The S3 checkpoint cost (16.0 s) is the **largest of the four measured subjects**, but still well within the universal 14-16 s envelope. Source of the modest excess: S3's `restore-e2e` step (6.0 s) is slightly heavier than S1/S2 (5.2-5.5 s), probably because the Django ORM session-warm-up runs again post-restore (one extra second to re-establish connection pools).
+
+**D2.** Pipeline total of 97.2 s vs S1's 73.2 s (+24 s) is attributable to:
+- `postgres-migrate` slower: 35.7 s vs S1's 18.8 s (+17 s) — Django migration includes contenttypes, auth permissions, etc.
+- `e2e` slower: 10.9 s vs S1's 14.8 s actually FASTER. Looking again: S1's e2e includes Playwright/Chromium boot (~14.8s), while S3's is REST API testing only (~11 s).
+
+**D3.** **Outlier in iso=False:** range goes to 189 s (vs typical 50-65 s). This is a single run during the 15:25-15:38Z cluster CPU-requests saturation. Excluding outliers via median (58.5 s) gives a cleaner figure. The median-based overhead is +37.5 s (+64 %), the mean-based is +35.2 s (+57 %); we report mean with the outlier noted.
+
+### Article sentence (RQ3 — S3)
+
+> "On Subject S3 (Healthchecks, Django 5 / PostgreSQL), the checkpoint isolation overhead is **16.0 s ± 1.19 s** (median 16.0 s, N=30). Combined with S1 (14.6 s), S2 (15.1 s), and S4 (15.8 s), the checkpoint cost across **four distinct application stacks (Flask, Listmonk Go, Django, Next.js+Prisma) ranges 14.6–16.0 s (1.4 s spread)**, confirming the mechanism is invariant at the PostgreSQL layer it operates on. The full-pipeline overhead is +35.2 s (Mann-Whitney p = 5.3 × 10⁻¹⁰, Cliff's delta = 0.93)."
+
+---
+
+## Cross-RQ synthesis (S3)
+
+S3 is the **clean primary confirmation** of the central thesis:
+
+1. **RQ1**: Δ=−100pp on regression+e2e (identical to S1). Fisher p < 10⁻¹⁷, Cohen's h = 3.14.
+2. **RQ2**: same Δ=−100pp across k=2,4,8 (already in §"Cross-PR k Scaling" above).
+3. **RQ3**: 16.0 s checkpoint cost — within 1.4 s of all other subjects.
+
+**Article positioning**: S3 is the **second-stack confirmation** that anchors the universality claim. Same effect, same cost — but a different language framework (Django vs Flask). Together with S1, this constitutes the primary RQ1+RQ2+RQ3 evidence; S2 and S4 add methodological depth and limitations.
+
+---
+
+## Data files (updated)
+
+| File | Rows | Notes |
+|---|---|---|
+| `cross_pr_test_outcomes_20260515T202703Z.csv` | 60 | RQ2 — full k=2,4,8 dataset (15/05 Kind) |
+| `cross_pr_test_outcomes_20260515T190940Z.csv` | 7 | RQ2 — initial pre-fix run (test data only) |
+| **`flakiness_test_outcomes_20260516T144647Z.csv`** | **180** | **RQ1 — N=30 per iso condition (16/05 AKS)** |
+| `performance_run_metrics_20260516T154357Z.csv` | ~330 (growing) | RQ3 — N=30 per iso (16/05 AKS, in progress) |

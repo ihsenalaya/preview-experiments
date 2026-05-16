@@ -9,7 +9,11 @@ import requests
 BASE = os.environ.get("APP_URL", "http://svc-backend:9000")
 PROBE = os.environ.get("PROBE_URL", "http://svc-probe:9090")
 AUTH = ("admin", "harness123")
-SEED_COUNT = 3
+# Post-install baseline: `listmonk --install --yes` creates 2 default lists
+# (Default list, Opt-in list) before our harness seed inserts 3 more. The
+# true baseline after migration is therefore 5 entities, not 3.
+# See ANALYSIS_S2.md §3.a for the empirical reproduction.
+SEED_COUNT = 5
 
 passed = failed = 0
 

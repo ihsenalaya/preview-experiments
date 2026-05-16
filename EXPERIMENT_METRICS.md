@@ -2,7 +2,91 @@
 
 Paper: *Checkpoint-based Database Isolation Eliminates Non-deterministic Test Variance
 in Kubernetes Preview Environments*
-Last updated: 2026-05-16T14:50Z
+Last updated: 2026-05-16T18:55Z (P1+P2 test-code fixes + operator 1.0.44 with temperature field)
+
+## Critical session updates (2026-05-16T17:00–18:55Z)
+
+**Operator 1.0.44 deployed (commits 38db55d + eee1ba0 on preview-operator):**
+- Added `spec.aiEnrichment.temperature` (decimal string in [0,2]) to AIEnrichmentSpec.
+- Previously the AI client hard-coded `temperature=0.2`; RQ4's 3-condition design
+  (`static` / `llm_fixed` T=0 / `llm_free` T=0.7) needed this to differentiate.
+- Plumbed: types → CRD pattern-validated string → ai/client.go → controller.
+- Harness now sends `temperature: "0.0"` / `"0.7"` as string (CRD discourages floats per K8s API conventions).
+- Chart bumped 1.0.43 → 1.0.44; READMEs updated in both `preview-operator` and `idp-preview`.
+
+**P1 — S2 broken test fixed (commits pending on preview-experiments):**
+- `SEED_COUNT = 3` in `subjects/s2-listmonk/harness-adapter/tests/{regression,e2e}.py` → **5**.
+- Real post-install baseline = 5 (listmonk install creates 2 default lists + 3 from harness seed).
+- Image rebuilt + push as `ghcr.io/ihsenalaya/s2-listmonk-adapter:v2.5.1-fix2`.
+- Old `flakiness_test_outcomes_20260516T144205Z.csv` archived as `.OBSOLETE_SEEDCOUNT3.csv`.
+- **flak-S2 re-run started 18:48Z** (PID 399003). Preliminary at Run 4/30 iso=True:
+  **4/4 pass on smoke + regression + e2e**. The "100/100 null" was the broken assertion,
+  not an isolation failure. S2 likely upgrades from "methodological case" to
+  **third primary confirmation of Δ=−100pp** once iso=False half completes.
+
+**P2 — S4 broken assertions removed:**
+- Removed `teams_list` from smoke + regression (Umami v2.15.1 returns 403 unless user is in a team).
+- Removed `website_stats` from regression (requires query params `startAt`/`endAt`/`unit`).
+- Kept `run_log_clean` (true isolation probe, the assertion that signals contamination).
+- Image rebuilt + push as `ghcr.io/ihsenalaya/s4-umami-adapter:v2.15.1-fix`.
+- Old `flakiness_test_outcomes_20260516T144225Z.csv` archived as `.OBSOLETE_broken_assertions.csv`.
+- **flak-S4 re-run started 18:53Z** (PID 404079). Data emerging.
+
+**P3 — RQ2 K=8 redo on AKS (DEFERRED to ~21:30Z):**
+- Original Kind data has K=8 reduced to 4 due to memory pressure (documented in §"S2 Listmonk").
+- AKS has 12 vCPU / 48 GiB across 3 nodes — plenty for genuine K=8 (8 simultaneous Previews).
+- Plan: run after S5 + re-runs (S2, S4) free up cluster.
+
+---
+
+## Snapshot live (auto-updated)
+
+```
+Snapshot 16:43Z (= 18:43 Paris)
+Cluster   : AKS idp-preview-cluster — 3× D4s_v3 (scaled from 2 at 15:38Z)
+Procs     : 11 python alive (8 originaux + flak-S5 + perf-S5 + bug_detection-S1S2 restarted at 16:43Z)
+Previews  : 11 active typically
+Pace      : ~40 CSV lines/min cluster-wide; ~80s per run on 3-node cluster
+
+CSVs (lines, accumulating since 14:40Z launch):
+  s1-flask-catalog  flakiness    386   ≈38 runs done (iso=T saturé, iso=F en cours ~8 runs)
+  s1-flask-catalog  performance  280   ≈40 runs done (iso=T saturé, iso=F en cours ~10)
+  s2-listmonk       flakiness    351   ≈35 runs done (iso=T saturé, iso=F ~5)
+  s2-listmonk       performance  193   ≈28 runs done (FRESH restart 15:39Z, iso=T ~85% done)
+  s3-healthchecks   flakiness    358   ≈35 runs (iso=T saturé, iso=F ~5)
+  s3-healthchecks   performance  201   ≈29 runs (FRESH restart 15:39Z)
+  s4-umami          flakiness    428   ≈42 runs (iso=T saturé, iso=F ~12)
+  s4-umami          performance  320   ≈45 runs (iso=T saturé, iso=F ~15)
+
+  s1-flask-catalog  bug_detection 4    proc DEAD 14:50Z (mutant 1 partial) — to restart later
+
+ETA end of main procs : ~17:00-17:15Z (= 19:00-19:15 Paris)
+After that: idempotence alone, flak/perf S5 (image :v3.4.0-fix3), bug_detection restart.
+
+Incidents log:
+  - 14:43Z idempotence killed operator pod (concurrent test) → crash flakiness-s3 + performance-s3 ;
+    restart at 14:45Z. Idempotence now parked for end-of-day sequential rerun.
+  - 15:25-15:38Z cluster CPU REQUESTS saturated (8 Previews × 600m + system = ~6.3 vCPU on 8 vCPU cluster) → all
+    e2e pods stuck Pending → all 8 procs hung on `wait_until_tests_done`.
+    Resolved by `az aks scale --node-count 3` (~3 min).
+  - 15:38Z my own cleanup `kubectl delete preview` on Failed previews killed performance-s2 + performance-s3
+    procs (their `kubectl get preview <X>` polling returned non-zero on the deleted CR, harness raises
+    CalledProcessError). Restarted fresh at 15:39Z (perf-S2/S3 CSVs above are these fresh restarts).
+```
+
+---
+
+## Contraintes de parallélisme
+
+| Expérience | Peut tourner en parallèle avec les autres ? | Cause |
+|---|---|---|
+| **RQ1 Flakiness** | ✅ Oui | Crée 1 Preview à la fois, observe son cycle, supprime. Aucun side-effect cross-process. |
+| **RQ2 Cross-PR** | ✅ Oui mais avec spike CPU pendant K=8 (5 Previews concurrentes par batch). Recommandé : éviter K=8 quand 8+ autres procs tournent. | |
+| **RQ3 Performance** | ✅ Oui | Idem RQ1. |
+| **RQ4 Bug Detection** | ✅ Oui | Crée 1 Preview à la fois par mutant. Le `docker build` du mutant est sequential côté PC, pas un facteur cluster. |
+| **RQ5 Idempotence** | ❌ **NON** | L'expérience `kubectl delete pod` du preview-operator pour mesurer convergence. Pendant le pod operator restart (~10-20s), le validating webhook devient injoignable, et tout `kubectl apply preview` concurrent (autres procs) retourne non-zero exit → `harness/preview_factory.py:create()` raise CalledProcessError → script crash. **Incident reproduit le 14:43Z** : flakiness-s3 + performance-s3 crashés alors que idempotence-s2 venait de killer l'operator. **Règle** : RQ5 doit tourner SEUL, après tous les autres. |
+
+> Note S5 PetClinic : était bloqué par 4 bugs image (`ENTRYPOINT`, `python` symlink, `context-path`, profil Spring) jusqu'à fix dans `:v3.4.0-fix3` (push 16:43Z). Une fois fixé, **S5 se parallélise comme tout autre sujet** — pas de contrainte spéciale.
 
 ---
 
@@ -14,7 +98,7 @@ Last updated: 2026-05-16T14:50Z
 | **RQ1 Flakiness** | **S2 Listmonk** | iso=True+False | 🔄 en cours | 🔄 AKS run 2026-05-16T14:22Z (PID 69912) |
 | **RQ1 Flakiness** | **S3 Healthchecks** | iso=True+False | ⏳ après S2 | ⏳ AKS run même process |
 | **RQ1 Flakiness** | **S4 Umami** | iso=True+False | ⏳ après S3 | ⏳ AKS run même process |
-| RQ1 Flakiness | S5 PetClinic | — | 0/60 | ⏸ disabled — wrapper backend bug à fixer |
+| **RQ1 Flakiness** | **S5 PetClinic** | iso=True+False | 🔄 en cours | 🔄 AKS run 2026-05-16T16:43Z après fix S5 :v3.4.0-fix3 |
 | **RQ2 Cross-PR** | S1 Flask k=2,4,8 | iso=True+False | 84 rows (14/05) + 60 rows (15/05) | ✅ Complet |
 | **RQ2 Cross-PR** | **S2 Listmonk** | k=2,4,8 × iso=T,F | **60 rows** | ✅ Complet — calibration méthodologique (voir §S2) |
 | **RQ2 Cross-PR** | **S3 Healthchecks** | k=2,4,8 × iso=T,F | **60 rows** | ✅ Complet — réplique parfaite S1 Δ=−100 pp |
@@ -24,8 +108,8 @@ Last updated: 2026-05-16T14:50Z
 | **RQ3 Performance** | **S2 Listmonk** | iso=True+False | 🔄 en cours | 🔄 AKS run 2026-05-16T14:22Z (PID 69914) |
 | **RQ3 Performance** | **S3 Healthchecks** | iso=True+False | ⏳ après S2 | ⏳ AKS run même process |
 | **RQ3 Performance** | **S4 Umami** | iso=True+False | ⏳ après S3 | ⏳ AKS run même process |
-| RQ3 Performance | S5 PetClinic | — | 0/60 | ⏸ disabled |
-| **RQ4 Bug Detection** | **S1 Flask** | static + llm_fixed + llm_free | 🔄 en cours | 🔄 AKS run 2026-05-16T14:47Z (PID 97335, _run_bug_detection_s1s2.py) |
+| **RQ3 Performance** | **S5 PetClinic** | iso=True+False | 🔄 en cours | 🔄 AKS run 2026-05-16T16:43Z avec image `:v3.4.0-fix3` |
+| **RQ4 Bug Detection** | **S1 Flask** | static + llm_fixed + llm_free | 🔄 en cours | 🔄 AKS run 2026-05-16T16:43Z (restart, première instance morte à 14:50Z) |
 | **RQ4 Bug Detection** | **S2 Listmonk** | static + llm_fixed + llm_free | 🔄 en cours | 🔄 même process (architecturally inconsistent — interpréter avec prudence) |
 | RQ4 Bug Detection | S3+S4+S5 | — | 0 | ⏸ disabled |
 | RQ5 Idempotence | **S2 Listmonk** | 6 kill_steps × 3 | partial — killed 14:44Z | ⏸ killed (cause crash S3) → relancé après autres terminés |
@@ -38,11 +122,11 @@ Last updated: 2026-05-16T14:50Z
 ## Avancement global
 
 ```
-RQ1  ████░░░░░░  20%  S1 done (510 rows)              — S2 en cours (AKS), S3+S4 en file
+RQ1  ███████░░░  70%  S1 done + S2-S4 ~70% AKS — S5 démarré 16:43Z
 RQ2  █████████░  80%  S1+S2+S3+S4 done (240 rows)     — S5 reporté
-RQ3  ████░░░░░░  20%  S1 done (390 rows)              — S2 en cours (AKS), S3+S4 en file
-RQ4  █░░░░░░░░░   5%  mutant-1 build+push OK, run S1 en cours — S1+S2 only (PID 97335)
-RQ5  █░░░░░░░░░  10%  S2 démarré (AKS)                — S3+S4 en file
+RQ3  ███████░░░  70%  S1 done + S2-S4 ~70% AKS — S5 démarré 16:43Z
+RQ4  █░░░░░░░░░   2%  restart 16:43Z après mort 14:50Z — S1+S2 only
+RQ5  ░░░░░░░░░░   0%  parqué — relance seul après les autres
 ```
 
 **Migration vers AKS (2026-05-16T14:22Z) + bascule parallélisation per-subject (14:40Z) :**

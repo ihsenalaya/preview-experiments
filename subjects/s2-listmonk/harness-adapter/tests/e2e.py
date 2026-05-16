@@ -11,7 +11,9 @@ import requests
 BASE = os.environ.get("APP_URL", "http://svc-backend:9000")
 PROBE = os.environ.get("PROBE_URL", "http://svc-probe:9090")
 AUTH = ("admin", "harness123")
-SEED_COUNT = 3
+# Post-install baseline: 2 default lists from `listmonk --install --yes` +
+# 3 from harness seed = 5. See ANALYSIS_S2.md §3.a.
+SEED_COUNT = 5
 
 passed = failed = 0
 

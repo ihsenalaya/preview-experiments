@@ -62,7 +62,12 @@ def build_mutant_image(mutant_id: int, tag: str, cfg: dict) -> str:
 
 
 def _extra_for_condition(seed_mode: str, cfg: dict) -> dict:
-    """Build the extra_spec dict for the given seed condition."""
+    """Build the extra_spec dict for the given seed condition.
+
+    The Preview CRD stores `temperature` as a decimal string (Kubernetes API
+    conventions discourage float types). We format with `str()` so 0.0 → "0.0"
+    and 0.7 → "0.7" — matches the CRD pattern `^([01](\\.[0-9]+)?|2(\\.0+)?)$`.
+    """
     exp_cfg = cfg["experiments"]["bug_detection"]
     if seed_mode == "static":
         return {}
@@ -70,13 +75,13 @@ def _extra_for_condition(seed_mode: str, cfg: dict) -> dict:
         return {"aiEnrichment": {
             "enabled": True,
             "model": cfg["versions"]["llm_model"],
-            "temperature": exp_cfg.get("llm_fixed_temperature", 0.0),
+            "temperature": str(exp_cfg.get("llm_fixed_temperature", 0.0)),
         }}
     # llm_free
     return {"aiEnrichment": {
         "enabled": True,
         "model": cfg["versions"]["llm_model"],
-        "temperature": exp_cfg.get("llm_free_temperature", 0.7),
+        "temperature": str(exp_cfg.get("llm_free_temperature", 0.7)),
     }}
 
 
