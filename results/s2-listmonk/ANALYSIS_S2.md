@@ -289,15 +289,33 @@ S2 is best presented as **methodological calibration**, not as a counter-example
 
 ### Source: `flakiness_test_outcomes_20260516T184845Z.csv` (re-run in progress)
 
-### Results (46/60 runs at 20:05Z, still in progress)
+### Final results (60/60 runs complete at 20:29Z)
 
-| Suite | iso=True N=30 | iso=False N=16/30 | Δ fail rate |
-|---|---|---|---|
-| smoke | 0/30 fail (**0 %**) | 0/16 fail (**0 %**) | 0 pp |
-| regression | 0/30 fail (**0 %**) | 16/16 fail (**100 %**) | **−100 pp** |
-| e2e | 0/30 fail (**0 %**) | 16/16 fail (**100 %**) | **−100 pp** |
+| Suite | iso=True N=30 | iso=False N=30 | Δ fail rate | Fisher exact p | Cohen's h |
+|---|---|---|---|---|---|
+| smoke | 0/30 fail (**0 %**) | 0/30 fail (**0 %**) | 0 pp | 1 | 0.00 |
+| regression | 0/30 fail (**0 %**) | 30/30 fail (**100 %**) | **−100 pp** | < 10⁻¹⁵ | **3.14** |
+| e2e | 0/30 fail (**0 %**) | 30/30 fail (**100 %**) | **−100 pp** | < 10⁻¹⁵ | **3.14** |
 
-**S2 reproduces exactly the S1 pattern at the suite level once the broken `SEED_COUNT` assertion is corrected.** The earlier "100/100 null" result was a pure measurement artifact. With the assertion fixed, S2 joins S1 and S3 as a **third primary confirmation** of the deterministic isolation effect, on a third stack (Listmonk, Go + PostgreSQL).
+**S2 fully reproduces the S1 pattern at the suite level once the broken `SEED_COUNT` assertion
+is corrected.** The earlier "100/100 null" result was a pure measurement artifact of
+`SEED_COUNT = 3` while the real post-install baseline is 5 (`listmonk --install --yes` creates
+2 default lists in addition to the 3 harness seed entries — empirically demonstrated in §3.a).
+
+With the assertion fixed and the adapter image rebuilt as `:v2.5.1-fix2`, S2 joins S1 (Flask)
+and S3 (Django) as a **third primary confirmation** of the deterministic isolation effect, on a
+third application stack (Listmonk Go service + PostgreSQL).
+
+### Article sentence (RQ1 — S2 final)
+
+> "Subject S2 (Listmonk, Go + PostgreSQL) initially produced a suite-level null result on RQ1.
+> Source-level diagnosis (§1–§3 of this document) identified the cause as a single hard-coded
+> `SEED_COUNT = 3` literal in `regression.py` and `e2e.py`, while the true post-install baseline
+> of `listmonk --install --yes` plus the harness seed is 5. After the assertion was corrected
+> and the adapter image rebuilt, the re-run reproduces the S1 deterministic isolation effect
+> exactly: 0/30 vs 30/30 failure on regression and e2e (Fisher p < 10⁻¹⁵, Cohen's h = 3.14).
+> S2 is therefore the third independent confirmation of the central thesis, spanning a third
+> application stack and language."
 
 The shift from 100% suite-level failure (broken `SEED_COUNT=3`) to 100% pass under iso=True
 is the expected behavior when the only mis-specified assertion is corrected. If the iso=False

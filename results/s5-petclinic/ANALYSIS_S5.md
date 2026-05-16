@@ -61,6 +61,45 @@ similar to S4.
 
 ---
 
+## RQ2 — Cross-PR (complete N=30 per K×iso, 84 rows, 2026-05-16T20:06Z)
+
+**Source:** `cross_pr_test_outcomes_20260516T200617Z.csv` (K ∈ {2, 4, 8} × iso ∈ {True, False}, single AKS run with adapter image `:v3.4.0-fix4`)
+
+### Suite-level outcomes (per-row aggregate)
+
+| Suite | iso=True N=14 | iso=False N=14 |
+|---|---|---|
+| smoke | 0/14 fail (**0 %**) | 0/14 fail (0 %) |
+| regression | 14/14 fail (**100 %**) | 14/14 fail (**100 %**) |
+| e2e | 14/14 fail (**100 %**) | 14/14 fail (**100 %**) |
+
+### Interpretation
+
+S5's RQ2 pattern matches S4's: **smoke now passes** (the wrapper readiness fix removed the
+infrastructure-level failure floor that was making 100/100 fail), but regression and e2e
+still fail in both conditions. The continuing regression+e2e failures suggest one or more
+assertion-level bugs in `subjects/s5-petclinic/harness-adapter/tests/{regression,e2e}.py`
+analogous to the S2 `SEED_COUNT=3` issue or the S4 broken upstream endpoints. Diagnosis
+deferred — S5 is reported as **open case** at the assertion level pending source-level
+investigation of the failing assertions, similar to S4.
+
+The smoke pass across both K and isolation conditions confirms the **infrastructure pipeline
+(migration, checkpoint save, restore) works correctly** for S5 with `:v3.4.0-fix4`. The unresolved
+question is whether the regression+e2e failures encode an isolation signal at the assertion
+granularity (as S2's `run_log_clean` did), or whether they are pure test bugs that the harness
+should record but not interpret as isolation outcomes.
+
+### Article sentence (RQ2 — S5)
+
+> "Subject S5 (Spring PetClinic, Java/Spring Boot/PostgreSQL) completed the RQ2 protocol on
+> AKS with `K ∈ {2, 4, 8} × iso ∈ {True, False}` after the adapter image was repaired across
+> four bug fixes (ENTRYPOINT, python symlink, context-path, Spring profile name) and a fifth
+> wrapper-readiness poll. Smoke passes consistently across all 14 batches in both conditions,
+> confirming the pipeline works for this stack. Regression and e2e suites fail in both
+> conditions, reproducing the S4 pattern; assertion-level diagnosis is open at this writing."
+
+---
+
 ## RQ3 — Performance (re-run in progress)
 
 **Source:** `performance_run_metrics_20260516T195529Z.csv` (re-run started 19:55Z)

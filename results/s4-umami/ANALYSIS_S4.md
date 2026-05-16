@@ -242,13 +242,13 @@ S4 is best presented as **an open case** that motivates the methodological cavea
 
 **Source (archived):** `flakiness_test_outcomes_20260516T144225Z.OBSOLETE_broken_assertions.csv` (N=30 per condition, original 60-run dataset with two broken assertions)
 
-### Re-run results so far (47/60 runs, 20:05Z)
+### Final re-run results (60/60 runs complete at 20:29Z)
 
-| Suite | iso=True N=30 | iso=False N=17/30 |
+| Suite | iso=True N=30 | iso=False N=30 |
 |---|---|---|
-| smoke | 0/30 fail (**0 %** — was 30/30 fail before fix) | 0/17 fail (0 %) |
-| regression | 30/30 fail (**100 %**) | 17/17 fail (**100 %**) |
-| e2e | 30/30 fail (**100 %**) | 17/17 fail (**100 %**) |
+| smoke | 0/30 fail (**0 %** — was 30/30 fail before fix) | 0/30 fail (0 %) |
+| regression | 30/30 fail (**100 %**) | 30/30 fail (**100 %**) |
+| e2e | 30/30 fail (**100 %**) | 30/30 fail (**100 %**) |
 
 **Interpretation.** Removing the two broken assertions (`teams_list`, `website_stats`) **resolved the smoke-suite failures** that were artefacts of upstream Umami v2.15.1 behavior changes (403 on `/api/teams` without team membership, 400 on `/api/websites/{id}/stats` without query params). Smoke now passes 0/0 in both conditions, confirming those failures were independent of isolation.
 
