@@ -63,4 +63,29 @@ SUBJECT=s4-umami EXPERIMENT=cross_pr python3 -u _run_one_subject.py \
 RC=$?
 echo "[$(date -u +%FT%TZ)] S4 cross_pr rerun rc=$RC"
 
-echo "[$(date -u +%FT%TZ)] === S4 rerun chain complete ==="
+# 7. S5 idempotence (with :v3.4.0-fix5 — owner_update accepts 200/204,
+#    e2e_create_owner uses alphabetic-only firstName per Spring validation)
+TS=$(date -u +%Y%m%dT%H%M%SZ)
+echo "[$(date -u +%FT%TZ)] === S5 idempotence rerun ==="
+SUBJECT=s5-petclinic EXPERIMENT=idempotence python3 -u _run_one_subject.py \
+  > "$ROOT/logs/s5-rerun-idemp-${TS}.log" 2>&1
+RC=$?
+echo "[$(date -u +%FT%TZ)] S5 idempotence rerun rc=$RC"
+
+# 8. S5 flakiness (RQ1)
+TS=$(date -u +%Y%m%dT%H%M%SZ)
+echo "[$(date -u +%FT%TZ)] === S5 flakiness rerun (RQ1) ==="
+SUBJECT=s5-petclinic EXPERIMENT=flakiness python3 -u _run_one_subject.py \
+  > "$ROOT/logs/s5-rerun-flak-${TS}.log" 2>&1
+RC=$?
+echo "[$(date -u +%FT%TZ)] S5 flakiness rerun rc=$RC"
+
+# 9. S5 cross_pr K=8 (RQ2)
+TS=$(date -u +%Y%m%dT%H%M%SZ)
+echo "[$(date -u +%FT%TZ)] === S5 cross_pr K=8 rerun (RQ2) ==="
+SUBJECT=s5-petclinic EXPERIMENT=cross_pr python3 -u _run_one_subject.py \
+  > "$ROOT/logs/s5-rerun-crosspr-${TS}.log" 2>&1
+RC=$?
+echo "[$(date -u +%FT%TZ)] S5 cross_pr rerun rc=$RC"
+
+echo "[$(date -u +%FT%TZ)] === S4 + S5 rerun chain complete ==="

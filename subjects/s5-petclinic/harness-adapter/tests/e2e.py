@@ -51,12 +51,16 @@ t("vets_list",   lambda: (isinstance(requests.get(BASE + "/api/vets",   timeout=
 t("owners_list", lambda: (isinstance(requests.get(BASE + "/api/owners", timeout=10).json(), (list, dict)), "bad owners"))
 
 # Create owner → create pet → verify
+# Spring PetClinic REST validates firstName with @Pattern(regexp = "[a-zA-Z]*")
+# so "E2E" fails with 400; use alphabetic-only names. Live preview capture
+# confirmed status 400 on the original payload while regression's same call
+# (firstName="Exp") passes.
 r_owner = requests.post(BASE + "/api/owners",
-                        json={"firstName": "E2E", "lastName": "Tester",
-                              "address": "99 E2E Ave", "city": "Testville",
+                        json={"firstName": "Etoe", "lastName": "Tester",
+                              "address": "99 Etoe Avenue", "city": "Testville",
                               "telephone": "5559999999"},
                         timeout=10)
-t("e2e_create_owner", lambda: (r_owner.status_code == 201, f"status {r_owner.status_code}"))
+t("e2e_create_owner", lambda: (r_owner.status_code in (200, 201), f"status {r_owner.status_code}"))
 
 owner_id = r_owner.json().get("id") if r_owner.status_code == 201 else None
 
@@ -65,10 +69,10 @@ pettype_id = (pettypes[0] if isinstance(pettypes, list) else {}).get("id", 1)
 
 if owner_id:
     r_pet = requests.post(BASE + "/api/pets",
-                          json={"name": "e2e-pet", "birthDate": "2024-01-01",
+                          json={"name": "e2epet", "birthDate": "2024-01-01",
                                 "typeId": pettype_id, "ownerId": owner_id},
                           timeout=10)
-    t("e2e_create_pet", lambda: (r_pet.status_code == 201, f"status {r_pet.status_code}"))
+    t("e2e_create_pet", lambda: (r_pet.status_code in (200, 201), f"status {r_pet.status_code}"))
 
     pet_id = r_pet.json().get("id") if r_pet.status_code == 201 else None
     if pet_id:

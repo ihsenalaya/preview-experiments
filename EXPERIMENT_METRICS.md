@@ -2,7 +2,7 @@
 
 Paper: *Checkpoint-based Database Isolation Eliminates Non-deterministic Test Variance
 in Kubernetes Preview Environments*
-Last updated: 2026-05-17T06:50Z (RQ5 idempotence S2 100% Succeeded 18/18; S3 démarré ; chaîne automatique posée pour S1 idemp + S4 diag)
+Last updated: 2026-05-17T09:52Z (S4 "cas ouvert" RÉSOLU — broken upstream assertions, pas isolation ; même découverte sur S5 ; fixes appliqués v2.15.1-fix2 + v3.4.0-fix5 ; chaîne S4+S5 rerun armée)
 
 ## Critical session updates (2026-05-16T17:00–18:55Z)
 
@@ -31,6 +31,58 @@ Last updated: 2026-05-17T06:50Z (RQ5 idempotence S2 100% Succeeded 18/18; S3 dé
 - Image rebuilt + push as `ghcr.io/ihsenalaya/s4-umami-adapter:v2.15.1-fix`.
 - Old `flakiness_test_outcomes_20260516T144225Z.csv` archived as `.OBSOLETE_broken_assertions.csv`.
 - **flak-S4 re-run started 18:53Z** (PID 404079). Data emerging.
+
+**P6 — S4 + S5 "cas ouverts" RÉSOLUS 2026-05-17T09:50Z (root causes ≠ isolation) :**
+
+**Découverte clé** : peek live d'un Preview S4 idempotence en cours montre :
+```
+status.tests.regression.output:
+  PASS regression run_log_clean   ← l'isolation FONCTIONNE sur S4
+  PASS regression healthz
+  PASS regression me_endpoint
+  PASS regression websites_list
+  PASS regression website_create
+  PASS regression website_fetch
+  PASS regression website_delete
+  PASS regression website_count_matches_seed
+  FAIL regression teams_list: not 200   ← SEULE défaillance
+```
+
+Le "cas ouvert" S4 (3 hypothèses non discriminées : H1 schéma / H2 OOM probe / H3 FK
+cascade) était une **fausse piste**. L'isolation marche parfaitement. Le 100 % suite-level
+failure venait d'assertions broken-upstream codées en dur dans les tests.
+
+Reproductible en capture live sur S5 aussi :
+```
+status.tests.e2e.output:
+  PASS e2e run_log_clean
+  PASS e2e entity_count_matches_seed
+  PASS e2e healthz, vets_list, owners_list
+  FAIL e2e e2e_create_owner: status 400   ← cause : firstName "E2E"
+                                            fail Spring @Pattern("[a-zA-Z]*")
+```
+
+**Root causes** (toutes broken-upstream, aucune isolation-related) :
+
+| Sujet | Assertion | Cause | Fix |
+|---|---|---|---|
+| S4 regression | `teams_list` | Umami v2.15.1 /api/teams → 403 sans team membership | retiré |
+| S4 e2e | `e2e_stats` | /api/websites/{id}/stats → 400 sans query params | retiré |
+| S5 regression | `owner_update` | Spring PUT renvoie 200 (test attendait 204) | accepte 200 ou 204 |
+| S5 e2e | `e2e_create_owner` | firstName "E2E" contient digit, fail `@Pattern("[a-zA-Z]*")` | firstName="Etoe" |
+| S5 e2e | `e2e_create_pet` | cascade du précédent (no owner_id) + status 200 vs 201 | accepte 200/201 |
+
+**Images rebuilt + pushed GHCR** :
+- `ghcr.io/ihsenalaya/s4-umami-adapter:v2.15.1-fix2`
+- `ghcr.io/ihsenalaya/s5-petclinic-adapter:v3.4.0-fix5`
+
+Config backups (`config.yaml.before-s1-idemp`, `config.yaml.before-s3s4s5-idemp`)
+mis à jour. Quand le launcher PID 950821 finit et restore config, les nouvelles
+images sont en place.
+
+**Chaîne S4+S5 rerun (PID 1036449)** : armée pour fire après exit PID 950821.
+Sequence : S4 idemp → S4 flak → S4 cross_pr → S5 idemp → S5 flak → S5 cross_pr.
+ETA : ~3h après exit 950821. Résultat attendu : Δ=−100 pp comme S1+S2+S3.
 
 **P4 — Automation chain posée 2026-05-17T06:50Z (sequential, prudent) :**
 
@@ -167,7 +219,7 @@ RQ1  ███████░░░  70%  S1 done + S2-S4 ~70% AKS — S5 démar
 RQ2  █████████░  80%  S1+S2+S3+S4 done (240 rows)     — S5 reporté
 RQ3  ███████░░░  70%  S1 done + S2-S4 ~70% AKS — S5 démarré 16:43Z
 RQ4  ██████████ 100%  S1 50/50 ✅ — résultat NUL : 3 conditions détectent à l'identique 23/50 mutants (concordance parfaite)
-RQ5  ██░░░░░░░░  20%  S2 18/18 ✅ Succeeded ; S3 en cours ; S4 + S5 + S1 chaînés (auto-launcher PID 916113)
+RQ5  ████████░░  80%  S1 ✅ S2 ✅ S3 ✅ chacun 18/18 Succeeded — S4 + S5 en rerun avec images fixées (broken-assertion fixes)
 ```
 
 **Migration vers AKS (2026-05-16T14:22Z) + bascule parallélisation per-subject (14:40Z) :**

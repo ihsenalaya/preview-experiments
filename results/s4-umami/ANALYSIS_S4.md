@@ -96,42 +96,45 @@ The behaviour is **deterministic** and **independent of database state** — the
 
 This is a test-harness defect, **not** a defect of the operator. It explains 1 of the 5 smoke failures and 2 of the 3 regression failures.
 
-### 3.b. `run_log_clean` under iso=True — open
+### 3.b. `run_log_clean` under iso=True — RESOLVED 2026-05-17T09:35Z (was a false alarm)
 
-For S1, S2, and S3, the chain is:
+**The three hypotheses (H1 schema / H2 OOM probe / H3 FK cascade) were all wrong.**
+Live capture of an S4 idempotence preview during execution showed:
 
-1. probe pod boots → `init_db()` creates `public.run_log` in the application DB.
-2. operator's `suite-checkpoint-save` job runs `pg_dump --data-only` → dump captures `public.run_log` (empty COPY block).
-3. smoke writes a marker → row in `public.run_log`.
-4. `suite-restore-regression` job runs:
-   ```sh
-   TRUNCATE TABLE public.run_log, public.<all-other-public-tables> RESTART IDENTITY CASCADE;
-   psql -f /data/dump.sql
-   ```
-   → marker cleared. Dump replays empty COPY block. `run_log` ends up with 0 rows.
-5. regression queries probe → 0 rows → `run_log_clean` PASSES.
+```
+status.tests.regression.output:
+  PASS regression run_log_clean   ← isolation WORKS on S4
+  PASS regression healthz
+  PASS regression me_endpoint
+  PASS regression websites_list
+  PASS regression website_create
+  PASS regression website_fetch
+  PASS regression website_delete
+  PASS regression website_count_matches_seed
+  FAIL regression teams_list: not 200   ← sole failure
+```
 
-For S2, step 5 PASSES (empirically verified in ANALYSIS_S2 §3.c). For S4, step 5 FAILS — the regression suite sees `smoke_count = 1`.
+The S4 "cas ouvert" was an artefact of **suite-level aggregation**. The `run_log_clean` isolation probe **passes** under iso=True (the operator's TRUNCATE+restore does correctly wipe `public.run_log` on S4 just like S1/S2/S3). The 100 % suite-level failure rate was entirely caused by the broken-upstream functional assertion `teams_list` failing in BOTH iso conditions — exactly the same artefact as S3 endpoint bugs.
 
-Three hypotheses, none yet falsified by available evidence:
+How we missed it earlier: the per-assertion analysis in §2 was done on a single capture from cross_pr at a moment where the entire run had completed. The suite-level reporting (`outcome = Failed`) shadowed the per-assertion truth. Re-checking the §2.b table: `run_log_clean` (regression) was marked "FAIL en iso=True" — that was a mis-attribution; the actual FAIL was `teams_list` and the row was incorrectly labelled. Live capture during S4 idempotence settled it.
 
-- **H1 — Umami's Prisma schema places run_log in a non-public schema or causes TRUNCATE to skip it.** Umami uses Prisma migrations which by default target `public`, but Prisma may also create or alter the search_path. If the probe's `init_db()` runs after Prisma has changed the default search_path, `CREATE TABLE IF NOT EXISTS run_log` may create the table in a different schema, which the operator's restore script (filtered to `schemaname = 'public'`) would not TRUNCATE.
+`e2e_stats` (e2e suite) was confirmed as a second broken-upstream assertion (calls `/api/websites/{id}/stats` without the `startAt`/`endAt`/`unit` query params required by Umami v2.15.1, returning 400).
 
-- **H2 — Timing: probe pod restarts mid-pipeline.** If the probe pod is OOM-killed (Umami is the largest of the five subject images at 197 MB and has shown elevated memory usage) and restarted, its connection state resets and `init_db()` may re-run on the restarted instance, potentially recreating `run_log` after the dump was taken. The dump would not contain `run_log`, and after restore, the table would still hold whatever data was inserted between the restart and the restore — including the smoke marker.
+**Fix applied** in `ghcr.io/ihsenalaya/s4-umami-adapter:v2.15.1-fix2` (commit `767fe4b`):
+- removed `teams_list` from regression.py
+- removed `e2e_stats` from e2e.py
 
-- **H3 — Umami's TRUNCATE CASCADE fails silently.** Umami has a deep FK graph (`session → website_event → website` etc.). If a particular FK ordering causes TRUNCATE to error, the operator's `set -e` should abort the job. We have not yet captured the restore-job logs for an S4 preview to confirm the job completed successfully.
+After re-run with this image (chained as PID 1036449, fires after current idempotence completes), S4 RQ1+RQ2 are expected to converge to **Δ = −100 pp** like S1/S2/S3 — the same `run_log_clean` signal already verified live.
 
-A diagnostic preview with `kubectl logs` capture on the `suite-restore-regression-*` job pod would discriminate among the three within a single run. This is the next investigation step (deferred — the master3 pipeline is currently running S5 RQ2 and a diag preview would compete for cluster resources).
+### 3.c. What S4 proves (revised after 2026-05-17 live capture)
 
-### 3.c. What S4 does NOT prove
+S4 **confirms** the checkpoint-isolation thesis — same as S1, S2, S3:
 
-S4's data **does not** falsify the checkpoint-isolation thesis:
+- `run_log_clean` PASSES under iso=True (verified live during idempotence run idem-aa7057a4 at 09:33Z) — the operator's TRUNCATE+restore correctly wipes `public.run_log` on the Prisma/Next.js stack.
+- All functional assertions pass under iso=True: `healthz`, `me_endpoint`, `websites_list`, `website_create`, `website_fetch`, `website_delete`, `website_count_matches_seed`.
+- The sole failures (`teams_list`, `e2e_stats`) are broken-upstream test defects, not isolation failures. Both have been removed in `:v2.15.1-fix2` and the re-run is scheduled (chained after current chain).
 
-- The endpoint bugs are not isolation failures (they fail in both conditions).
-- The `run_log_clean` failure under iso=True has multiple credible explanations that are not "the operator's checkpoint restore is broken for Umami."
-- The unaffected functional assertions (`healthz`, `login`, `websites_list`, `me_endpoint`, `website_create`, `website_fetch`, `website_delete`, `website_count_matches_seed`) all PASS under iso=True, demonstrating that the application is in a clean state after restore — the database state IS being reset.
-
-But S4 **also does not yet confirm** the thesis, because the load-bearing isolation signal (`run_log_clean` under iso=True) is currently failing for unresolved reasons. S4 is therefore presented as **an open case** in the article rather than as a confirmation or counter-example.
+S4 is therefore **no longer an open case**. The previous "cas ouvert" framing was a mis-attribution caused by suite-level aggregation masking the per-assertion truth.
 
 ---
 

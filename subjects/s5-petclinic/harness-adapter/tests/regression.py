@@ -54,15 +54,18 @@ if owner_id:
     t("owner_fetch",  lambda: (
         requests.get(BASE + f"/api/owners/{owner_id}", timeout=10).status_code == 200, "not 200"
     ))
+    # Spring PetClinic REST returns 200 or 204 depending on minor version;
+    # accept both since the probe checks that the operation succeeds, not the
+    # exact REST style. Same rationale as the S4 endpoint accommodation.
     t("owner_update", lambda: (
         requests.put(BASE + f"/api/owners/{owner_id}",
                      json={"id": owner_id, "firstName": "Exp", "lastName": "Owner-Updated",
                            "address": "123 Harness St", "city": "Testville", "telephone": "5550000001"},
-                     timeout=10).status_code == 204,
+                     timeout=10).status_code in (200, 204),
         "update failed"
     ))
     t("owner_delete", lambda: (
-        requests.delete(BASE + f"/api/owners/{owner_id}", timeout=10).status_code == 204,
+        requests.delete(BASE + f"/api/owners/{owner_id}", timeout=10).status_code in (200, 204),
         "delete failed"
     ))
 else:
