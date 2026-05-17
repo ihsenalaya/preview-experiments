@@ -1,0 +1,254 @@
+%% refs.bib — bibliography for the "Related Work" section of
+%% "Checkpoint-based Database Isolation Eliminates Non-deterministic Test
+%% Variance in Kubernetes Preview Environments"
+%%
+%% Verification convention:
+%%   - lines marked "%% verified: <url>" point to dblp, the ACM DL, IEEE
+%%     Xplore, or an arXiv landing page where the entry has been cross-checked.
+%%   - lines marked "%% TODO verify: <reason>" need confirmation by the authors
+%%     before camera-ready (typically paywalled, off-DBLP, or vendor blog).
+
+% ============================================================================
+% 1. Test flakiness in shared-fixture / CI testing
+% ============================================================================
+
+@inproceedings{luo2014empirical,
+  author    = {Luo, Qingzhou and Hariri, Farah and Eloussi, Lamyaa and Marinov, Darko},
+  title     = {An empirical analysis of flaky tests},
+  booktitle = {Proceedings of the 22nd ACM SIGSOFT International Symposium on Foundations of Software Engineering (FSE)},
+  year      = {2014},
+  pages     = {643--653},
+  publisher = {ACM},
+  doi       = {10.1145/2635868.2635920}
+  %% verified: https://dblp.org/rec/conf/sigsoft/LuoHEM14
+}
+
+@inproceedings{lam2019idflakies,
+  author    = {Lam, Wing and Oei, Reed and Shi, August and Marinov, Darko and Xie, Tao},
+  title     = {{iDFlakies}: A Framework for Detecting and Partially Classifying Flaky Tests},
+  booktitle = {12th IEEE International Conference on Software Testing, Verification and Validation (ICST)},
+  year      = {2019},
+  pages     = {312--322},
+  publisher = {IEEE},
+  doi       = {10.1109/ICST.2019.00038}
+  %% verified: https://dblp.org/rec/conf/icst/LamOSMX19
+  %% NB: the task brief lists this as ICSE'19; the canonical venue is ICST 2019.
+}
+
+@inproceedings{bell2018deflaker,
+  author    = {Bell, Jonathan and Legunsen, Owolabi and Hilton, Michael and Eloussi, Lamyaa and Yung, Tifany and Marinov, Darko},
+  title     = {{DeFlaker}: Automatically Detecting Flaky Tests},
+  booktitle = {Proceedings of the 40th International Conference on Software Engineering (ICSE)},
+  year      = {2018},
+  pages     = {433--444},
+  publisher = {ACM},
+  doi       = {10.1145/3180155.3180164}
+  %% verified: https://dblp.org/rec/conf/icse/BellLHEYM18
+}
+
+@article{parry2022survey,
+  author    = {Parry, Owain and Kapfhammer, Gregory M. and Hilton, Michael and McMinn, Phil},
+  title     = {A Survey of Flaky Tests},
+  journal   = {ACM Transactions on Software Engineering and Methodology (TOSEM)},
+  volume    = {31},
+  number    = {1},
+  pages     = {17:1--17:74},
+  year      = {2022},
+  doi       = {10.1145/3476105}
+  %% verified: https://dblp.org/rec/journals/tosem/ParryKHM22
+  %% NB: published online late 2021 / in print 2022; cite as 2022 per ACM DL.
+}
+
+@inproceedings{eck2019understanding,
+  author    = {Eck, Moritz and Palomba, Fabio and Castelluccio, Marco and Bacchelli, Alberto},
+  title     = {Understanding flaky tests: the developer's perspective},
+  booktitle = {Proceedings of the 27th ACM Joint Meeting on European Software Engineering Conference and Symposium on the Foundations of Software Engineering (ESEC/FSE)},
+  year      = {2019},
+  pages     = {830--840},
+  publisher = {ACM},
+  doi       = {10.1145/3338906.3338945}
+  %% verified: https://dblp.org/rec/conf/sigsoft/EckPCB19
+  %% NB: brief lists ICSE'19; canonical venue is ESEC/FSE 2019.
+}
+
+% ============================================================================
+% 2. Database isolation techniques for integration tests
+% ============================================================================
+
+@article{tuya2007mutating,
+  author    = {Tuya, Javier and Su\'{a}rez-Cabal, Mar\'{i}a Jos\'{e} and de la Riva, Claudio},
+  title     = {Mutating database queries},
+  journal   = {Information and Software Technology},
+  volume    = {49},
+  number    = {4},
+  pages     = {398--417},
+  year      = {2007},
+  doi       = {10.1016/j.infsof.2006.06.009}
+  %% verified: https://dblp.org/rec/journals/infsof/TuyaSR07
+  %% NB: brief lists IST'10; closest Tuya et al. IST entry on DB test methodology
+  %% is the 2007 paper. The 2010 reference may correspond to Tuya et al.,
+  %% "Full predicate coverage for testing SQL database queries", STVR 2010.
+}
+
+@article{halfond2008improving,
+  author    = {Halfond, William G. J. and Orso, Alessandro and Manolios, Panagiotis},
+  title     = {{WASP}: Protecting Web Applications Using Positive Tainting and Syntax-Aware Evaluation},
+  journal   = {IEEE Transactions on Software Engineering (TSE)},
+  volume    = {34},
+  number    = {1},
+  pages     = {65--81},
+  year      = {2008},
+  doi       = {10.1109/TSE.2007.70748}
+  %% verified: https://dblp.org/rec/journals/tse/HalfondOM08
+  %% NB: the task brief cites "Halfond+Orso, Combining static and dynamic";
+  %% closest co-authored work is this TSE 2008 paper, which combines static
+  %% and dynamic analysis for SQL-bearing applications.
+}
+
+@inproceedings{castelein2018search,
+  author    = {Castelein, Jeroen and Aniche, Maur\'{i}cio and Soltani, Mozhan and Panichella, Annibale and van Deursen, Arie},
+  title     = {Search-based test data generation for {SQL} queries},
+  booktitle = {Proceedings of the 40th International Conference on Software Engineering (ICSE)},
+  year      = {2018},
+  pages     = {1220--1230},
+  publisher = {ACM},
+  doi       = {10.1145/3180155.3180202}
+  %% verified: https://dblp.org/rec/conf/icse/CasteleinASPD18
+  %% NB: the task brief refers to "Castelein ICST'18 DB-Test"; the canonical
+  %% Castelein et al. paper on automated SQL test data is at ICSE 2018.
+}
+
+% ============================================================================
+% 3. Containerized testing / CI at scale
+% ============================================================================
+
+@inproceedings{memon2017taming,
+  author    = {Memon, Atif and Gao, Zebao and Nguyen, Bao and Dhanda, Sanjeev and Nickell, Eric and Siemborski, Rob and Micco, John},
+  title     = {Taming {Google}-scale continuous testing},
+  booktitle = {Proceedings of the 39th International Conference on Software Engineering: Software Engineering in Practice Track (ICSE-SEIP)},
+  year      = {2017},
+  pages     = {233--242},
+  publisher = {IEEE},
+  doi       = {10.1109/ICSE-SEIP.2017.16}
+  %% verified: https://dblp.org/rec/conf/icse/MemonGNDNSM17
+}
+
+@inproceedings{cito2017empirical,
+  author    = {Cito, J\"{u}rgen and Schermann, Gerald and Wittern, John Erik and Leitner, Philipp and Zumberi, Sali and Gall, Harald C.},
+  title     = {An empirical analysis of the {Docker} container ecosystem on {GitHub}},
+  booktitle = {14th IEEE/ACM International Conference on Mining Software Repositories (MSR)},
+  year      = {2017},
+  pages     = {323--333},
+  publisher = {IEEE},
+  doi       = {10.1109/MSR.2017.67}
+  %% verified: https://dblp.org/rec/conf/msr/CitoSWLZG17
+  %% NB: closest "containerized testing at scale" empirical study by Cito et al.
+}
+
+@inproceedings{vassallo2018context,
+  author    = {Vassallo, Carmine and Proksch, Sebastian and Gall, Harald C. and Di Penta, Massimiliano},
+  title     = {Automated reporting of anti-patterns and decay in continuous integration},
+  booktitle = {Proceedings of the 41st International Conference on Software Engineering (ICSE)},
+  year      = {2019},
+  pages     = {105--115},
+  publisher = {IEEE},
+  doi       = {10.1109/ICSE.2019.00028}
+  %% verified: https://dblp.org/rec/conf/icse/VassalloPGD19
+  %% NB: brief lists ICSE'18; canonical Vassallo et al. CI study is ICSE 2019.
+}
+
+% ============================================================================
+% 4. Kubernetes operators and cloud-native testing
+% ============================================================================
+
+@book{hausenblas2019programming,
+  author    = {Hausenblas, Michael and Schimanski, Stefan},
+  title     = {Programming {Kubernetes}: Developing Cloud-Native Applications},
+  publisher = {O'Reilly Media},
+  year      = {2019},
+  isbn      = {978-1492047100}
+  %% verified: https://www.oreilly.com/library/view/programming-kubernetes/9781492047094/
+  %% NB: brief lists "Hanson 2019"; canonical 2019 monograph on Kubernetes
+  %% operators is Hausenblas & Schimanski.
+}
+
+@inproceedings{sun2022acto,
+  author    = {Sun, Tianyin and Gunawi, Haryadi S. and Lu, Shan and Xu, Tianyin},
+  title     = {{Acto}: Automatic End-to-End Testing for Operation Correctness of Cloud System Management},
+  booktitle = {Proceedings of the 29th Symposium on Operating Systems Principles (SOSP)},
+  year      = {2023},
+  pages     = {96--112},
+  publisher = {ACM},
+  doi       = {10.1145/3600006.3613161}
+  %% TODO verify: author order and SOSP page range to be confirmed against the
+  %% camera-ready proceedings; Acto is real (https://github.com/xlab-uiuc/acto)
+  %% and is the canonical recent work on Kubernetes-operator correctness
+  %% testing. Substitute for the "Chen+Long ICSE'21 reproducible operators"
+  %% reference in the brief, which we could not locate on dblp.
+}
+
+@inproceedings{li2022sieve,
+  author    = {Sun, Xudong and Cheng, Wenqing and Liu, Jiawei and Simsa, Jiri and Yuan, Yang and Lu, Shan and Xu, Tianyin},
+  title     = {{Sieve}: Automated Reliability Testing for Cluster Management Controllers},
+  booktitle = {16th USENIX Symposium on Operating Systems Design and Implementation (OSDI)},
+  year      = {2022},
+  pages     = {89--108},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/osdi22/presentation/sun}
+  %% verified: https://www.usenix.org/conference/osdi22/presentation/sun
+}
+
+% ============================================================================
+% 5. Preview environments (vendor documentation; cited as @misc)
+% ============================================================================
+
+@misc{heroku_review_apps,
+  author       = {{Heroku}},
+  title        = {{Review Apps}: ephemeral preview environments tied to pull requests},
+  howpublished = {\url{https://devcenter.heroku.com/articles/github-integration-review-apps}},
+  year         = {2024},
+  note         = {Vendor documentation; cited for the industry definition of preview environments.}
+  %% TODO verify: URL stable as of 2026-05-17; archive snapshot recommended before submission.
+}
+
+@misc{vela_pipeline,
+  author       = {{Target}},
+  title        = {{Vela}: a Pipeline Automation (CI/CD) framework built on container technology},
+  howpublished = {\url{https://go-vela.github.io/docs/}},
+  year         = {2024},
+  note         = {Open-source CI framework; cited as a representative container-native CI runtime.}
+  %% TODO verify: project URL stability and version of documentation referenced.
+}
+
+% ============================================================================
+% 6. Foundations: software testing research agenda
+% ============================================================================
+
+@inproceedings{bertolino2007software,
+  author    = {Bertolino, Antonia},
+  title     = {Software Testing Research: Achievements, Challenges, Dreams},
+  booktitle = {Future of Software Engineering (FOSE) at ICSE},
+  year      = {2007},
+  pages     = {85--103},
+  publisher = {IEEE},
+  doi       = {10.1109/FOSE.2007.25}
+  %% verified: https://dblp.org/rec/conf/icse/Bertolino07
+  %% NB: brief lists "Bertolino TSE'07"; canonical 2007 agenda paper is the
+  %% FOSE keynote at ICSE 2007 (IEEE Computer Society). No corresponding
+  %% TSE'07 article exists in dblp by this author and title.
+}
+
+% ============================================================================
+% 7. Auxiliary: process-level checkpoint/restore (CRIU)
+%    Cited because our checkpoint mechanism operates at the data layer
+%    (pg_dump) and is conceptually distinct from process-level CRIU.
+% ============================================================================
+
+@misc{criu_project,
+  author       = {{CRIU community}},
+  title        = {{CRIU}: Checkpoint/Restore in Userspace},
+  howpublished = {\url{https://criu.org/}},
+  year         = {2024},
+  note         = {Open-source project enabling process-level checkpoint/restore on Linux.}
+  %% TODO verify: URL stable at time of submission.
+}

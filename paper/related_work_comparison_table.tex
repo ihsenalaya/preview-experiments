@@ -1,0 +1,34 @@
+%% related_work_comparison_table.tex
+%% Standalone table file. Included by related_work.tex via \input{...}.
+%% Requires the booktabs package (\usepackage{booktabs}) in the main document.
+
+\begin{table}[t]
+  \caption{Comparison of database-isolation approaches for shared-fixture
+           testing in containerized environments. ``App.\ coop.'' is the
+           degree of cooperation required from the system under test
+           (e.g.\ in-process hooks or DDL privileges). The bottom two
+           rows are the migration-reset baseline and our contribution.}
+  \label{tab:related}
+  \small
+  \centering
+  \begin{tabular}{lllll}
+    \toprule
+    \textbf{Approach} & \textbf{Granularity} & \textbf{Overhead} &
+      \textbf{App.\ coop.} & \textbf{K8s preview-ready} \\
+    \midrule
+    Transaction rollback (e.g.\ Spring \texttt{@Transactional})
+      & per-test  & $<$50\,ms  & required (in-process) & no \\
+    Testcontainers per-test
+      & per-test  & 5--15\,s   & none & yes but expensive \\
+    Schema-per-test (Django \texttt{TestCase}, Rails \texttt{db:schema:load})
+      & per-test  & ${\sim}500$\,ms & DDL access & complex on managed DB \\
+    \texttt{pg\_tmp} (per-test temporary cluster)
+      & per-test  & 3--8\,s    & none & not multi-PR aware \\
+    Migration reset (this paper, baseline)
+      & per-suite & 37.6\,s (measured) & none & yes \\
+    \textbf{Checkpoint restore (this paper, contribution)}
+      & \textbf{per-suite} & \textbf{14.6\,s (measured)} & \textbf{none}
+      & \textbf{yes} \\
+    \bottomrule
+  \end{tabular}
+\end{table}

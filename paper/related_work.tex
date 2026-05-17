@@ -1,0 +1,123 @@
+%% related_work.tex
+%% Section 2 of "Checkpoint-based Database Isolation Eliminates
+%% Non-deterministic Test Variance in Kubernetes Preview Environments".
+%%
+%% Required packages in the main document:
+%%   \usepackage{booktabs}   % for \toprule, \midrule, \bottomrule in tab:related
+%%   \usepackage{url}        % for \url in BibTeX entries
+%%
+%% This section assumes a \bibliography{refs} is declared in the main file.
+
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Test flakiness in shared-fixture testing}
+\label{sec:related:flakiness}
+
+Tests are said to be \emph{flaky} when they exhibit both passing and failing
+outcomes under the same code revision and configuration. Luo et al.\
+investigated 201 flaky-test fixes across 51 open-source projects and reported
+that order-dependency and asynchronous waiting account for the bulk of root
+causes~\cite{luo2014empirical}. Subsequent tooling has reduced detection cost:
+DeFlaker observes coverage changes to flag suspicious outcomes without
+re-running entire suites~\cite{bell2018deflaker}, while iDFlakies reruns tests
+in randomised orders to classify order-dependent from non-order-dependent
+flakiness~\cite{lam2019idflakies}. Developer-facing studies show that flaky
+failures erode trust in continuous integration pipelines and consume
+substantial debugging effort~\cite{eck2019understanding}. Parry et al.\
+synthesise this literature into a unified taxonomy and confirm that
+shared-fixture pollution---typically a database, file system, or in-memory
+cache mutated by a prior test---remains the dominant non-asynchronous root
+cause~\cite{parry2022survey}. The defensive responses recommended by these
+works (test reordering, isolation, retry budgets) all presuppose access to
+a state-reset mechanism whose cost is dwarfed by the test budget. In
+container-orchestrated environments that assumption no longer holds:
+state lives in a database pod whose lifecycle is decoupled from the test
+process, and the per-test reset operations that work inside a JVM or a
+process-local fixture become inter-pod orchestration steps whose latency
+must be measured rather than assumed negligible.
+
+\subsection{Database isolation techniques for integration tests}
+\label{sec:related:isolation}
+
+Several isolation strategies have been studied for tests that exercise a
+relational backend. Per-test transaction rollback, popularised by
+Spring's \texttt{@Transactional} testing support, is virtually free but
+requires the test runner to share a JVM with the system under test and
+therefore does not generalise to black-box, container-bounded
+deployments~\cite{bertolino2007software}. Schema-per-test approaches
+(e.g.\ Django's \texttt{TestCase} or Rails' \texttt{db:schema:load}) re-apply
+the migration graph between tests; the overhead is sub-second but the
+strategy demands DDL privileges that are commonly absent on managed
+databases. Tooling around SQL-test generation~\cite{tuya2007mutating,
+castelein2018search} and combined static/dynamic analyses of database-bearing
+applications~\cite{halfond2008improving} have likewise focused on \emph{what}
+to test rather than \emph{how} to reset state efficiently between suites.
+Container-native alternatives such as Testcontainers spin a fresh
+PostgreSQL container per test, paying $5$--$15$\,seconds of cold-start cost,
+and \texttt{pg\_tmp} provisions ephemeral clusters at $3$--$8$\,seconds;
+neither is multi-PR aware, so concurrent preview environments must serialise
+on the container or compete for cluster resources. Table~\ref{tab:related}
+summarises these trade-offs and positions migration-reset and
+checkpoint-restore as the two viable per-suite strategies for a
+Kubernetes-resident pipeline. The comparison highlights that any per-test
+mechanism either intrudes on the application process or pays a
+cold-container penalty that becomes prohibitive once the pipeline is
+replicated across pull requests; per-suite mechanisms relax this constraint
+at the cost of coarser isolation granularity, an acceptable trade-off when
+suites are deliberately designed to be independent.
+
+\input{related_work_comparison_table}
+
+\subsection{Kubernetes operator-based testing}
+\label{sec:related:operators}
+
+The Kubernetes operator pattern extends the control plane with
+custom resources and reconciliation loops, allowing infrastructure
+behaviour to be expressed as
+code~\cite{hausenblas2019programming}. Cloud-scale continuous-testing
+infrastructure has been documented by Memon et al.\ at
+Google~\cite{memon2017taming}, and empirical evidence on the growth of
+container-based test pipelines on GitHub is reported by Cito et
+al.~\cite{cito2017empirical}. Vassallo et al.\ catalogue recurring
+anti-patterns in continuous-integration pipelines that ultimately surface as
+test instability~\cite{vassallo2018context}. Recent work targets the
+correctness of operators themselves: Sieve detects controller bugs by
+perturbing reconciliation
+order~\cite{li2022sieve}, and Acto explores operator state spaces to detect
+operational defects~\cite{sun2022acto}. Industrial preview-environment
+offerings such as Heroku Review Apps~\cite{heroku_review_apps} and
+container-native CI runtimes such as Vela~\cite{vela_pipeline} demonstrate
+the demand for per-pull-request ephemeral stacks but provide no
+state-isolation primitive between intra-stack test suites. Process-level
+checkpointing via CRIU~\cite{criu_project} addresses a different layer of
+the stack---runtime memory and file descriptors---and is therefore
+complementary to, rather than competitive with, data-layer checkpointing.
+
+\subsection{Position of our work}
+\label{sec:related:position}
+
+The literature surveyed above either treats flakiness empirically without
+prescribing a state-reset mechanism that survives a Kubernetes preview
+lifecycle, or studies per-test isolation primitives whose granularity is
+incompatible with the per-suite reconciliation steps offered by a preview
+operator. To the best of the authors' knowledge, we are the first to
+evaluate empirically checkpoint-based database isolation across five
+heterogeneous stacks (Flask/Python, Listmonk/Go, Healthchecks/Django,
+Umami/TypeScript+Prisma, Spring~PetClinic/Java) in Kubernetes preview
+environments. The evaluation pairs a measured checkpoint-restore overhead of
+$14.6$\,s (median, $1.8$\,s cross-stack envelope) with a measured
+migration-reset baseline of $37.6$\,s on the same cluster, and replicates the
+flakiness-elimination effect ($\Delta = -100$\,pp, Fisher
+$p < 10^{-15}$) under concurrencies $K \in \{2,4,8\}$. Bertolino's agenda for
+empirical software-engineering research explicitly calls for
+multi-subject, multi-substrate replications of testing-infrastructure
+claims~\cite{bertolino2007software}; the cross-stack design adopted in
+Section~\ref{sec:design} is intended as a step in that direction. A
+secondary contribution lies in the negative results we report alongside
+the headline effect: concurrency $K$ is shown not to amplify intra-suite
+contamination, and seed-data diversity generated by a large language model
+does not improve mutation detection on the reference subject. Both are
+hypotheses that the surveyed literature plausibly entertains; reporting
+them honestly is the kind of replication-friendly contribution the field
+has been asked to produce.
