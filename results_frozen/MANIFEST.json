@@ -1,0 +1,1267 @@
+{
+  "generated_at_utc": "2026-05-17T11:54:46Z",
+  "consolidate_version": "1.0.0",
+  "results_dir": "results",
+  "frozen_dir": "results_frozen",
+  "total_csvs_scanned": 61,
+  "by_status": {
+    "excluded": 5,
+    "partial": 14,
+    "obsolete": 20,
+    "final": 22
+  },
+  "entries": [
+    {
+      "src": "results/s1-flask-catalog/bug_detection_test_outcomes_20260516T184358Z.csv",
+      "sha256": "55b415c16f4e7f503f0f1caee9c5ac183a4690292fa92cb40b9fdf85b56ae05c",
+      "size_bytes": 78515,
+      "line_count": 451,
+      "data_row_count": 450,
+      "experiment": "bug_detection",
+      "schema": "test_outcomes",
+      "rq": "RQ4",
+      "timestamp": "20260516T184358Z",
+      "subject_id_from_path": "s1-flask-catalog",
+      "subjects_observed": [
+        "s1-flask-catalog"
+      ],
+      "iso_conditions_observed": [
+        "true"
+      ],
+      "k_values_observed": [],
+      "mutant_ids_observed_count": 50,
+      "header_matches_schema": true,
+      "header_columns": [
+        "run_id",
+        "experiment",
+        "subject_id",
+        "preview_name",
+        "isolation_enabled",
+        "suite",
+        "test_name",
+        "outcome",
+        "db_rows_before",
+        "db_rows_after",
+        "timestamp_utc"
+      ],
+      "n_succeeded": 306,
+      "n_failed": 63,
+      "status": "final",
+      "reason": "",
+      "frozen_path": "s1-flask-catalog/bug_detection_test_outcomes_20260516T184358Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['bug_detection-s1-flask-catalog-mutant1-static-b08f11', 'bug_detection-s1-flask-catalog-mutant1-llm_fixed-735584', 'bug_detection-s1-flask-catalog-mutant1-llm_free-ec669e'] (150 total)"
+      ]
+    },
+    {
+      "src": "results/s1-flask-catalog/cross_pr_test_outcomes_20260516T234202Z.csv",
+      "sha256": "b63ae27640780d6bacc677471256d3d9ae6db44744e1c046098c0731d59944e1",
+      "size_bytes": 13988,
+      "line_count": 85,
+      "data_row_count": 84,
+      "experiment": "cross_pr",
+      "schema": "test_outcomes",
+      "rq": "RQ2",
+      "timestamp": "20260516T234202Z",
+      "subject_id_from_path": "s1-flask-catalog",
+      "subjects_observed": [
+        "s1-flask-catalog"
+      ],
+      "iso_conditions_observed": [
+        "False",
+        "True"
+      ],
+      "k_values_observed": [
+        2,
+        4,
+        8
+      ],
+      "mutant_ids_observed_count": 0,
+      "header_matches_schema": true,
+      "header_columns": [
+        "run_id",
+        "experiment",
+        "subject_id",
+        "preview_name",
+        "isolation_enabled",
+        "suite",
+        "test_name",
+        "outcome",
+        "db_rows_before",
+        "db_rows_after",
+        "timestamp_utc"
+      ],
+      "n_succeeded": 56,
+      "n_failed": 28,
+      "status": "final",
+      "reason": "",
+      "frozen_path": "s1-flask-catalog/cross_pr_test_outcomes_20260516T234202Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['cross_pr-s1-flask-catalog-k2-isoTrue-71dae048-1-concurrent_k2', 'cross_pr-s1-flask-catalog-k2-isoTrue-71dae048-0-concurrent_k2', 'cross_pr-s1-flask-catalog-k4-isoTrue-820e0227-3-concurrent_k4'] (28 total)"
+      ]
+    },
+    {
+      "src": "results/s1-flask-catalog/flakiness_test_outcomes_20260515T112339Z.csv",
+      "sha256": "86372cd6097cc9f5f38390f7b1be592211b426c022c852c6b61f3efc2b2626e9",
+      "size_bytes": 75668,
+      "line_count": 511,
+      "data_row_count": 510,
+      "experiment": "flakiness",
+      "schema": "test_outcomes",
+      "rq": "RQ1",
+      "timestamp": "20260515T112339Z",
+      "subject_id_from_path": "s1-flask-catalog",
+      "subjects_observed": [
+        "s1-flask-catalog"
+      ],
+      "iso_conditions_observed": [
+        "False",
+        "True"
+      ],
+      "k_values_observed": [],
+      "mutant_ids_observed_count": 0,
+      "header_matches_schema": true,
+      "header_columns": [
+        "run_id",
+        "experiment",
+        "subject_id",
+        "preview_name",
+        "isolation_enabled",
+        "suite",
+        "test_name",
+        "outcome",
+        "db_rows_before",
+        "db_rows_after",
+        "timestamp_utc"
+      ],
+      "n_succeeded": 120,
+      "n_failed": 60,
+      "status": "final",
+      "reason": "",
+      "frozen_path": "s1-flask-catalog/flakiness_test_outcomes_20260515T112339Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-s1-flask-catalog-isoTrue-000-9197f6', 'flakiness-s1-flask-catalog-isoTrue-001-9cb115', 'flakiness-s1-flask-catalog-isoTrue-002-961dbd'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s1-flask-catalog/idempotence_run_metrics_20260517T071425Z.csv",
+      "sha256": "190939f8812b0d027df501145f4102545bd634c1ff9e56e07f9ad0ddb6e7a488",
+      "size_bytes": 3921,
+      "line_count": 19,
+      "data_row_count": 18,
+      "experiment": "idempotence",
+      "schema": "run_metrics",
+      "rq": "RQ5",
+      "timestamp": "20260517T071425Z",
+      "subject_id_from_path": "s1-flask-catalog",
+      "subjects_observed": [
+        "s1-flask-catalog"
+      ],
+      "iso_conditions_observed": [
+        "true"
+      ],
+      "k_values_observed": [],
+      "mutant_ids_observed_count": 0,
+      "header_matches_schema": true,
+      "header_columns": [
+        "run_id",
+        "experiment",
+        "subject_id",
+        "preview_name",
+        "namespace",
+        "isolation_enabled",
+        "phase",
+        "step",
+        "step_duration_s",
+        "total_reconcile_s",
+        "requeue_count",
+        "timestamp_utc"
+      ],
+      "n_succeeded": 18,
+      "n_failed": 0,
+      "status": "final",
+      "reason": "",
+      "frozen_path": "s1-flask-catalog/idempotence_run_metrics_20260517T071425Z.csv",
+      "warnings": []
+    },
+    {
+      "src": "results/s1-flask-catalog/performance_run_metrics_20260515T125712Z.csv",
+      "sha256": "79bba979b797a1e51b327ccadf2e665391b7baa421c8e736d9cec2c6f6dff142",
+      "size_bytes": 70011,
+      "line_count": 391,
+      "data_row_count": 390,
+      "experiment": "performance",
+      "schema": "run_metrics",
+      "rq": "RQ3",
+      "timestamp": "20260515T125712Z",
+      "subject_id_from_path": "s1-flask-catalog",
+      "subjects_observed": [
+        "s1-flask-catalog"
+      ],
+      "iso_conditions_observed": [
+        "False",
+        "True"
+      ],
+      "k_values_observed": [],
+      "mutant_ids_observed_count": 0,
+      "header_matches_schema": true,
+      "header_columns": [
+        "run_id",
+        "experiment",
+        "subject_id",
+        "preview_name",
+        "namespace",
+        "isolation_enabled",
+        "phase",
+        "step",
+        "step_duration_s",
+        "total_reconcile_s",
+        "requeue_count",
+        "timestamp_utc"
+      ],
+      "n_succeeded": 0,
+      "n_failed": 0,
+      "status": "final",
+      "reason": "",
+      "frozen_path": "s1-flask-catalog/performance_run_metrics_20260515T125712Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['performance-s1-flask-catalog-isoTrue-000-f99fb2', 'performance-s1-flask-catalog-isoTrue-001-5150b7', 'performance-s1-flask-catalog-isoTrue-002-8eb889'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s2-listmonk/bug_detection_test_outcomes_20260516T225625Z.csv",
+      "sha256": "d61e76f3b69582bf3bf3f34eda598f4dae22135d65b563ef07a138835ca7fe42",
+      "size_bytes": 69056,
+      "line_count": 424,
+      "data_row_count": 423,
+      "experiment": "bug_detection",
+      "schema": "test_outcomes",
+      "rq": "RQ4",
+      "timestamp": "20260516T225625Z",
+      "subject_id_from_path": "s2-listmonk",
+      "subjects_observed": [
+        "s2-listmonk"
+      ],
+      "iso_conditions_observed": [
+        "true"
+      ],
+      "k_values_observed": [],
+      "mutant_ids_observed_count": 47,
+      "header_matches_schema": true,
+      "header_columns": [
+        "run_id",
+        "experiment",
+        "subject_id",
+        "preview_name",
+        "isolation_enabled",
+        "suite",
+        "test_name",
+        "outcome",
+        "db_rows_before",
+        "db_rows_after",
+        "timestamp_utc"
+      ],
+      "n_succeeded": 141,
+      "n_failed": 282,
+      "status": "final",
+      "reason": "",
+      "frozen_path": "s2-listmonk/bug_detection_test_outcomes_20260516T225625Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['bug_detection-s2-listmonk-mutant1-static-297e18', 'bug_detection-s2-listmonk-mutant1-llm_fixed-f4bf6e', 'bug_detection-s2-listmonk-mutant1-llm_free-10a731'] (141 total)"
+      ]
+    },
+    {
+      "src": "results/s2-listmonk/cross_pr_test_outcomes_20260516T235356Z.csv",
+      "sha256": "fdd5778f70dc8fae6ffa98fa6d5c4a26018e2cade19b83d641606c1bd25e2bb3",
+      "size_bytes": 13148,
+      "line_count": 85,
+      "data_row_count": 84,
+      "experiment": "cross_pr",
+      "schema": "test_outcomes",
+      "rq": "RQ2",
+      "timestamp": "20260516T235356Z",
+      "subject_id_from_path": "s2-listmonk",
+      "subjects_observed": [
+        "s2-listmonk"
+      ],
+      "iso_conditions_observed": [
+        "False",
+        "True"
+      ],
+      "k_values_observed": [
+        2,
+        4,
+        8
+      ],
+      "mutant_ids_observed_count": 0,
+      "header_matches_schema": true,
+      "header_columns": [
+        "run_id",
+        "experiment",
+        "subject_id",
+        "preview_name",
+        "isolation_enabled",
+        "suite",
+        "test_name",
+        "outcome",
+        "db_rows_before",
+        "db_rows_after",
+        "timestamp_utc"
+      ],
+      "n_succeeded": 56,
+      "n_failed": 28,
+      "status": "final",
+      "reason": "",
+      "frozen_path": "s2-listmonk/cross_pr_test_outcomes_20260516T235356Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['cross_pr-s2-listmonk-k2-isoTrue-7a892971-0-concurrent_k2', 'cross_pr-s2-listmonk-k2-isoTrue-7a892971-1-concurrent_k2', 'cross_pr-s2-listmonk-k4-isoTrue-3f63fd72-2-concurrent_k4'] (28 total)"
+      ]
+    },
+    {
+      "src": "results/s2-listmonk/flakiness_test_outcomes_20260516T184845Z.csv",
+      "sha256": "0f5c58c6fa9a6b17db99fa9bb7963c7a74607958902e4acda75b7c8ec2823f8d",
+      "size_bytes": 70568,
+      "line_count": 511,
+      "data_row_count": 510,
+      "experiment": "flakiness",
+      "schema": "test_outcomes",
+      "rq": "RQ1",
+      "timestamp": "20260516T184845Z",
+      "subject_id_from_path": "s2-listmonk",
+      "subjects_observed": [
+        "s2-listmonk"
+      ],
+      "iso_conditions_observed": [
+        "False",
+        "True"
+      ],
+      "k_values_observed": [],
+      "mutant_ids_observed_count": 0,
+      "header_matches_schema": true,
+      "header_columns": [
+        "run_id",
+        "experiment",
+        "subject_id",
+        "preview_name",
+        "isolation_enabled",
+        "suite",
+        "test_name",
+        "outcome",
+        "db_rows_before",
+        "db_rows_after",
+        "timestamp_utc"
+      ],
+      "n_succeeded": 120,
+      "n_failed": 60,
+      "status": "final",
+      "reason": "",
+      "frozen_path": "s2-listmonk/flakiness_test_outcomes_20260516T184845Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-s2-listmonk-isoTrue-000-8a257c', 'flakiness-s2-listmonk-isoTrue-001-ae7fdf', 'flakiness-s2-listmonk-isoTrue-002-a59df7'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s2-listmonk/idempotence_run_metrics_20260517T060920Z.csv",
+      "sha256": "ef88759f14f76b03f72f1f1fb5cfe5564c383651746a3055604718e407a91cd0",
+      "size_bytes": 3729,
+      "line_count": 19,
+      "data_row_count": 18,
+      "experiment": "idempotence",
+      "schema": "run_metrics",
+      "rq": "RQ5",
+      "timestamp": "20260517T060920Z",
+      "subject_id_from_path": "s2-listmonk",
+      "subjects_observed": [
+        "s2-listmonk"
+      ],
+      "iso_conditions_observed": [
+        "true"
+      ],
+      "k_values_observed": [],
+      "mutant_ids_observed_count": 0,
+      "header_matches_schema": true,
+      "header_columns": [
+        "run_id",
+        "experiment",
+        "subject_id",
+        "preview_name",
+        "namespace",
+        "isolation_enabled",
+        "phase",
+        "step",
+        "step_duration_s",
+        "total_reconcile_s",
+        "requeue_count",
+        "timestamp_utc"
+      ],
+      "n_succeeded": 18,
+      "n_failed": 0,
+      "status": "final",
+      "reason": "",
+      "frozen_path": "s2-listmonk/idempotence_run_metrics_20260517T060920Z.csv",
+      "warnings": []
+    },
+    {
+      "src": "results/s2-listmonk/performance_run_metrics_20260516T154352Z.csv",
+      "sha256": "688d0a623e84356a1ab031f1ac91f378cf30a5265fd8faa1ec861f0f5b51c28e",
+      "size_bytes": 65907,
+      "line_count": 391,
+      "data_row_count": 390,
+      "experiment": "performance",
+      "schema": "run_metrics",
+      "rq": "RQ3",
+      "timestamp": "20260516T154352Z",
+      "subject_id_from_path": "s2-listmonk",
+      "subjects_observed": [
+        "s2-listmonk"
+      ],
+      "iso_conditions_observed": [
+        "False",
+        "True"
+      ],
+      "k_values_observed": [],
+      "mutant_ids_observed_count": 0,
+      "header_matches_schema": true,
+      "header_columns": [
+        "run_id",
+        "experiment",
+        "subject_id",
+        "preview_name",
+        "namespace",
+        "isolation_enabled",
+        "phase",
+        "step",
+        "step_duration_s",
+        "total_reconcile_s",
+        "requeue_count",
+        "timestamp_utc"
+      ],
+      "n_succeeded": 0,
+      "n_failed": 0,
+      "status": "final",
+      "reason": "",
+      "frozen_path": "s2-listmonk/performance_run_metrics_20260516T154352Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['performance-s2-listmonk-isoTrue-000-418108', 'performance-s2-listmonk-isoTrue-001-9165cf', 'performance-s2-listmonk-isoTrue-002-b5eb93'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s3-healthchecks/bug_detection_test_outcomes_20260517T030029Z.csv",
+      "sha256": "203e245a9cbee155939cfc6c30d759e523a29e7634873b251b88947d88095f1d",
+      "size_bytes": 72236,
+      "line_count": 418,
+      "data_row_count": 417,
+      "experiment": "bug_detection",
+      "schema": "test_outcomes",
+      "rq": "RQ4",
+      "timestamp": "20260517T030029Z",
+      "subject_id_from_path": "s3-healthchecks",
+      "subjects_observed": [
+        "s3-healthchecks"
+      ],
+      "iso_conditions_observed": [
+        "true"
+      ],
+      "k_values_observed": [],
+      "mutant_ids_observed_count": 47,
+      "header_matches_schema": true,
+      "header_columns": [
+        "run_id",
+        "experiment",
+        "subject_id",
+        "preview_name",
+        "isolation_enabled",
+        "suite",
+        "test_name",
+        "outcome",
+        "db_rows_before",
+        "db_rows_after",
+        "timestamp_utc"
+      ],
+      "n_succeeded": 417,
+      "n_failed": 0,
+      "status": "final",
+      "reason": "",
+      "frozen_path": "s3-healthchecks/bug_detection_test_outcomes_20260517T030029Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['bug_detection-s3-healthchecks-mutant1-static-39cac0', 'bug_detection-s3-healthchecks-mutant1-llm_fixed-5bbc78', 'bug_detection-s3-healthchecks-mutant1-llm_free-f29a76'] (139 total)"
+      ]
+    },
+    {
+      "src": "results/s3-healthchecks/cross_pr_test_outcomes_20260517T000516Z.csv",
+      "sha256": "5b03ca9ee84479fd967c1cf3be0ac999db4277b5b4cf1ac2704d36be8e188786",
+      "size_bytes": 13820,
+      "line_count": 85,
+      "data_row_count": 84,
+      "experiment": "cross_pr",
+      "schema": "test_outcomes",
+      "rq": "RQ2",
+      "timestamp": "20260517T000516Z",
+      "subject_id_from_path": "s3-healthchecks",
+      "subjects_observed": [
+        "s3-healthchecks"
+      ],
+      "iso_conditions_observed": [
+        "False",
+        "True"
+      ],
+      "k_values_observed": [
+        2,
+        4,
+        8
+      ],
+      "mutant_ids_observed_count": 0,
+      "header_matches_schema": true,
+      "header_columns": [
+        "run_id",
+        "experiment",
+        "subject_id",
+        "preview_name",
+        "isolation_enabled",
+        "suite",
+        "test_name",
+        "outcome",
+        "db_rows_before",
+        "db_rows_after",
+        "timestamp_utc"
+      ],
+      "n_succeeded": 56,
+      "n_failed": 28,
+      "status": "final",
+      "reason": "",
+      "frozen_path": "s3-healthchecks/cross_pr_test_outcomes_20260517T000516Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['cross_pr-s3-healthchecks-k2-isoTrue-8361a1d6-1-concurrent_k2', 'cross_pr-s3-healthchecks-k2-isoTrue-8361a1d6-0-concurrent_k2', 'cross_pr-s3-healthchecks-k4-isoTrue-9fa610f3-2-concurrent_k4'] (28 total)"
+      ]
+    },
+    {
+      "src": "results/s3-healthchecks/flakiness_test_outcomes_20260516T144647Z.csv",
+      "sha256": "57386d7dc54d66271f1438098b9cc6a03b8a1a12a798673956096aed512653b5",
+      "size_bytes": 73772,
+      "line_count": 505,
+      "data_row_count": 504,
+      "experiment": "flakiness",
+      "schema": "test_outcomes",
+      "rq": "RQ1",
+      "timestamp": "20260516T144647Z",
+      "subject_id_from_path": "s3-healthchecks",
+      "subjects_observed": [
+        "s3-healthchecks"
+      ],
+      "iso_conditions_observed": [
+        "False",
+        "True"
+      ],
+      "k_values_observed": [],
+      "mutant_ids_observed_count": 0,
+      "header_matches_schema": true,
+      "header_columns": [
+        "run_id",
+        "experiment",
+        "subject_id",
+        "preview_name",
+        "isolation_enabled",
+        "suite",
+        "test_name",
+        "outcome",
+        "db_rows_before",
+        "db_rows_after",
+        "timestamp_utc"
+      ],
+      "n_succeeded": 120,
+      "n_failed": 60,
+      "status": "final",
+      "reason": "",
+      "frozen_path": "s3-healthchecks/flakiness_test_outcomes_20260516T144647Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-s3-healthchecks-isoTrue-000-6df03c', 'flakiness-s3-healthchecks-isoTrue-001-a17f44', 'flakiness-s3-healthchecks-isoTrue-002-c7b306'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s3-healthchecks/idempotence_run_metrics_20260517T080328Z.csv",
+      "sha256": "8e8fbaa5700141bebe1c51e1797ff832405ef9d1139d0ca280bceb58bf27b323",
+      "size_bytes": 3884,
+      "line_count": 19,
+      "data_row_count": 18,
+      "experiment": "idempotence",
+      "schema": "run_metrics",
+      "rq": "RQ5",
+      "timestamp": "20260517T080328Z",
+      "subject_id_from_path": "s3-healthchecks",
+      "subjects_observed": [
+        "s3-healthchecks"
+      ],
+      "iso_conditions_observed": [
+        "true"
+      ],
+      "k_values_observed": [],
+      "mutant_ids_observed_count": 0,
+      "header_matches_schema": true,
+      "header_columns": [
+        "run_id",
+        "experiment",
+        "subject_id",
+        "preview_name",
+        "namespace",
+        "isolation_enabled",
+        "phase",
+        "step",
+        "step_duration_s",
+        "total_reconcile_s",
+        "requeue_count",
+        "timestamp_utc"
+      ],
+      "n_succeeded": 18,
+      "n_failed": 0,
+      "status": "final",
+      "reason": "",
+      "frozen_path": "s3-healthchecks/idempotence_run_metrics_20260517T080328Z.csv",
+      "warnings": []
+    },
+    {
+      "src": "results/s3-healthchecks/performance_run_metrics_20260516T154357Z.csv",
+      "sha256": "4d6b68700115e6d8b4ce78093c14f0edb283634bda9eff5cff81aa8d6e560294",
+      "size_bytes": 69307,
+      "line_count": 391,
+      "data_row_count": 390,
+      "experiment": "performance",
+      "schema": "run_metrics",
+      "rq": "RQ3",
+      "timestamp": "20260516T154357Z",
+      "subject_id_from_path": "s3-healthchecks",
+      "subjects_observed": [
+        "s3-healthchecks"
+      ],
+      "iso_conditions_observed": [
+        "False",
+        "True"
+      ],
+      "k_values_observed": [],
+      "mutant_ids_observed_count": 0,
+      "header_matches_schema": true,
+      "header_columns": [
+        "run_id",
+        "experiment",
+        "subject_id",
+        "preview_name",
+        "namespace",
+        "isolation_enabled",
+        "phase",
+        "step",
+        "step_duration_s",
+        "total_reconcile_s",
+        "requeue_count",
+        "timestamp_utc"
+      ],
+      "n_succeeded": 0,
+      "n_failed": 0,
+      "status": "final",
+      "reason": "",
+      "frozen_path": "s3-healthchecks/performance_run_metrics_20260516T154357Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['performance-s3-healthchecks-isoTrue-000-6c897f', 'performance-s3-healthchecks-isoTrue-001-f33f29', 'performance-s3-healthchecks-isoTrue-002-2805da'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s4-umami/cross_pr_test_outcomes_20260517T001623Z.csv",
+      "sha256": "cb42d92023bf4bf5924667cdc5dac6a9b2c27036687d6bd0028b10a7c4942fd5",
+      "size_bytes": 12560,
+      "line_count": 85,
+      "data_row_count": 84,
+      "experiment": "cross_pr",
+      "schema": "test_outcomes",
+      "rq": "RQ2",
+      "timestamp": "20260517T001623Z",
+      "subject_id_from_path": "s4-umami",
+      "subjects_observed": [
+        "s4-umami"
+      ],
+      "iso_conditions_observed": [
+        "False",
+        "True"
+      ],
+      "k_values_observed": [
+        2,
+        4,
+        8
+      ],
+      "mutant_ids_observed_count": 0,
+      "header_matches_schema": true,
+      "header_columns": [
+        "run_id",
+        "experiment",
+        "subject_id",
+        "preview_name",
+        "isolation_enabled",
+        "suite",
+        "test_name",
+        "outcome",
+        "db_rows_before",
+        "db_rows_after",
+        "timestamp_utc"
+      ],
+      "n_succeeded": 28,
+      "n_failed": 56,
+      "status": "final",
+      "reason": "",
+      "frozen_path": "s4-umami/cross_pr_test_outcomes_20260517T001623Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['cross_pr-s4-umami-k2-isoTrue-5b3c4b37-0-concurrent_k2', 'cross_pr-s4-umami-k2-isoTrue-5b3c4b37-1-concurrent_k2', 'cross_pr-s4-umami-k4-isoTrue-39444d97-0-concurrent_k4'] (28 total)"
+      ]
+    },
+    {
+      "src": "results/s4-umami/flakiness_test_outcomes_20260517T104741Z.csv",
+      "sha256": "0e865cde2bca48fe7d136e52289c688a50647883dececce9d83887ce5fa3a35c",
+      "size_bytes": 55483,
+      "line_count": 420,
+      "data_row_count": 419,
+      "experiment": "flakiness",
+      "schema": "test_outcomes",
+      "rq": "RQ1",
+      "timestamp": "20260517T104741Z",
+      "subject_id_from_path": "s4-umami",
+      "subjects_observed": [
+        "s4-umami"
+      ],
+      "iso_conditions_observed": [
+        "False",
+        "True"
+      ],
+      "k_values_observed": [],
+      "mutant_ids_observed_count": 0,
+      "header_matches_schema": true,
+      "header_columns": [
+        "run_id",
+        "experiment",
+        "subject_id",
+        "preview_name",
+        "isolation_enabled",
+        "suite",
+        "test_name",
+        "outcome",
+        "db_rows_before",
+        "db_rows_after",
+        "timestamp_utc"
+      ],
+      "n_succeeded": 107,
+      "n_failed": 34,
+      "status": "final",
+      "reason": "",
+      "frozen_path": "s4-umami/flakiness_test_outcomes_20260517T104741Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-s4-umami-isoTrue-000-b61a85', 'flakiness-s4-umami-isoTrue-001-816937', 'flakiness-s4-umami-isoTrue-002-71a60c'] (47 total)"
+      ]
+    },
+    {
+      "src": "results/s4-umami/idempotence_run_metrics_20260517T101529Z.csv",
+      "sha256": "77c8711ae1351ecf3f515434e037f21ba926eb11014662c861cf8eb0fa742187",
+      "size_bytes": 3630,
+      "line_count": 19,
+      "data_row_count": 18,
+      "experiment": "idempotence",
+      "schema": "run_metrics",
+      "rq": "RQ5",
+      "timestamp": "20260517T101529Z",
+      "subject_id_from_path": "s4-umami",
+      "subjects_observed": [
+        "s4-umami"
+      ],
+      "iso_conditions_observed": [
+        "true"
+      ],
+      "k_values_observed": [],
+      "mutant_ids_observed_count": 0,
+      "header_matches_schema": true,
+      "header_columns": [
+        "run_id",
+        "experiment",
+        "subject_id",
+        "preview_name",
+        "namespace",
+        "isolation_enabled",
+        "phase",
+        "step",
+        "step_duration_s",
+        "total_reconcile_s",
+        "requeue_count",
+        "timestamp_utc"
+      ],
+      "n_succeeded": 18,
+      "n_failed": 0,
+      "status": "final",
+      "reason": "",
+      "frozen_path": "s4-umami/idempotence_run_metrics_20260517T101529Z.csv",
+      "warnings": []
+    },
+    {
+      "src": "results/s4-umami/performance_run_metrics_20260516T144239Z.csv",
+      "sha256": "2748162cc860b23533b8e9f8b944ca6af20d439754a2e3726eaea89ad6006a5e",
+      "size_bytes": 62433,
+      "line_count": 385,
+      "data_row_count": 384,
+      "experiment": "performance",
+      "schema": "run_metrics",
+      "rq": "RQ3",
+      "timestamp": "20260516T144239Z",
+      "subject_id_from_path": "s4-umami",
+      "subjects_observed": [
+        "s4-umami"
+      ],
+      "iso_conditions_observed": [
+        "False",
+        "True"
+      ],
+      "k_values_observed": [],
+      "mutant_ids_observed_count": 0,
+      "header_matches_schema": true,
+      "header_columns": [
+        "run_id",
+        "experiment",
+        "subject_id",
+        "preview_name",
+        "namespace",
+        "isolation_enabled",
+        "phase",
+        "step",
+        "step_duration_s",
+        "total_reconcile_s",
+        "requeue_count",
+        "timestamp_utc"
+      ],
+      "n_succeeded": 0,
+      "n_failed": 0,
+      "status": "final",
+      "reason": "",
+      "frozen_path": "s4-umami/performance_run_metrics_20260516T144239Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['performance-s4-umami-isoTrue-000-fad2fc', 'performance-s4-umami-isoTrue-001-5b0e3b', 'performance-s4-umami-isoTrue-002-4ebb26'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s5-petclinic/cross_pr_test_outcomes_20260516T200617Z.csv",
+      "sha256": "62a560218508c856bfb466c7a8e58d8bf6a0b0f0955d02aa8fafb217385997dd",
+      "size_bytes": 13232,
+      "line_count": 85,
+      "data_row_count": 84,
+      "experiment": "cross_pr",
+      "schema": "test_outcomes",
+      "rq": "RQ2",
+      "timestamp": "20260516T200617Z",
+      "subject_id_from_path": "s5-petclinic",
+      "subjects_observed": [
+        "s5-petclinic"
+      ],
+      "iso_conditions_observed": [
+        "False",
+        "True"
+      ],
+      "k_values_observed": [
+        2,
+        4,
+        8
+      ],
+      "mutant_ids_observed_count": 0,
+      "header_matches_schema": true,
+      "header_columns": [
+        "run_id",
+        "experiment",
+        "subject_id",
+        "preview_name",
+        "isolation_enabled",
+        "suite",
+        "test_name",
+        "outcome",
+        "db_rows_before",
+        "db_rows_after",
+        "timestamp_utc"
+      ],
+      "n_succeeded": 28,
+      "n_failed": 56,
+      "status": "final",
+      "reason": "",
+      "frozen_path": "s5-petclinic/cross_pr_test_outcomes_20260516T200617Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['cross_pr-s5-petclinic-k2-isoTrue-9d5d5ca2-0-concurrent_k2', 'cross_pr-s5-petclinic-k2-isoTrue-9d5d5ca2-1-concurrent_k2', 'cross_pr-s5-petclinic-k4-isoTrue-ebdcce32-0-concurrent_k4'] (28 total)"
+      ]
+    },
+    {
+      "src": "results/s5-petclinic/flakiness_test_outcomes_20260516T195602Z.csv",
+      "sha256": "22a026b32f9d03ff6b29fafa6788a3c25e5394da23829d20e120f855cdcb7d44",
+      "size_bytes": 71228,
+      "line_count": 511,
+      "data_row_count": 510,
+      "experiment": "flakiness",
+      "schema": "test_outcomes",
+      "rq": "RQ1",
+      "timestamp": "20260516T195602Z",
+      "subject_id_from_path": "s5-petclinic",
+      "subjects_observed": [
+        "s5-petclinic"
+      ],
+      "iso_conditions_observed": [
+        "False",
+        "True"
+      ],
+      "k_values_observed": [],
+      "mutant_ids_observed_count": 0,
+      "header_matches_schema": true,
+      "header_columns": [
+        "run_id",
+        "experiment",
+        "subject_id",
+        "preview_name",
+        "isolation_enabled",
+        "suite",
+        "test_name",
+        "outcome",
+        "db_rows_before",
+        "db_rows_after",
+        "timestamp_utc"
+      ],
+      "n_succeeded": 60,
+      "n_failed": 120,
+      "status": "final",
+      "reason": "",
+      "frozen_path": "s5-petclinic/flakiness_test_outcomes_20260516T195602Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-s5-petclinic-isoTrue-000-26dc12', 'flakiness-s5-petclinic-isoTrue-001-7e447c', 'flakiness-s5-petclinic-isoTrue-002-1901f5'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s5-petclinic/performance_run_metrics_20260516T195529Z.csv",
+      "sha256": "14797bd19963ece3b5c079eeb78620e136ce7ce19e79ecd405e70cbf5259b979",
+      "size_bytes": 67042,
+      "line_count": 391,
+      "data_row_count": 390,
+      "experiment": "performance",
+      "schema": "run_metrics",
+      "rq": "RQ3",
+      "timestamp": "20260516T195529Z",
+      "subject_id_from_path": "s5-petclinic",
+      "subjects_observed": [
+        "s5-petclinic"
+      ],
+      "iso_conditions_observed": [
+        "False",
+        "True"
+      ],
+      "k_values_observed": [],
+      "mutant_ids_observed_count": 0,
+      "header_matches_schema": true,
+      "header_columns": [
+        "run_id",
+        "experiment",
+        "subject_id",
+        "preview_name",
+        "namespace",
+        "isolation_enabled",
+        "phase",
+        "step",
+        "step_duration_s",
+        "total_reconcile_s",
+        "requeue_count",
+        "timestamp_utc"
+      ],
+      "n_succeeded": 0,
+      "n_failed": 0,
+      "status": "final",
+      "reason": "",
+      "frozen_path": "s5-petclinic/performance_run_metrics_20260516T195529Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['performance-s5-petclinic-isoTrue-000-3f932e', 'performance-s5-petclinic-isoTrue-001-26b0fd', 'performance-s5-petclinic-isoTrue-002-efe68f'] (60 total)"
+      ]
+    }
+  ],
+  "warnings": [
+    {
+      "src": "results/bug_detection_test_outcomes_20260514T222821Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['bug_detection-s1-flask-catalog-mutant1-static-a7d33f'] (1 total)"
+      ]
+    },
+    {
+      "src": "results/bug_detection_test_outcomes_20260514T230001Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['bug_detection-s1-flask-catalog-mutant1-static-a002a6'] (1 total)"
+      ]
+    },
+    {
+      "src": "results/bug_detection_test_outcomes_20260515T045449Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['bug_detection-s1-flask-catalog-mutant1-static-d6add2'] (1 total)"
+      ]
+    },
+    {
+      "src": "results/cross_pr_test_outcomes_20260514T211354Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['cross_pr-k2-isoTrue-033db331-1-concurrent_k2', 'cross_pr-k2-isoTrue-033db331-0-concurrent_k2', 'cross_pr-k4-isoTrue-1cbcbf16-1-concurrent_k4'] (28 total)",
+        "header does not match expected schema for this experiment"
+      ]
+    },
+    {
+      "src": "results/cross_pr_test_outcomes_20260515T045444Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['cross_pr-s1-flask-catalog-k2-isoTrue-4188938c-1-concurrent_k2', 'cross_pr-s1-flask-catalog-k2-isoTrue-4188938c-0-concurrent_k2', 'cross_pr-s1-flask-catalog-k4-isoTrue-14cb35f2-3-concurrent_k4'] (7 total)"
+      ]
+    },
+    {
+      "src": "results/flakiness_test_outcomes_20260514T210450Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-isoTrue-000-00319c', 'flakiness-isoTrue-001-5230f1', 'flakiness-isoTrue-002-12fe49'] (60 total)",
+        "header does not match expected schema for this experiment"
+      ]
+    },
+    {
+      "src": "results/flakiness_test_outcomes_20260514T230001Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-s1-flask-catalog-isoTrue-000-88f3ad', 'flakiness-s1-flask-catalog-isoTrue-001-c01983', 'flakiness-s1-flask-catalog-isoTrue-002-e8c0b3'] (10 total)",
+        "missing iso condition(s): ['False']"
+      ]
+    },
+    {
+      "src": "results/flakiness_test_outcomes_20260515T045438Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-s1-flask-catalog-isoTrue-000-cda541', 'flakiness-s1-flask-catalog-isoTrue-001-5e34c3'] (2 total)",
+        "missing iso condition(s): ['False']"
+      ]
+    },
+    {
+      "src": "results/performance_run_metrics_20260514T211153Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['performance-isoTrue-000-8a1ff8', 'performance-isoTrue-001-37e668', 'performance-isoTrue-002-08a79f'] (40 total)",
+        "header does not match expected schema for this experiment"
+      ]
+    },
+    {
+      "src": "results/performance_run_metrics_20260514T230001Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['performance-s1-flask-catalog-isoTrue-000-292d48', 'performance-s1-flask-catalog-isoTrue-001-ab3f68', 'performance-s1-flask-catalog-isoTrue-002-d9e8b7'] (4 total)",
+        "missing iso condition(s): ['False']"
+      ]
+    },
+    {
+      "src": "results/performance_run_metrics_20260515T045442Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['performance-s1-flask-catalog-isoTrue-000-a18672', 'performance-s1-flask-catalog-isoTrue-001-abbaa2', 'performance-s1-flask-catalog-isoTrue-002-fd4396'] (4 total)",
+        "missing iso condition(s): ['False']"
+      ]
+    },
+    {
+      "src": "results/s1-flask-catalog/bug_detection_test_outcomes_20260516T172534Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['bug_detection-s1-flask-catalog-mutant1-static-f794ef'] (1 total)"
+      ]
+    },
+    {
+      "src": "results/s1-flask-catalog/bug_detection_test_outcomes_20260516T175847Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['bug_detection-s1-flask-catalog-mutant1-static-708242', 'bug_detection-s1-flask-catalog-mutant1-llm_fixed-af294f', 'bug_detection-s1-flask-catalog-mutant1-llm_free-aa2f9d'] (3 total)"
+      ]
+    },
+    {
+      "src": "results/s1-flask-catalog/bug_detection_test_outcomes_20260516T182440Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['bug_detection-s1-flask-catalog-mutant1-static-7c0457', 'bug_detection-s1-flask-catalog-mutant1-llm_fixed-636efd', 'bug_detection-s1-flask-catalog-mutant1-llm_free-80fd28'] (3 total)"
+      ]
+    },
+    {
+      "src": "results/s1-flask-catalog/bug_detection_test_outcomes_20260516T184358Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['bug_detection-s1-flask-catalog-mutant1-static-b08f11', 'bug_detection-s1-flask-catalog-mutant1-llm_fixed-735584', 'bug_detection-s1-flask-catalog-mutant1-llm_free-ec669e'] (150 total)"
+      ]
+    },
+    {
+      "src": "results/s1-flask-catalog/cross_pr_test_outcomes_20260515T143737Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['cross_pr-s1-flask-catalog-k2-isoTrue-1cef0dd6-1-concurrent_k2', 'cross_pr-s1-flask-catalog-k2-isoTrue-1cef0dd6-0-concurrent_k2', 'cross_pr-s1-flask-catalog-k4-isoTrue-8706e169-2-concurrent_k4'] (12 total)"
+      ]
+    },
+    {
+      "src": "results/s1-flask-catalog/cross_pr_test_outcomes_20260515T163956Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['cross_pr-s1-flask-catalog-k2-isoTrue-3ad844a8-1-concurrent_k2', 'cross_pr-s1-flask-catalog-k2-isoTrue-3ad844a8-0-concurrent_k2', 'cross_pr-s1-flask-catalog-k4-isoTrue-72c3fcaa-3-concurrent_k4'] (20 total)"
+      ]
+    },
+    {
+      "src": "results/s1-flask-catalog/cross_pr_test_outcomes_20260516T234202Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['cross_pr-s1-flask-catalog-k2-isoTrue-71dae048-1-concurrent_k2', 'cross_pr-s1-flask-catalog-k2-isoTrue-71dae048-0-concurrent_k2', 'cross_pr-s1-flask-catalog-k4-isoTrue-820e0227-3-concurrent_k4'] (28 total)"
+      ]
+    },
+    {
+      "src": "results/s1-flask-catalog/flakiness_test_outcomes_20260515T110552Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-s1-flask-catalog-isoTrue-000-d02c30'] (1 total)",
+        "missing iso condition(s): ['False']"
+      ]
+    },
+    {
+      "src": "results/s1-flask-catalog/flakiness_test_outcomes_20260515T112339Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-s1-flask-catalog-isoTrue-000-9197f6', 'flakiness-s1-flask-catalog-isoTrue-001-9cb115', 'flakiness-s1-flask-catalog-isoTrue-002-961dbd'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s1-flask-catalog/flakiness_test_outcomes_20260516T145451Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-s1-flask-catalog-isoTrue-000-fe298c', 'flakiness-s1-flask-catalog-isoTrue-001-024a09', 'flakiness-s1-flask-catalog-isoTrue-002-df7758'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s1-flask-catalog/performance_run_metrics_20260515T125712Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['performance-s1-flask-catalog-isoTrue-000-f99fb2', 'performance-s1-flask-catalog-isoTrue-001-5150b7', 'performance-s1-flask-catalog-isoTrue-002-8eb889'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s1-flask-catalog/performance_run_metrics_20260516T145456Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['performance-s1-flask-catalog-isoTrue-000-919f0b', 'performance-s1-flask-catalog-isoTrue-001-3198bf', 'performance-s1-flask-catalog-isoTrue-002-e91e3d'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s2-listmonk/bug_detection_test_outcomes_20260516T225625Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['bug_detection-s2-listmonk-mutant1-static-297e18', 'bug_detection-s2-listmonk-mutant1-llm_fixed-f4bf6e', 'bug_detection-s2-listmonk-mutant1-llm_free-10a731'] (141 total)"
+      ]
+    },
+    {
+      "src": "results/s2-listmonk/cross_pr_test_outcomes_20260515T180943Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['cross_pr-s2-listmonk-k2-isoTrue-52605221-0-concurrent_k2', 'cross_pr-s2-listmonk-k2-isoTrue-52605221-1-concurrent_k2', 'cross_pr-s2-listmonk-k4-isoTrue-f1f07904-1-concurrent_k4'] (20 total)"
+      ]
+    },
+    {
+      "src": "results/s2-listmonk/cross_pr_test_outcomes_20260516T235356Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['cross_pr-s2-listmonk-k2-isoTrue-7a892971-0-concurrent_k2', 'cross_pr-s2-listmonk-k2-isoTrue-7a892971-1-concurrent_k2', 'cross_pr-s2-listmonk-k4-isoTrue-3f63fd72-2-concurrent_k4'] (28 total)"
+      ]
+    },
+    {
+      "src": "results/s2-listmonk/flakiness_test_outcomes_20260516T144205Z.OBSOLETE_SEEDCOUNT3.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-s2-listmonk-isoTrue-000-7984f9', 'flakiness-s2-listmonk-isoTrue-001-b4ca97', 'flakiness-s2-listmonk-isoTrue-002-ffbc53'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s2-listmonk/flakiness_test_outcomes_20260516T184845Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-s2-listmonk-isoTrue-000-8a257c', 'flakiness-s2-listmonk-isoTrue-001-ae7fdf', 'flakiness-s2-listmonk-isoTrue-002-a59df7'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s2-listmonk/performance_run_metrics_20260516T154352Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['performance-s2-listmonk-isoTrue-000-418108', 'performance-s2-listmonk-isoTrue-001-9165cf', 'performance-s2-listmonk-isoTrue-002-b5eb93'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s3-healthchecks/bug_detection_test_outcomes_20260517T030029Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['bug_detection-s3-healthchecks-mutant1-static-39cac0', 'bug_detection-s3-healthchecks-mutant1-llm_fixed-5bbc78', 'bug_detection-s3-healthchecks-mutant1-llm_free-f29a76'] (139 total)"
+      ]
+    },
+    {
+      "src": "results/s3-healthchecks/cross_pr_test_outcomes_20260515T190940Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['cross_pr-s3-healthchecks-k2-isoTrue-885efea2-0-concurrent_k2', 'cross_pr-s3-healthchecks-k2-isoTrue-885efea2-1-concurrent_k2', 'cross_pr-s3-healthchecks-k4-isoTrue-af41c70e-2-concurrent_k4'] (6 total)"
+      ]
+    },
+    {
+      "src": "results/s3-healthchecks/cross_pr_test_outcomes_20260515T202703Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['cross_pr-s3-healthchecks-k2-isoTrue-44fb5f4e-1-concurrent_k2', 'cross_pr-s3-healthchecks-k2-isoTrue-44fb5f4e-0-concurrent_k2', 'cross_pr-s3-healthchecks-k4-isoTrue-3064bcfb-2-concurrent_k4'] (20 total)"
+      ]
+    },
+    {
+      "src": "results/s3-healthchecks/cross_pr_test_outcomes_20260517T000516Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['cross_pr-s3-healthchecks-k2-isoTrue-8361a1d6-1-concurrent_k2', 'cross_pr-s3-healthchecks-k2-isoTrue-8361a1d6-0-concurrent_k2', 'cross_pr-s3-healthchecks-k4-isoTrue-9fa610f3-2-concurrent_k4'] (28 total)"
+      ]
+    },
+    {
+      "src": "results/s3-healthchecks/flakiness_test_outcomes_20260516T144647Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-s3-healthchecks-isoTrue-000-6df03c', 'flakiness-s3-healthchecks-isoTrue-001-a17f44', 'flakiness-s3-healthchecks-isoTrue-002-c7b306'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s3-healthchecks/idempotence_run_metrics_20260517T064531Z.csv",
+      "warnings": [
+        "data_row_count=14 below full target=18 (kept as candidate-final)"
+      ]
+    },
+    {
+      "src": "results/s3-healthchecks/performance_run_metrics_20260516T154357Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['performance-s3-healthchecks-isoTrue-000-6c897f', 'performance-s3-healthchecks-isoTrue-001-f33f29', 'performance-s3-healthchecks-isoTrue-002-2805da'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s4-umami/cross_pr_test_outcomes_20260515T204434Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['cross_pr-s4-umami-k2-isoTrue-044410ad-1-concurrent_k2', 'cross_pr-s4-umami-k2-isoTrue-044410ad-0-concurrent_k2', 'cross_pr-s4-umami-k4-isoTrue-5c562775-0-concurrent_k4'] (20 total)"
+      ]
+    },
+    {
+      "src": "results/s4-umami/cross_pr_test_outcomes_20260517T001623Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['cross_pr-s4-umami-k2-isoTrue-5b3c4b37-0-concurrent_k2', 'cross_pr-s4-umami-k2-isoTrue-5b3c4b37-1-concurrent_k2', 'cross_pr-s4-umami-k4-isoTrue-39444d97-0-concurrent_k4'] (28 total)"
+      ]
+    },
+    {
+      "src": "results/s4-umami/flakiness_test_outcomes_20260516T144225Z.OBSOLETE_broken_assertions.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-s4-umami-isoTrue-000-48c56b', 'flakiness-s4-umami-isoTrue-001-e08ee5', 'flakiness-s4-umami-isoTrue-002-e7afa7'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s4-umami/flakiness_test_outcomes_20260516T185338Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-s4-umami-isoTrue-000-bf4ec1', 'flakiness-s4-umami-isoTrue-001-996c76', 'flakiness-s4-umami-isoTrue-002-294c18'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s4-umami/flakiness_test_outcomes_20260517T104741Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-s4-umami-isoTrue-000-b61a85', 'flakiness-s4-umami-isoTrue-001-816937', 'flakiness-s4-umami-isoTrue-002-71a60c'] (47 total)"
+      ]
+    },
+    {
+      "src": "results/s4-umami/performance_run_metrics_20260516T144239Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['performance-s4-umami-isoTrue-000-fad2fc', 'performance-s4-umami-isoTrue-001-5b0e3b', 'performance-s4-umami-isoTrue-002-4ebb26'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s5-petclinic/cross_pr_test_outcomes_20260516T200617Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['cross_pr-s5-petclinic-k2-isoTrue-9d5d5ca2-0-concurrent_k2', 'cross_pr-s5-petclinic-k2-isoTrue-9d5d5ca2-1-concurrent_k2', 'cross_pr-s5-petclinic-k4-isoTrue-ebdcce32-0-concurrent_k4'] (28 total)"
+      ]
+    },
+    {
+      "src": "results/s5-petclinic/flakiness_test_outcomes_20260516T164554Z.OBSOLETE_readiness_race.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-s5-petclinic-isoTrue-000-8f4a67', 'flakiness-s5-petclinic-isoTrue-001-18495e', 'flakiness-s5-petclinic-isoTrue-002-945268'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s5-petclinic/flakiness_test_outcomes_20260516T195602Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-s5-petclinic-isoTrue-000-26dc12', 'flakiness-s5-petclinic-isoTrue-001-7e447c', 'flakiness-s5-petclinic-isoTrue-002-1901f5'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s5-petclinic/performance_run_metrics_20260516T164617Z.OBSOLETE_readiness_race.csv",
+      "warnings": [
+        "duplicate run_ids: ['performance-s5-petclinic-isoTrue-000-328eca', 'performance-s5-petclinic-isoTrue-001-c34829', 'performance-s5-petclinic-isoTrue-002-860add'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s5-petclinic/performance_run_metrics_20260516T195529Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['performance-s5-petclinic-isoTrue-000-3f932e', 'performance-s5-petclinic-isoTrue-001-26b0fd', 'performance-s5-petclinic-isoTrue-002-efe68f'] (60 total)"
+      ]
+    }
+  ]
+}
