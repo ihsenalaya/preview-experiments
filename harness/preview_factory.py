@@ -175,11 +175,20 @@ def wait_until_tests_done(
 
 
 def get_phase(name: str, namespace: str) -> str:
-    result = _kubectl(
-        "get", "preview", name, "-n", namespace,
-        "-o", "jsonpath={.status.phase}",
-    )
-    return result.stdout.strip() or "Unknown"
+    # Same resilience pattern as get_tests_step (webhook transient during operator restarts).
+    for _ in range(5):
+        result = _kubectl(
+            "get", "preview", name, "-n", namespace,
+            "-o", "jsonpath={.status.phase}",
+            check=False,
+        )
+        if result.returncode == 0:
+            return result.stdout.strip() or "Unknown"
+        stderr_low = (result.stderr or "").lower()
+        if "notfound" in stderr_low or "not found" in stderr_low:
+            return "NotFound"
+        time.sleep(2)
+    return "Unknown"
 
 
 def get_status(name: str, namespace: str) -> dict:
@@ -190,11 +199,21 @@ def get_status(name: str, namespace: str) -> dict:
 
 
 def get_tests_step(name: str, namespace: str) -> str:
-    result = _kubectl(
-        "get", "preview", name, "-n", namespace,
-        "-o", "jsonpath={.status.tests.step}",
-    )
-    return result.stdout.strip()
+    # Resilient against transient webhook unavailability during operator restarts
+    # (idempotence experiments deliberately kill the operator pod).
+    for _ in range(5):
+        result = _kubectl(
+            "get", "preview", name, "-n", namespace,
+            "-o", "jsonpath={.status.tests.step}",
+            check=False,
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+        stderr_low = (result.stderr or "").lower()
+        if "notfound" in stderr_low or "not found" in stderr_low:
+            return ""
+        time.sleep(2)
+    return ""
 
 
 def delete(name: str, namespace: str, wait: bool = True) -> None:
