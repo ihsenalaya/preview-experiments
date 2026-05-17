@@ -1,0 +1,442 @@
+{
+  "generated_at_utc": "2026-05-17T12:34:18Z",
+  "build_all_version": "1.0.0",
+  "frozen_dir": "results_frozen",
+  "outputs": [
+    {
+      "name": "rq1_s1-flask-catalog",
+      "rq": "RQ1",
+      "kind": "table_md",
+      "path": "analysis/output/tables/rq1_s1-flask-catalog.md",
+      "source_csvs": [
+        "results_frozen/s1-flask-catalog/flakiness_test_outcomes_20260515T112339Z.csv"
+      ],
+      "sha256": "ef42cefe7ef91b868453ab820f6b0d55b727f2922051ad389494734d02883afc"
+    },
+    {
+      "name": "rq1_s1-flask-catalog",
+      "rq": "RQ1",
+      "kind": "table_tex",
+      "path": "analysis/output/tables/rq1_s1-flask-catalog.tex",
+      "source_csvs": [
+        "results_frozen/s1-flask-catalog/flakiness_test_outcomes_20260515T112339Z.csv"
+      ],
+      "sha256": "eddd0c995839a8808291120fee66e19648a433c3c9189d095a1506608292df43"
+    },
+    {
+      "name": "rq1_s2-listmonk",
+      "rq": "RQ1",
+      "kind": "table_md",
+      "path": "analysis/output/tables/rq1_s2-listmonk.md",
+      "source_csvs": [
+        "results_frozen/s2-listmonk/flakiness_test_outcomes_20260516T184845Z.csv"
+      ],
+      "sha256": "70213ad0b3786ea95f4f0172c8c1c2a8a31ea72c001353fc2e7a112c76ef1971"
+    },
+    {
+      "name": "rq1_s2-listmonk",
+      "rq": "RQ1",
+      "kind": "table_tex",
+      "path": "analysis/output/tables/rq1_s2-listmonk.tex",
+      "source_csvs": [
+        "results_frozen/s2-listmonk/flakiness_test_outcomes_20260516T184845Z.csv"
+      ],
+      "sha256": "fc704e8e1d68c23cf3c2840ad01a17fdb90ebf6bcc11018af5a55d496db7aa26"
+    },
+    {
+      "name": "rq1_s3-healthchecks",
+      "rq": "RQ1",
+      "kind": "table_md",
+      "path": "analysis/output/tables/rq1_s3-healthchecks.md",
+      "source_csvs": [
+        "results_frozen/s3-healthchecks/flakiness_test_outcomes_20260516T144647Z.csv"
+      ],
+      "sha256": "ddc4cb963a0fad957a2cb7d44b44cff4b6f2433d9dafe013cb8d0188900a0f88"
+    },
+    {
+      "name": "rq1_s3-healthchecks",
+      "rq": "RQ1",
+      "kind": "table_tex",
+      "path": "analysis/output/tables/rq1_s3-healthchecks.tex",
+      "source_csvs": [
+        "results_frozen/s3-healthchecks/flakiness_test_outcomes_20260516T144647Z.csv"
+      ],
+      "sha256": "33ef24fb67c92926df1a93ada9e0a3c0a0844ce59560c8610be88894614d4bf3"
+    },
+    {
+      "name": "rq1_s4-umami",
+      "rq": "RQ1",
+      "kind": "table_md",
+      "path": "analysis/output/tables/rq1_s4-umami.md",
+      "source_csvs": [
+        "results_frozen/s4-umami/flakiness_test_outcomes_20260517T104741Z.csv"
+      ],
+      "sha256": "df644a6ff6c396ddbd39a61c63c977ca03c0494f657c8f15beaada96d60a4f02"
+    },
+    {
+      "name": "rq1_s4-umami",
+      "rq": "RQ1",
+      "kind": "table_tex",
+      "path": "analysis/output/tables/rq1_s4-umami.tex",
+      "source_csvs": [
+        "results_frozen/s4-umami/flakiness_test_outcomes_20260517T104741Z.csv"
+      ],
+      "sha256": "34f77aeff8f6086560a80bb95b4e0d0b19a80dbcefccc8ba0b3406089274259f"
+    },
+    {
+      "name": "rq1_s5-petclinic",
+      "rq": "RQ1",
+      "kind": "table_md",
+      "path": "analysis/output/tables/rq1_s5-petclinic.md",
+      "source_csvs": [
+        "results_frozen/s5-petclinic/flakiness_test_outcomes_20260516T195602Z.csv"
+      ],
+      "sha256": "39ac4bdde04e7a9b1c94b233d2e444a07763a1998f70050a9cf4a47fe3975625"
+    },
+    {
+      "name": "rq1_s5-petclinic",
+      "rq": "RQ1",
+      "kind": "table_tex",
+      "path": "analysis/output/tables/rq1_s5-petclinic.tex",
+      "source_csvs": [
+        "results_frozen/s5-petclinic/flakiness_test_outcomes_20260516T195602Z.csv"
+      ],
+      "sha256": "7b5c4f99a68550a8148b1822c11ab03b071b73c6333dd969b9e3e2bd38dc31e4"
+    },
+    {
+      "name": "rq1_cross_subject",
+      "rq": "RQ1",
+      "kind": "table_md",
+      "path": "analysis/output/tables/rq1_cross_subject.md",
+      "source_csvs": [
+        "results_frozen/s1-flask-catalog/flakiness_test_outcomes_20260515T112339Z.csv",
+        "results_frozen/s2-listmonk/flakiness_test_outcomes_20260516T184845Z.csv",
+        "results_frozen/s3-healthchecks/flakiness_test_outcomes_20260516T144647Z.csv",
+        "results_frozen/s4-umami/flakiness_test_outcomes_20260517T104741Z.csv",
+        "results_frozen/s5-petclinic/flakiness_test_outcomes_20260516T195602Z.csv"
+      ],
+      "sha256": "ba542859bbd2e2da58c655bfa07a8a6ca008acdbbee6218f06b2c7052cd6aef4"
+    },
+    {
+      "name": "rq1_cross_subject",
+      "rq": "RQ1",
+      "kind": "table_tex",
+      "path": "analysis/output/tables/rq1_cross_subject.tex",
+      "source_csvs": [
+        "results_frozen/s1-flask-catalog/flakiness_test_outcomes_20260515T112339Z.csv",
+        "results_frozen/s2-listmonk/flakiness_test_outcomes_20260516T184845Z.csv",
+        "results_frozen/s3-healthchecks/flakiness_test_outcomes_20260516T144647Z.csv",
+        "results_frozen/s4-umami/flakiness_test_outcomes_20260517T104741Z.csv",
+        "results_frozen/s5-petclinic/flakiness_test_outcomes_20260516T195602Z.csv"
+      ],
+      "sha256": "4b2d361e5cc6014e72e387425c8105d28154199bb3539b636fc3bffa64d2abaa"
+    },
+    {
+      "name": "rq2_s1-flask-catalog",
+      "rq": "RQ2",
+      "kind": "table_md",
+      "path": "analysis/output/tables/rq2_s1-flask-catalog.md",
+      "source_csvs": [
+        "results_frozen/s1-flask-catalog/cross_pr_test_outcomes_20260516T234202Z.csv"
+      ],
+      "sha256": "6c22cedf431748dbd91ec066083838579a9d12fd64ee1a67ada9bbb26d491936"
+    },
+    {
+      "name": "rq2_s1-flask-catalog",
+      "rq": "RQ2",
+      "kind": "table_tex",
+      "path": "analysis/output/tables/rq2_s1-flask-catalog.tex",
+      "source_csvs": [
+        "results_frozen/s1-flask-catalog/cross_pr_test_outcomes_20260516T234202Z.csv"
+      ],
+      "sha256": "fc5ba5dec6ce7d546a051eed62bec23b7e3e06af75ae5eb77fa90422671cad84"
+    },
+    {
+      "name": "rq2_s2-listmonk",
+      "rq": "RQ2",
+      "kind": "table_md",
+      "path": "analysis/output/tables/rq2_s2-listmonk.md",
+      "source_csvs": [
+        "results_frozen/s2-listmonk/cross_pr_test_outcomes_20260516T235356Z.csv"
+      ],
+      "sha256": "70c5a1d4dc7ad622a1a4a089b950e70f50b28065a394677d39fd9c2c27b99a2e"
+    },
+    {
+      "name": "rq2_s2-listmonk",
+      "rq": "RQ2",
+      "kind": "table_tex",
+      "path": "analysis/output/tables/rq2_s2-listmonk.tex",
+      "source_csvs": [
+        "results_frozen/s2-listmonk/cross_pr_test_outcomes_20260516T235356Z.csv"
+      ],
+      "sha256": "d4047b279df2e35a3336dc4907a4f4e9c75e5cdc919ede1769552bb2c698c8a8"
+    },
+    {
+      "name": "rq2_s3-healthchecks",
+      "rq": "RQ2",
+      "kind": "table_md",
+      "path": "analysis/output/tables/rq2_s3-healthchecks.md",
+      "source_csvs": [
+        "results_frozen/s3-healthchecks/cross_pr_test_outcomes_20260517T000516Z.csv"
+      ],
+      "sha256": "4035335f5530112ca77fb728ebe333ee0e968ea47e00570888ab2799f7f1db23"
+    },
+    {
+      "name": "rq2_s3-healthchecks",
+      "rq": "RQ2",
+      "kind": "table_tex",
+      "path": "analysis/output/tables/rq2_s3-healthchecks.tex",
+      "source_csvs": [
+        "results_frozen/s3-healthchecks/cross_pr_test_outcomes_20260517T000516Z.csv"
+      ],
+      "sha256": "8aeb57c36050a7502e9b34955e5b82fa824629b636e6574a02e96d18947160f7"
+    },
+    {
+      "name": "rq2_s4-umami",
+      "rq": "RQ2",
+      "kind": "table_md",
+      "path": "analysis/output/tables/rq2_s4-umami.md",
+      "source_csvs": [
+        "results_frozen/s4-umami/cross_pr_test_outcomes_20260517T001623Z.csv"
+      ],
+      "sha256": "49074c9171e1340214a0d481ce4791e59c211d2806dde312c54d2243815d6489"
+    },
+    {
+      "name": "rq2_s4-umami",
+      "rq": "RQ2",
+      "kind": "table_tex",
+      "path": "analysis/output/tables/rq2_s4-umami.tex",
+      "source_csvs": [
+        "results_frozen/s4-umami/cross_pr_test_outcomes_20260517T001623Z.csv"
+      ],
+      "sha256": "876f33cd18d276c9a03516bc7732bce4a8c8528579b0b3e6b6a852eb283429ba"
+    },
+    {
+      "name": "rq2_s5-petclinic",
+      "rq": "RQ2",
+      "kind": "table_md",
+      "path": "analysis/output/tables/rq2_s5-petclinic.md",
+      "source_csvs": [
+        "results_frozen/s5-petclinic/cross_pr_test_outcomes_20260516T200617Z.csv"
+      ],
+      "sha256": "278f0eb0bc3fdfea9b59766cddeb47d8f24fadb7c39c92b97e3b36e442232e51"
+    },
+    {
+      "name": "rq2_s5-petclinic",
+      "rq": "RQ2",
+      "kind": "table_tex",
+      "path": "analysis/output/tables/rq2_s5-petclinic.tex",
+      "source_csvs": [
+        "results_frozen/s5-petclinic/cross_pr_test_outcomes_20260516T200617Z.csv"
+      ],
+      "sha256": "a9ff51d82e1d5351b355aaf6dd32c20b91459bab52431812dc38918599650f3c"
+    },
+    {
+      "name": "rq2_cross_subject",
+      "rq": "RQ2",
+      "kind": "table_md",
+      "path": "analysis/output/tables/rq2_cross_subject.md",
+      "source_csvs": [
+        "results_frozen/s1-flask-catalog/cross_pr_test_outcomes_20260516T234202Z.csv",
+        "results_frozen/s2-listmonk/cross_pr_test_outcomes_20260516T235356Z.csv",
+        "results_frozen/s3-healthchecks/cross_pr_test_outcomes_20260517T000516Z.csv",
+        "results_frozen/s4-umami/cross_pr_test_outcomes_20260517T001623Z.csv",
+        "results_frozen/s5-petclinic/cross_pr_test_outcomes_20260516T200617Z.csv"
+      ],
+      "sha256": "38209d35eb4f5ea551750e7e5e87d3c0ded49da1af8e4ee982b72ae47b8cb1ad"
+    },
+    {
+      "name": "rq2_cross_subject",
+      "rq": "RQ2",
+      "kind": "table_tex",
+      "path": "analysis/output/tables/rq2_cross_subject.tex",
+      "source_csvs": [
+        "results_frozen/s1-flask-catalog/cross_pr_test_outcomes_20260516T234202Z.csv",
+        "results_frozen/s2-listmonk/cross_pr_test_outcomes_20260516T235356Z.csv",
+        "results_frozen/s3-healthchecks/cross_pr_test_outcomes_20260517T000516Z.csv",
+        "results_frozen/s4-umami/cross_pr_test_outcomes_20260517T001623Z.csv",
+        "results_frozen/s5-petclinic/cross_pr_test_outcomes_20260516T200617Z.csv"
+      ],
+      "sha256": "cb67ecc36117a6e2bd24ec14519a40afbbf9305cb37fa70211d4eef6fb7d0d99"
+    },
+    {
+      "name": "rq3_s1-flask-catalog_step_durations",
+      "rq": "RQ3",
+      "kind": "table_md",
+      "path": "analysis/output/tables/rq3_s1-flask-catalog_step_durations.md",
+      "source_csvs": [
+        "results_frozen/s1-flask-catalog/performance_run_metrics_20260515T125712Z.csv"
+      ],
+      "sha256": "6c5d694395a34b07a9a69412b86b4176548e31ccbd35435fc6b788ee5fe79c3a"
+    },
+    {
+      "name": "rq3_s1-flask-catalog_step_durations",
+      "rq": "RQ3",
+      "kind": "table_tex",
+      "path": "analysis/output/tables/rq3_s1-flask-catalog_step_durations.tex",
+      "source_csvs": [
+        "results_frozen/s1-flask-catalog/performance_run_metrics_20260515T125712Z.csv"
+      ],
+      "sha256": "3494512952274e2eedcb2ed78aa90fc9f324bd7db64ae3854b7e61a2510688dc"
+    },
+    {
+      "name": "rq3_s2-listmonk_step_durations",
+      "rq": "RQ3",
+      "kind": "table_md",
+      "path": "analysis/output/tables/rq3_s2-listmonk_step_durations.md",
+      "source_csvs": [
+        "results_frozen/s2-listmonk/performance_run_metrics_20260516T154352Z.csv"
+      ],
+      "sha256": "182111bc483c9a0ca2c9c8b7ec0d1a7808feb88947fcf224a588186a4d220c8f"
+    },
+    {
+      "name": "rq3_s2-listmonk_step_durations",
+      "rq": "RQ3",
+      "kind": "table_tex",
+      "path": "analysis/output/tables/rq3_s2-listmonk_step_durations.tex",
+      "source_csvs": [
+        "results_frozen/s2-listmonk/performance_run_metrics_20260516T154352Z.csv"
+      ],
+      "sha256": "8a4f2ea8b410901e6d176bbfe3cffc05e374a514f32159ad4a032fcd266868aa"
+    },
+    {
+      "name": "rq3_s3-healthchecks_step_durations",
+      "rq": "RQ3",
+      "kind": "table_md",
+      "path": "analysis/output/tables/rq3_s3-healthchecks_step_durations.md",
+      "source_csvs": [
+        "results_frozen/s3-healthchecks/performance_run_metrics_20260516T154357Z.csv"
+      ],
+      "sha256": "00ed1857f008cac13c9fe6305b0207994808de65abe1b796579b6d76eeb5e11f"
+    },
+    {
+      "name": "rq3_s3-healthchecks_step_durations",
+      "rq": "RQ3",
+      "kind": "table_tex",
+      "path": "analysis/output/tables/rq3_s3-healthchecks_step_durations.tex",
+      "source_csvs": [
+        "results_frozen/s3-healthchecks/performance_run_metrics_20260516T154357Z.csv"
+      ],
+      "sha256": "8d8f2e529173bdbc97ef56bdf977481eea174a0cb5b3ffd0056d96fbbf8ea4ed"
+    },
+    {
+      "name": "rq3_s4-umami_step_durations",
+      "rq": "RQ3",
+      "kind": "table_md",
+      "path": "analysis/output/tables/rq3_s4-umami_step_durations.md",
+      "source_csvs": [
+        "results_frozen/s4-umami/performance_run_metrics_20260516T144239Z.csv"
+      ],
+      "sha256": "1650d96c50df6a9f57680c2c8210be23022b3db074e4a2a8d868606ee4cd93eb"
+    },
+    {
+      "name": "rq3_s4-umami_step_durations",
+      "rq": "RQ3",
+      "kind": "table_tex",
+      "path": "analysis/output/tables/rq3_s4-umami_step_durations.tex",
+      "source_csvs": [
+        "results_frozen/s4-umami/performance_run_metrics_20260516T144239Z.csv"
+      ],
+      "sha256": "f20955e18fcf7d42e04527ca541a353650f303aafa5a5719271b2c30b8db7ae1"
+    },
+    {
+      "name": "rq3_s5-petclinic_step_durations",
+      "rq": "RQ3",
+      "kind": "table_md",
+      "path": "analysis/output/tables/rq3_s5-petclinic_step_durations.md",
+      "source_csvs": [
+        "results_frozen/s5-petclinic/performance_run_metrics_20260516T195529Z.csv"
+      ],
+      "sha256": "a63b218cf712fc152bf26e302c568061d2b94586f76a9fa1ee004583c68bd76f"
+    },
+    {
+      "name": "rq3_s5-petclinic_step_durations",
+      "rq": "RQ3",
+      "kind": "table_tex",
+      "path": "analysis/output/tables/rq3_s5-petclinic_step_durations.tex",
+      "source_csvs": [
+        "results_frozen/s5-petclinic/performance_run_metrics_20260516T195529Z.csv"
+      ],
+      "sha256": "55fc2eeed819f41d9bc5aa00acd094afe8301627bba58dc40ad91661b678c5a4"
+    },
+    {
+      "name": "rq3_checkpoint_envelope",
+      "rq": "RQ3",
+      "kind": "table_md",
+      "path": "analysis/output/tables/rq3_checkpoint_envelope.md",
+      "source_csvs": [
+        "results_frozen/s1-flask-catalog/performance_run_metrics_20260515T125712Z.csv",
+        "results_frozen/s2-listmonk/performance_run_metrics_20260516T154352Z.csv",
+        "results_frozen/s3-healthchecks/performance_run_metrics_20260516T154357Z.csv",
+        "results_frozen/s4-umami/performance_run_metrics_20260516T144239Z.csv",
+        "results_frozen/s5-petclinic/performance_run_metrics_20260516T195529Z.csv"
+      ],
+      "sha256": "98e136d4648f41a826e6f6998c447668db1627fa8fee3520ebac7ebb0b85b518"
+    },
+    {
+      "name": "rq3_checkpoint_envelope",
+      "rq": "RQ3",
+      "kind": "table_tex",
+      "path": "analysis/output/tables/rq3_checkpoint_envelope.tex",
+      "source_csvs": [
+        "results_frozen/s1-flask-catalog/performance_run_metrics_20260515T125712Z.csv",
+        "results_frozen/s2-listmonk/performance_run_metrics_20260516T154352Z.csv",
+        "results_frozen/s3-healthchecks/performance_run_metrics_20260516T154357Z.csv",
+        "results_frozen/s4-umami/performance_run_metrics_20260516T144239Z.csv",
+        "results_frozen/s5-petclinic/performance_run_metrics_20260516T195529Z.csv"
+      ],
+      "sha256": "c076adc21253f5ea8a40d9ba861d881dc04018615afc1d3cb862f6cd447e4f1c"
+    },
+    {
+      "name": "rq4_bug_detection",
+      "rq": "RQ4",
+      "kind": "table_md",
+      "path": "analysis/output/tables/rq4_bug_detection.md",
+      "source_csvs": [
+        "results_frozen/s1-flask-catalog/bug_detection_test_outcomes_20260516T184358Z.csv",
+        "results_frozen/s2-listmonk/bug_detection_test_outcomes_20260516T225625Z.csv",
+        "results_frozen/s3-healthchecks/bug_detection_test_outcomes_20260517T030029Z.csv"
+      ],
+      "sha256": "a31e3bbbad7d31d823e8248ba31bd90f1cc6d8459fac59cdbe3cb0bd643cbf47"
+    },
+    {
+      "name": "rq4_bug_detection",
+      "rq": "RQ4",
+      "kind": "table_tex",
+      "path": "analysis/output/tables/rq4_bug_detection.tex",
+      "source_csvs": [
+        "results_frozen/s1-flask-catalog/bug_detection_test_outcomes_20260516T184358Z.csv",
+        "results_frozen/s2-listmonk/bug_detection_test_outcomes_20260516T225625Z.csv",
+        "results_frozen/s3-healthchecks/bug_detection_test_outcomes_20260517T030029Z.csv"
+      ],
+      "sha256": "716e17ad27a9bdaacce4f4d14ec3a71cb9c26128ac0068f95499491b5c7a28c9"
+    },
+    {
+      "name": "rq5_idempotence",
+      "rq": "RQ5",
+      "kind": "table_md",
+      "path": "analysis/output/tables/rq5_idempotence.md",
+      "source_csvs": [
+        "results_frozen/s1-flask-catalog/idempotence_run_metrics_20260517T071425Z.csv",
+        "results_frozen/s2-listmonk/idempotence_run_metrics_20260517T060920Z.csv",
+        "results_frozen/s3-healthchecks/idempotence_run_metrics_20260517T080328Z.csv",
+        "results_frozen/s4-umami/idempotence_run_metrics_20260517T101529Z.csv"
+      ],
+      "sha256": "26320522d829591de9f0eb8815f10f3adef7aee9cc921531a38151c9e83e5166"
+    },
+    {
+      "name": "rq5_idempotence",
+      "rq": "RQ5",
+      "kind": "table_tex",
+      "path": "analysis/output/tables/rq5_idempotence.tex",
+      "source_csvs": [
+        "results_frozen/s1-flask-catalog/idempotence_run_metrics_20260517T071425Z.csv",
+        "results_frozen/s2-listmonk/idempotence_run_metrics_20260517T060920Z.csv",
+        "results_frozen/s3-healthchecks/idempotence_run_metrics_20260517T080328Z.csv",
+        "results_frozen/s4-umami/idempotence_run_metrics_20260517T101529Z.csv"
+      ],
+      "sha256": "ad0c81bda3be98b8754e74059913c9b6ce3b61c60e1393c4f4cdefad87fa2d34"
+    }
+  ],
+  "warnings_count": 2
+}

@@ -1,0 +1,15 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{RQ1: per-suite failure rates with vs without isolation — s5-petclinic}
+\label{tab:rq1-s5-petclinic}
+\begin{tabular}{lrrrrrrrr}
+\toprule
+\textbf{Suite} & \textbf{Fail/N ON} & \textbf{95% CI ON} & \textbf{Fail/N OFF} & \textbf{95% CI OFF} & \textbf{Risk diff} & \textbf{OR (Haldane)} & \textbf{Fisher p} & \textbf{Cohen's h} \\
+\midrule
+smoke & 0/30 (0%) & [0, 11] & 0/30 (0%) & [0, 11] & +0pp & 1.00 & 1.000 & 0.00 \\
+regression & 30/30 (100%) & [89, 100] & 30/30 (100%) & [89, 100] & +0pp & 1.00 & 1.000 & 0.00 \\
+e2e & 30/30 (100%) & [89, 100] & 30/30 (100%) & [89, 100] & +0pp & 1.00 & 1.000 & 0.00 \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,28 @@
+# RQ5: operator idempotence per (subject, kill_step). Success rate measured by tests_phase after operator pod kill+recovery. PHASE 8 v2 metrics (duplicate jobs, lost status, final state) are not yet captured.
+
+| Subject | Kill step | N | Succeeded | Rate | Conv. median | Conv. p95 | Verdict |
+|---|---|---|---|---|---|---|---|
+| s1-flask-catalog | e2e | 3 | 3 | 100% | 36.1s | 36.2s | ✅ idempotent |
+| s1-flask-catalog | regression | 3 | 3 | 100% | 35.6s | 35.9s | ✅ idempotent |
+| s1-flask-catalog | restore-e2e | 3 | 3 | 100% | 41.4s | 46.3s | ✅ idempotent |
+| s1-flask-catalog | restore-regression | 3 | 3 | 100% | 36.2s | 41.5s | ✅ idempotent |
+| s1-flask-catalog | saving | 3 | 3 | 100% | 41.0s | 41.6s | ✅ idempotent |
+| s1-flask-catalog | smoke | 3 | 3 | 100% | 41.0s | 41.3s | ✅ idempotent |
+| s2-listmonk | e2e | 3 | 3 | 100% | 35.8s | 35.8s | ✅ idempotent |
+| s2-listmonk | regression | 3 | 3 | 100% | 35.7s | 41.0s | ✅ idempotent |
+| s2-listmonk | restore-e2e | 3 | 3 | 100% | 36.0s | 40.6s | ✅ idempotent |
+| s2-listmonk | restore-regression | 3 | 3 | 100% | 35.6s | 40.8s | ✅ idempotent |
+| s2-listmonk | saving | 3 | 3 | 100% | 41.5s | 41.7s | ✅ idempotent |
+| s2-listmonk | smoke | 3 | 3 | 100% | 35.2s | 35.6s | ✅ idempotent |
+| s3-healthchecks | e2e | 3 | 3 | 100% | 41.5s | 41.6s | ✅ idempotent |
+| s3-healthchecks | regression | 3 | 3 | 100% | 42.0s | 42.0s | ✅ idempotent |
+| s3-healthchecks | restore-e2e | 3 | 3 | 100% | 36.1s | 36.4s | ✅ idempotent |
+| s3-healthchecks | restore-regression | 3 | 3 | 100% | 41.3s | 41.7s | ✅ idempotent |
+| s3-healthchecks | saving | 3 | 3 | 100% | 41.3s | 41.7s | ✅ idempotent |
+| s3-healthchecks | smoke | 3 | 3 | 100% | 36.2s | 36.4s | ✅ idempotent |
+| s4-umami | e2e | 3 | 3 | 100% | 41.3s | 41.5s | ✅ idempotent |
+| s4-umami | regression | 3 | 3 | 100% | 41.2s | 41.3s | ✅ idempotent |
+| s4-umami | restore-e2e | 3 | 3 | 100% | 36.3s | 41.0s | ✅ idempotent |
+| s4-umami | restore-regression | 3 | 3 | 100% | 41.0s | 41.2s | ✅ idempotent |
+| s4-umami | saving | 3 | 3 | 100% | 36.0s | 41.0s | ✅ idempotent |
+| s4-umami | smoke | 3 | 3 | 100% | 35.4s | 41.1s | ✅ idempotent |

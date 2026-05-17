@@ -1,0 +1,10 @@
+# RQ3: per-step durations (iso=True) — s5-petclinic
+
+| Step | N | Median (s) | Mean (s) | σ | p95 (s) |
+|---|---|---|---|---|---|
+| postgres-migrate | 30 | 80.0 | 81.87 | 6.55 | 93.8 |
+| smoke | 30 | 6.0 | 5.57 | 0.57 | 6.0 |
+| saving | 30 | 4.0 | 4.17 | 0.83 | 5.0 |
+| restore-regression | 30 | 5.0 | 5.00 | 0.45 | 6.0 |
+| restore-e2e | 30 | 5.0 | 5.07 | 0.58 | 6.0 |
+| checkpoint_total | 30 | 14.0 | 14.23 | 1.19 | 16.0 |
