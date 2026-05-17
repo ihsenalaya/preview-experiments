@@ -276,6 +276,28 @@ but is the fastest pipeline for the suites that do run.
 
 ---
 
+## RQ2 — Cross-PR on AKS with proper K=8 (2026-05-16T23:42Z)
+
+**Source:** `cross_pr_test_outcomes_20260516T234202Z.csv` (84 rows, K ∈ {2, 4, 8} × iso, AKS 3-node)
+
+This is the **canonical RQ2 dataset** for S1: K=8 means 8 truly concurrent Previews (the Kind dataset had K=8 reduced to 4 due to memory pressure on the WSL2 single-node Kind cluster).
+
+| K | regression iso=T/F | e2e iso=T/F | Δ | Fisher p |
+|---|---|---|---|---|
+| 2 | 0/2 vs 2/2 | 0/2 vs 2/2 | −100 pp | 0.167 |
+| 4 | 0/4 vs 4/4 | 0/4 vs 4/4 | −100 pp | 0.0143 |
+| **8** | **0/8 vs 8/8** | **0/8 vs 8/8** | **−100 pp** | **7.77 × 10⁻⁵** |
+
+Smoke 0/X fail in both conditions at every K (smoke runs first on a clean DB and is not affected by isolation). Pipeline finishes cleanly for all 8 concurrent Previews under iso=True — operator + cluster handle the concurrency without saturation on AKS 3× D4s_v3.
+
+**Headline:** Failure rates do not change with K. The contamination mechanism is intra-preview (smoke mutates the DB, then regression/e2e fail on the dirty state), independent of whether 2 or 8 previews coexist. This refutes the initial "cross-PR contamination" hypothesis (the original framing of RQ2) and reframes RQ2 as **"does concurrency amplify or interact with the contamination?" — answer: no.**
+
+### Article sentence (RQ2 final)
+
+> "On AKS, with 8 truly concurrent Previews (no memory-driven reduction), S1 produces identical failure rates at K ∈ {2, 4, 8}: regression and e2e fail at 100 % under shared state and pass at 100 % under checkpoint isolation, with Fisher's exact test yielding p = 7.8 × 10⁻⁵ at K=8 on a single subject. The invariance in K directly supports the intra-preview model (contamination by sequential suites operating on a shared database) over the cross-PR interference model (one preview affecting another)."
+
+---
+
 ## Cross-validation — AKS replication (2026-05-16)
 
 The S1 RQ1 + RQ3 protocol was re-executed on the AKS cluster (`idp-preview-cluster`, 3× Standard_D4s_v3, eastus, preview-operator 1.0.43) starting at 14:53Z and finishing at 16:50Z. The harness, subject, and operator code are identical to the original Kind run; only the orchestration substrate differs (Kind on WSL2 → AKS on Azure).

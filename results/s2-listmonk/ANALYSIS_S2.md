@@ -363,6 +363,34 @@ The cause is **identical** to RQ2's diagnosis: the `*_matches_seed` assertion ha
 
 ---
 
+## RQ2 — Cross-PR REVISED with proper K=8 on AKS (2026-05-17T00:03Z)
+
+**Source:** `cross_pr_test_outcomes_20260516T235356Z.csv` (84 rows, K ∈ {2, 4, 8} × iso ∈ {True, False} × 3 suites, AKS 3-node cluster, no K=8→4 reduction)
+
+The earlier Kind-cluster RQ2 dataset for S2 ran with the broken `SEED_COUNT = 3` assertion — its results were dominated by that artifact (the calibration finding documented in §"Observation → Evidence → Explanation"). With the assertion corrected (`SEED_COUNT = 5`, `:v2.5.1-fix2`) AND proper K=8 (no memory-driven reduction), S2 cross_pr now reproduces the S1 pattern at every K:
+
+### Results
+
+| K | Suite | iso=True (fail/total) | iso=False (fail/total) | Δ | Fisher p (one-tailed) | Cohen's h |
+|---|---|---|---|---|---|---|
+| 2 | smoke | 0/2 (0 %) | 0/2 (0 %) | 0 pp | 1.00 | 0.00 |
+| 2 | regression | 0/2 (0 %) | 2/2 (**100 %**) | **−100 pp** | 0.167 | 3.14 |
+| 2 | e2e | 0/2 (0 %) | 2/2 (**100 %**) | **−100 pp** | 0.167 | 3.14 |
+| 4 | smoke | 0/4 (0 %) | 0/4 (0 %) | 0 pp | 1.00 | 0.00 |
+| 4 | regression | 0/4 (0 %) | 4/4 (**100 %**) | **−100 pp** | 0.0143 | 3.14 |
+| 4 | e2e | 0/4 (0 %) | 4/4 (**100 %**) | **−100 pp** | 0.0143 | 3.14 |
+| **8** | smoke | 0/8 (0 %) | 0/8 (0 %) | 0 pp | 1.00 | 0.00 |
+| **8** | regression | 0/8 (0 %) | 8/8 (**100 %**) | **−100 pp** | **7.77 × 10⁻⁵** | 3.14 |
+| **8** | e2e | 0/8 (0 %) | 8/8 (**100 %**) | **−100 pp** | **7.77 × 10⁻⁵** | 3.14 |
+
+**S2 cross_pr now matches S1 and S3 exactly at every concurrency level.** The 100% vs 0% pattern is invariant in K — the contamination is intra-preview (the dirty state left by smoke for regression/e2e in the same DB), not cross-PR. This confirms a structural property of the system, not an emergent behavior of high concurrency.
+
+### Article sentence (RQ2 — S2 revised)
+
+> "After correcting the `SEED_COUNT = 3` assertion artifact and re-running on AKS with full K=8 (no memory-driven reduction), S2 reproduces the S1 cross-PR pattern at all three concurrency levels: regression and e2e fail at 100 % under shared state and pass at 100 % under checkpoint isolation, with the effect size invariant in K (consistent with intra-preview contamination rather than emergent cross-PR interference). Fisher's exact test at K=8 yields p = 7.8 × 10⁻⁵ on a single subject."
+
+---
+
 ## RQ3 — Performance overhead
 
 **Source:** `performance_run_metrics_20260516T154352Z.csv` (N=30 per iso condition, AKS run 2026-05-16 fresh restart 15:43Z after kubectl-delete-preview incident, 60 runs, 390 step-level rows)

@@ -202,6 +202,26 @@ populates 2 default lists, giving a true count of 5); the **isolation-sensitive 
 
 ---
 
+## RQ2 — Cross-PR on AKS with proper K=8 (2026-05-17T00:14Z)
+
+**Source:** `cross_pr_test_outcomes_20260517T000516Z.csv` (84 rows, K ∈ {2, 4, 8} × iso, AKS 3-node)
+
+This re-run confirms S3 at K=8 with **8 truly concurrent Previews** (no Kind memory-driven reduction):
+
+| K | regression iso=T/F | e2e iso=T/F | Δ | Fisher p |
+|---|---|---|---|---|
+| 2 | 0/2 vs 2/2 | 0/2 vs 2/2 | −100 pp | 0.167 |
+| 4 | 0/4 vs 4/4 | 0/4 vs 4/4 | −100 pp | 0.0143 |
+| **8** | **0/8 vs 8/8** | **0/8 vs 8/8** | **−100 pp** | **7.77 × 10⁻⁵** |
+
+Smoke passes 0/X in both conditions at every K. The pattern is identical to S1 and S2 — the contamination is intra-preview, invariant in K.
+
+### Article sentence (RQ2 — S3)
+
+> "S3 reproduces the S1 cross-PR pattern at every concurrency level on AKS with full K=8 (Fisher's exact p = 7.8 × 10⁻⁵ at K=8 alone). The effect being independent of K provides direct empirical evidence that the contamination originates within each preview's pipeline (smoke → regression → e2e on a shared database) rather than between previews."
+
+---
+
 ## RQ1 Flakiness — independent replication on AKS (2026-05-16)
 
 **Source:** `flakiness_test_outcomes_20260516T144647Z.csv` (N=30 per condition, AKS run, 60 runs, 180 outcome rows)
