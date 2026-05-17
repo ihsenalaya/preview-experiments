@@ -29,12 +29,29 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from analysis.shared import stats as st
 from analysis.shared import latex as lx
+
+# Color palette
+COLOR_ON = "#2c7a3e"    # green
+COLOR_OFF = "#c43d3d"   # red
+COLOR_NEUTRAL = "#666666"
+plt.rcParams.update({
+    "font.size": 9,
+    "axes.titlesize": 10,
+    "axes.labelsize": 9,
+    "xtick.labelsize": 8,
+    "ytick.labelsize": 8,
+    "legend.fontsize": 8,
+    "figure.dpi": 120,
+})
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
@@ -247,6 +264,43 @@ def analyze_rq1(frozen_data, out_dir: Path, outputs: list[AnalysisOutput], warni
         outputs=outputs,
     )
 
+    # Figure: per-subject failure rate bars on regression+e2e
+    # Re-compute from raw data (cleaner than parsing formatted cells)
+    if data:
+        subjects_present = [sid for sid in SUBJECTS if data.get(sid) is not None]
+        if subjects_present:
+            fig, ax = plt.subplots(figsize=(7.0, 3.2))
+            x = np.arange(len(subjects_present))
+            width = 0.18
+            for i, suite in enumerate(["regression", "e2e"]):
+                on_vals = []
+                off_vals = []
+                for sid in subjects_present:
+                    df_sid = data[sid]
+                    sub = df_sid[df_sid["suite"] == suite].copy()
+                    sub["isolation_enabled"] = sub["isolation_enabled"].astype(str).str.lower().map(
+                        {"true": True, "false": False})
+                    sub["failed"] = (sub["outcome"].str.lower() == "failed").astype(int)
+                    on_d = sub[sub["isolation_enabled"] == True]
+                    off_d = sub[sub["isolation_enabled"] == False]
+                    on_vals.append((on_d["failed"].mean() * 100) if len(on_d) else 0)
+                    off_vals.append((off_d["failed"].mean() * 100) if len(off_d) else 0)
+                offset = (i - 0.5) * width * 2
+                ax.bar(x + offset - width / 2, on_vals, width,
+                       label=f"{suite} iso=True", color=COLOR_ON, alpha=1.0 - i * 0.35)
+                ax.bar(x + offset + width / 2, off_vals, width,
+                       label=f"{suite} iso=False", color=COLOR_OFF, alpha=1.0 - i * 0.35)
+            ax.set_xticks(x)
+            ax.set_xticklabels([s.split("-")[0] for s in subjects_present], fontsize=8)
+            ax.set_ylabel("Failure rate (%)")
+            ax.set_ylim(0, 110)
+            ax.set_title("RQ1 — Test failure rate: 5 stacks × 2 iso conditions × 2 isolation-sensitive suites")
+            ax.legend(loc="center", ncol=2, fontsize=7, framealpha=0.85)
+            ax.grid(axis="y", linestyle="--", alpha=0.3)
+            fig.tight_layout()
+            write_figure(fig, out_dir, "rq1_failure_rates", "RQ1", sources, outputs)
+            plt.close(fig)
+
     # Assertion-level decomposition (if assertion_outcomes data exists)
     analyze_rq1_assertion_level(frozen_data, out_dir, outputs, warnings_log)
 
@@ -378,6 +432,33 @@ def analyze_rq2(frozen_data, out_dir: Path, outputs: list[AnalysisOutput], warni
         outputs=outputs,
     )
 
+    # Figure: K-invariance — failure rate vs K, 1 panel per subject
+    subjects_with_data = [sid for sid in SUBJECTS if data.get(sid) is not None]
+    if subjects_with_data:
+        n = len(subjects_with_data)
+        fig, axes = plt.subplots(1, n, figsize=(2.0 * n + 1, 2.6), sharey=True)
+        if n == 1:
+            axes = [axes]
+        for ax, sid in zip(axes, subjects_with_data):
+            df = data[sid]
+            df_clean = df[df["suite"].isin(["regression", "e2e"])].copy()
+            df_clean["k"] = df_clean["run_id"].str.extract(r"-k(\d+)-iso").astype(float)
+            df_clean["iso"] = df_clean["isolation_enabled"].astype(str)
+            df_clean["failed"] = (df_clean["outcome"].str.lower() == "failed").astype(int)
+            for iso, label, color in [("True", "iso=True", COLOR_ON), ("False", "iso=False", COLOR_OFF)]:
+                g = df_clean[df_clean["iso"] == iso].groupby("k")["failed"].mean()
+                ax.plot(g.index, g.values * 100, marker="o", color=color, label=label, linewidth=1.5)
+            ax.set_xlabel("K (concurrent previews)")
+            ax.set_ylim(-5, 110)
+            ax.set_title(sid.replace("-", "\n", 1), fontsize=8)
+            ax.grid(True, alpha=0.3)
+        axes[0].set_ylabel("Failure rate (%)\n(regression + e2e)")
+        axes[-1].legend(loc="center right", fontsize=7)
+        fig.suptitle("RQ2 — K-invariance across 5 stacks (Δ=-100pp constant)", y=1.02)
+        fig.tight_layout()
+        write_figure(fig, out_dir, "rq2_k_invariance", "RQ2", sources, outputs)
+        plt.close(fig)
+
 
 # ---------------------------------------------------------------------------
 # RQ3 — performance
@@ -458,6 +539,34 @@ def analyze_rq3(frozen_data, out_dir: Path, outputs: list[AnalysisOutput], warni
         outputs=outputs,
     )
 
+    # Figure: checkpoint_total boxplot per subject
+    if rows_xs:
+        fig, ax = plt.subplots(figsize=(5.5, 3.0))
+        data_per_sid = []
+        labels = []
+        for sid in SUBJECTS:
+            df = data.get(sid)
+            if df is None:
+                continue
+            cp = df[df["step"] == "checkpoint_total"]["step_duration_s"].dropna()
+            if len(cp) > 0:
+                data_per_sid.append(cp.tolist())
+                labels.append(sid.split("-")[0])
+        if data_per_sid:
+            bp = ax.boxplot(data_per_sid, labels=labels, patch_artist=True,
+                            medianprops={"color": "black"},
+                            flierprops={"marker": ".", "markersize": 4})
+            for patch in bp["boxes"]:
+                patch.set_facecolor(COLOR_ON + "55")
+            ax.axhline(y=15, color="grey", linestyle="--", alpha=0.4, label="15s reference")
+            ax.set_ylabel("checkpoint_total (s)")
+            ax.set_title(f"RQ3 — checkpoint cost envelope across 5 stacks")
+            ax.grid(axis="y", linestyle="--", alpha=0.3)
+            ax.legend()
+            fig.tight_layout()
+            write_figure(fig, out_dir, "rq3_checkpoint_envelope", "RQ3", sources, outputs)
+            plt.close(fig)
+
 
 # ---------------------------------------------------------------------------
 # RQ4 — bug detection (null result)
@@ -518,6 +627,33 @@ def analyze_rq4(frozen_data, out_dir: Path, outputs: list[AnalysisOutput], warni
             sources=sources,
             outputs=outputs,
         )
+
+        # Figure: RQ4 S1 — detection rate per condition (with CIs)
+        s1_df = data.get("s1-flask-catalog")
+        if s1_df is not None and "seed_mode" in s1_df.columns:
+            s1_df["seed_mode"] = s1_df["test_name"].str.extract(r"mutant_\d+_(static|llm_fixed|llm_free)")
+            s1_df["mutant_id"] = s1_df["test_name"].str.extract(r"mutant_(\d+)_").astype(float)
+            s1_df["detected"] = (s1_df["outcome"] != "Succeeded").astype(int)
+            det = s1_df.groupby(["mutant_id", "seed_mode"])["detected"].max().reset_index()
+            piv = det.pivot(index="mutant_id", columns="seed_mode", values="detected")
+            if {"static", "llm_fixed", "llm_free"}.issubset(piv.columns):
+                fig, ax = plt.subplots(figsize=(4.5, 3.0))
+                conds = ["static", "llm_fixed", "llm_free"]
+                rates = [piv[c].sum() / len(piv) * 100 for c in conds]
+                cis = [wilson_ci(int(piv[c].sum()), len(piv)) for c in conds]
+                err_low = [r - lo * 100 for r, (lo, _) in zip(rates, cis)]
+                err_hi = [hi * 100 - r for r, (_, hi) in zip(rates, cis)]
+                ax.bar(conds, rates, color=[COLOR_NEUTRAL, COLOR_ON, "#1f6fa3"],
+                       yerr=[err_low, err_hi], capsize=5)
+                for i, r in enumerate(rates):
+                    ax.text(i, r + 2, f"{r:.0f}%", ha="center", fontsize=9)
+                ax.set_ylabel("Detection rate (%)")
+                ax.set_title("RQ4 S1 — mutation detection by seed condition\n(null result: all 3 conditions identical)")
+                ax.set_ylim(0, 100)
+                ax.grid(axis="y", linestyle="--", alpha=0.3)
+                fig.tight_layout()
+                write_figure(fig, out_dir, "rq4_s1_detection_rates", "RQ4", sources, outputs)
+                plt.close(fig)
 
 
 # ---------------------------------------------------------------------------
@@ -583,6 +719,41 @@ def analyze_rq5(frozen_data, out_dir: Path, outputs: list[AnalysisOutput], warni
         sources=sources,
         outputs=outputs,
     )
+
+    # Figure: convergence time boxplot per (subject, kill_step)
+    kill_steps_present = sorted({r[1] for r in rows_table})
+    subjects_present = sorted({r[0] for r in rows_table})
+    if kill_steps_present and subjects_present:
+        fig, ax = plt.subplots(figsize=(7.0, 3.5))
+        positions = []
+        boxes = []
+        labels = []
+        pos = 0
+        colors_cycle = ["#2c7a3e", "#1f6fa3", "#a8742d", "#a8345c", "#5a3da8"]
+        for i, sid in enumerate(subjects_present):
+            df = data.get(sid)
+            if df is None:
+                continue
+            df["step_duration_s"] = pd.to_numeric(df["step_duration_s"], errors="coerce")
+            for ks in kill_steps_present:
+                conv = df[df["step"] == ks]["step_duration_s"].dropna()
+                if len(conv) > 0:
+                    boxes.append(conv.tolist())
+                    positions.append(pos)
+                    labels.append(f"{sid.split('-')[0]}\n{ks[:8]}")
+                    pos += 1
+            pos += 1  # space between subjects
+        if boxes:
+            bp = ax.boxplot(boxes, positions=positions, widths=0.6, patch_artist=True,
+                            medianprops={"color": "black"})
+            ax.set_xticks(positions)
+            ax.set_xticklabels(labels, rotation=45, ha="right", fontsize=6)
+            ax.set_ylabel("Convergence time after operator kill (s)")
+            ax.set_title("RQ5 — convergence time per subject × kill_step")
+            ax.grid(axis="y", linestyle="--", alpha=0.3)
+            fig.tight_layout()
+            write_figure(fig, out_dir, "rq5_convergence_time", "RQ5", sources, outputs)
+            plt.close(fig)
 
 
 # ---------------------------------------------------------------------------
