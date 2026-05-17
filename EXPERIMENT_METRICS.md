@@ -2,7 +2,7 @@
 
 Paper: *Checkpoint-based Database Isolation Eliminates Non-deterministic Test Variance
 in Kubernetes Preview Environments*
-Last updated: 2026-05-17T06:35Z (RQ4 verdict établi : résultat NUL sur S1, 0 paires discordantes McNemar; S2/S3 architecturally inconsistent, S4 en cours arrêt programmé, S5 skipped)
+Last updated: 2026-05-17T06:50Z (RQ5 idempotence S2 100% Succeeded 18/18; S3 démarré ; chaîne automatique posée pour S1 idemp + S4 diag)
 
 ## Critical session updates (2026-05-16T17:00–18:55Z)
 
@@ -31,6 +31,44 @@ Last updated: 2026-05-17T06:35Z (RQ4 verdict établi : résultat NUL sur S1, 0 p
 - Image rebuilt + push as `ghcr.io/ihsenalaya/s4-umami-adapter:v2.15.1-fix`.
 - Old `flakiness_test_outcomes_20260516T144225Z.csv` archived as `.OBSOLETE_broken_assertions.csv`.
 - **flak-S4 re-run started 18:53Z** (PID 404079). Data emerging.
+
+**P4 — Automation chain posée 2026-05-17T06:50Z (sequential, prudent) :**
+
+Pour atteindre l'objectif "même tests pour tous les sujets, données interprétables", quatre procs chaînés tournent sans intervention :
+
+| PID | Rôle | Déclenche quand | Logs |
+|---|---|---|---|
+| 395345 | bug_det S1+S2+S3+S4 (S5 killed) | -- (running depuis 14:42Z hier) | `logs/bug_detection-all-20260516T184227Z.log` |
+| 896193 | killer watcher bug_det → tue à S5 | grep `Subject: s5-petclinic` dans bug_det log | `logs/bug_det-killer-s5-trigger.log` |
+| 889975 | RQ5 idempotence S2→S3→S4→S5 (séquentiel) | -- (running depuis 06:07Z) | `logs/idempotence-20260517T060726Z.log` |
+| **916113** | **auto-launcher RQ5 S1** (config patch + run + restore) | exit PID 889975 | `logs/idempotence-s1-launcher.log` |
+| **921800** | **auto-launcher S4 diagnostic** (live preview + capture multi-phase) | exit PID 916113 + cooldown 60s | `logs/s4-diag-launcher.log` |
+
+ETA : 80 min (S3+S4+S5 idemp) + 20 min (S1 idemp) + 10 min (S4 diag) = **~110 min jusqu'à reprise manuelle**.
+
+**P5 — S4 RQ1+RQ2 cas ouvert — plan diagnostic :**
+
+Analyse statique (déjà faite) : l'operator `checkpoint.go:462` filtre `WHERE schemaname = 'public'` dans l'enumeration des tables à TRUNCATE. La probe crée `run_log` sans schéma explicite (default `public`), donc en théorie atteignable. L'assertion `run_log_clean` S4 est **identique** à S1 (même endpoint, même probe).
+
+3 hypothèses non discriminées :
+- **H1** Schéma : `run_log` créé hors `public` à cause d'un `search_path` custom Umami
+- **H2** Probe restart : pod probe OOM-killed pendant pipeline → recrée `run_log` post-restore
+- **H3** TRUNCATE FK fail : `TRUNCATE CASCADE` échoue silencieusement sur le graphe FK Umami (~20 tables chainées)
+
+Script `_diag_s4_restore.sh` (déclenché auto par PID 921800) capture en 7 phases :
+1. `\dn` schémas postgres
+2. `pg_tables WHERE tablename='run_log'` (localisation)
+3. Contenu `run_log` AVANT restore
+4. **Logs Job `restore-regression`** (rejette H3 si TRUNCATE log présent)
+5. Contenu `run_log` APRÈS restore (devrait être vide si OK)
+6. Probe pod restart history (rejette H2 si restartCount=0)
+7. Events namespace (OOM, kill)
+
+Décision après diag :
+- **H1** → fix operator (élargir filtre schéma), rebuild v1.0.45, redeploy, re-run S4 RQ1+RQ2 (~1h)
+- **H2** → bumper memory limits probe, re-run (~30 min)
+- **H3** → `SET CONSTRAINTS ALL DEFERRED` ou `DROP/RECREATE` schéma, re-run (~1h)
+- **Aucune confirmée** → documenter franchement comme limitation publishable
 
 **P3 — RQ2 K=8 redo on AKS (DEFERRED to ~21:30Z):**
 - Original Kind data has K=8 reduced to 4 due to memory pressure (documented in §"S2 Listmonk").
@@ -114,10 +152,11 @@ Incidents log:
 | RQ4 Bug Detection | S3 Healthchecks | static + llm_fixed + llm_free | 40/50 (partial, killer stop) | ⚠️ Architecturally inconsistent (0 % toutes conditions — mutants Flask non chargés par SUT Django) — non interprété |
 | RQ4 Bug Detection | S4 Umami | — | en cours au moment du verdict | ⏸ Arrêt programmé par watcher PID 896193 dès passage à S5 (per request user 2026-05-17) |
 | RQ4 Bug Detection | S5 PetClinic | — | 0 | ⏸ skipped — verdict établi sur S1 |
-| RQ5 Idempotence | **S2 Listmonk** | 6 kill_steps × 3 | partial — killed 14:44Z | ⏸ killed (cause crash S3) → relancé après autres terminés |
-| RQ5 Idempotence | S3 Healthchecks | — | 0 | ⏸ après autres |
-| RQ5 Idempotence | S4 Umami | — | 0 | ⏸ après autres |
-| RQ5 Idempotence | S1+S5 | — | 0 | ⏸ disabled |
+| **RQ5 Idempotence** | **S2 Listmonk** | 6 kill_steps × 3 | **18/18 Succeeded** | ✅ **Complet** 2026-05-17T06:42Z |
+| **RQ5 Idempotence** | **S3 Healthchecks** | 6 kill_steps × 3 | 3/18 en cours | 🔄 démarré 2026-05-17T06:44Z |
+| **RQ5 Idempotence** | **S4 Umami** | 6 kill_steps × 3 | 0 | ⏳ après S3 (même process PID 889975) |
+| **RQ5 Idempotence** | **S5 PetClinic** | 6 kill_steps × 3 | 0 | ⏳ après S4 (même process) |
+| **RQ5 Idempotence** | **S1 Flask** | 6 kill_steps × 3 | 0 | ⏳ auto-launcher PID 916113 fires when PID 889975 exits |
 
 ---
 
@@ -128,7 +167,7 @@ RQ1  ███████░░░  70%  S1 done + S2-S4 ~70% AKS — S5 démar
 RQ2  █████████░  80%  S1+S2+S3+S4 done (240 rows)     — S5 reporté
 RQ3  ███████░░░  70%  S1 done + S2-S4 ~70% AKS — S5 démarré 16:43Z
 RQ4  ██████████ 100%  S1 50/50 ✅ — résultat NUL : 3 conditions détectent à l'identique 23/50 mutants (concordance parfaite)
-RQ5  ░░░░░░░░░░   0%  parqué — relance seul après les autres
+RQ5  ██░░░░░░░░  20%  S2 18/18 ✅ Succeeded ; S3 en cours ; S4 + S5 + S1 chaînés (auto-launcher PID 916113)
 ```
 
 **Migration vers AKS (2026-05-16T14:22Z) + bascule parallélisation per-subject (14:40Z) :**
