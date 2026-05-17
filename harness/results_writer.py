@@ -22,6 +22,16 @@ _SCHEMAS = {
         "run_id", "experiment", "subject_id", "preview_name", "namespace",
         "timestamp_utc", "cpu_millicores", "mem_mib",
     ],
+    # PHASE 2 — assertion-level outcomes (per individual t("...", ...) call
+    # in the test programs). Populated by harness/assertion_collector.py via
+    # reading kubectl get preview .status.tests.<suite>.output. Coexists with
+    # test_outcomes (suite-level) for backward compatibility.
+    "assertion_outcomes": [
+        "experiment_id", "subject_id", "run_id", "preview_name",
+        "isolation_enabled", "strategy", "suite_name", "assertion_id",
+        "assertion_category", "outcome", "expected", "observed",
+        "normalized_failure_signature", "is_isolation_sensitive", "ts",
+    ],
 }
 
 
