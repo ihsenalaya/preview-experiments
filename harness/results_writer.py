@@ -32,6 +32,17 @@ _SCHEMAS = {
         "assertion_category", "outcome", "expected", "observed",
         "normalized_failure_signature", "is_isolation_sensitive", "ts",
     ],
+    # PHASE 3 — DB-state metrics for restore verification. Populated by
+    # harness/db_state_collector.py via kubectl exec into the postgres pod.
+    # One row per (run_id, step, schema, table) plus a summary row
+    # (table_name='*') carrying snapshot_hash_global.
+    # Verification: post_checkpoint snapshot_hash_global must equal
+    # post_restore_regression and post_restore_e2e snapshot_hash_global.
+    "db_state_metrics": [
+        "run_id", "subject_id", "preview_name", "isolation_enabled",
+        "step", "schema_name", "table_name", "row_count", "content_hash",
+        "excluded_columns", "snapshot_hash_global", "ts",
+    ],
 }
 
 
