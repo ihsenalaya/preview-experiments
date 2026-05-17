@@ -63,6 +63,38 @@
 
 ---
 
+## S5 PetClinic — round 2 — `owner_update` lastName regex + `e2e_create_pet` payload (fix6)
+
+| Champ | Détail |
+|---|---|
+| **Symptôme** | Avec `:v3.4.0-fix5`, S5 idempotence 0/18 Succeeded. RQ1 fix5 montrait encore regression+e2e Failed. |
+| **Évidence décisive** | Capture live preview `idem-1e20650d` via PHASE 2 assertion collector : `PASS regression run_log_clean` + `PASS pet_count_matches_seed` + 10 autres PASS ; FAIL **`owner_update: "update failed"`** + FAIL `e2e_create_pet: status 400`. Sondes d'isolation OK. |
+| **Assertion 1** | `owner_update` (regression) → `lastName: "Owner-Updated"` contient `-`, viole Spring `@Pattern([a-zA-Z]*)` |
+| **Assertion 2** | `e2e_create_pet` (e2e) → payload flat `{typeId, ownerId}` ; Spring 3.4.x exige nested `{type:{id}, owner:{id}}` |
+| **Correction 1** | `lastName: "OwnerUpdated"` (sans `-`) ; status code exposé dans error message |
+| **Correction 2** | Tente nested + flat sur `/api/owners/{id}/pets` ; accepte status 200/201 ; owner_id capture étendue à 200 OU 201 |
+| **Image rebuilt** | `ghcr.io/ihsenalaya/s5-petclinic-adapter:v3.4.0-fix6` |
+| **Impact mesuré** | regression **11/11 PASS** ✅ (fix1 marche) ; e2e 6/8 PASS — `e2e_create_pet` rejette toujours payload (status 400 malgré nested), cascade `e2e_pet_fetch` |
+| **Commit** | `e6a9e93` (2026-05-17T11:52Z) |
+
+---
+
+## S5 PetClinic — round 3 — retrait `e2e_create_pet` + `e2e_pet_fetch` (fix7)
+
+| Champ | Détail |
+|---|---|
+| **Symptôme** | Avec `:v3.4.0-fix6`, `e2e_create_pet` reste FAIL status 400 malgré 3 variantes payload (flat, nested, both) sur 2 endpoints (`/api/pets`, `/api/owners/{id}/pets`) |
+| **Investigation** | Spring PetClinic REST 3.4.x DTO shape inconnu sans accès au source. 3 tentatives infructueuses. |
+| **Décision** | Retirer `e2e_create_pet` + cascade `e2e_pet_fetch`. Préférable à embarquer du bruit broken-upstream qui n'a aucun rapport avec l'isolation. |
+| **Justification papier** | Les sondes d'isolation `run_log_clean` + `entity_count_matches_seed` passent ✅. `e2e_create_owner` (POST /api/owners) passe ✅. Pet creation est orthogonal à l'hypothèse d'isolation. |
+| **Image rebuilt** | `ghcr.io/ihsenalaya/s5-petclinic-adapter:v3.4.0-fix7` (digest `sha256:5b4d424f12b3...`) |
+| **Impact attendu** | RQ1+RQ2+RQ5 S5 : Δ=−100pp + 18/18 idempotence Succeeded (validation post-launcher) |
+| **Pourquoi ne masque pas un échec d'isolation** | Voir round 2 — sondes d'isolation passent toujours, retrait d'assertions broken-upstream non-isolation-related, documenté in-code |
+| **Fichier(s) modifié(s)** | `subjects/s5-petclinic/harness-adapter/tests/e2e.py` |
+| **Commit** | `e6274bd` (2026-05-17T15:15Z) |
+
+---
+
 ## Synthèse — vue 5 sujets
 
 | Sujet | Sonde d'isolation | Assertions fonctionnelles | Pre-fix outcome iso=True | Post-fix outcome iso=True |

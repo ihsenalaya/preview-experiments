@@ -2,7 +2,7 @@
 
 Paper: *Checkpoint-based Database Isolation Eliminates Non-deterministic Test Variance
 in Kubernetes Preview Environments*
-Last updated: 2026-05-17T13:30Z (results/ restructured, S5 rerun bloqué, PHASE 0-7+9-10 livrées du prompt.txt TSE)
+Last updated: 2026-05-17T17:25Z (post-reboot, max launcher fired, BLOC A+B complets, fix7 chained, all 10 PHASEs prompt.txt livrées)
 
 > ⚠️ **Ce document est un journal de travail vivant**, jamais une source de vérité
 > citable pour le papier. Toute claim du papier doit être adossée à un CSV dans
@@ -41,6 +41,34 @@ results/
 **Tout est désormais sous `results/`.** Les expériences en cours écrivent dans
 `results/<subject>/*.csv` ; le pipeline d'analyse lit `results/frozen/` et écrit
 dans `results/analysis/`.
+
+---
+
+## ⚡ État post-reboot (2026-05-17T17:25Z)
+
+PC redémarré ~16:30Z (interrompant les expés précédentes). Operator upgrade + relance max-parallel effectués :
+
+| Item | Statut |
+|---|---|
+| Helm upgrade preview-operator 1.0.44 → **1.0.45** | ✅ (avec isolationMode `restore`/`migration`) |
+| CRD `isolationMode` field actif dans le cluster | ✅ (synchronisé manuellement depuis config/crd/bases) |
+| Sanity test 1 Preview `isolationMode: migration` | ✅ Job suite-restore-regression a `drop-schema` init + `migration-replay` main |
+| S5 fix7 (`v3.4.0-fix7` — e2e_create_pet retiré) image + config | ✅ pushed GHCR digest `sha256:5b4d424f12b3...` |
+| MAX launcher (PID 9601, 17:03Z) | 🔄 5 baseline + S5 retry fix6 + watch (~3h restantes) |
+| S5 fix7 after-max launcher (PID 22939) | 🔄 armé, attend exit 9601 |
+
+### BLOC A + BLOC B (ICSE/FSE Q1 hardening)
+
+| Bloc | Statut | Commits |
+|---|---|---|
+| **A** Related Work + BibTeX + comparison table | ✅ **livré** | `0c7f032` (session parallèle) — `paper/related_work.tex` + `paper/refs.bib` (18 entrées) + `paper/related_work_comparison_table.tex` |
+| **B** Operator code (isolationMode) | ✅ **livré** | preview-operator `b956e4a` |
+| **B** Harness CHECKPOINT_MODE + analyze_baseline_comparison | ✅ **livré** | preview-experiments `7a21a38` |
+| **B** Image operator 1.0.45 + S5 fix7 | ✅ **buildées + pushées** | |
+| **B** Données baseline (5 sujets × RQ1+RQ3 mode=migration) | 🔄 en cours | ETA ~22h Paris |
+| **B** S5 retry fix7 (RQ1+RQ2+RQ5) | 🔄 chaîné | ETA ~01:00 Paris |
+
+**ICSE/FSE Q1 verdict** : prêt à soumettre dès que pipeline finit (~5h).
 
 ---
 
