@@ -7,3 +7,22 @@ __pycache__/
 .mutmut-cache/
 testapp/.mutmut-cache
 logs/
+
+# Python virtual envs (added 2026-05-17 after accidental git add -A)
+.venv-exp/
+.venv/
+venv/
+
+# Local LLM agent runtime
+.github/claude-runtime/
+CLAUDE.md
+
+# Source backups / patch artifacts
+*.bak
+*.orig
+*.rej
+
+# Local-only dirs not for publication
+inbox/
+studies/
+src/
