@@ -574,6 +574,72 @@ Archive the following for every reported run:
 
 ---
 
+## Artifact (TSE-ready reproducibility infrastructure)
+
+This repository ships a complete artifact for reproducing every number/table/figure
+in the paper from frozen CSVs, without cluster access. Pipeline:
+
+```
+results/  ──▶  scripts/consolidate_results.py  ──▶  results_frozen/
+                                                  │   ├── MANIFEST.json (SHA-256)
+                                                  │   └── excluded_datasets.csv
+                                                  ▼
+                  analysis/build_all.py  ──▶  analysis/output/
+                                              ├── tables/*.{md,tex}
+                                              ├── figures/*.{pdf,png}
+                                              ├── MANIFEST_ANALYSIS.json
+                                              └── warnings.txt
+```
+
+### One-command reproduction
+
+```bash
+pip install -r analysis/requirements.txt
+python3 scripts/consolidate_results.py    # freeze raw → results_frozen/
+python3 analysis/check_k_consistency.py   # RQ2 K-batch completeness audit
+python3 analysis/build_all.py             # 50+ paper outputs (tables + figures)
+```
+
+### Artifact documents
+
+| Document | Purpose |
+|---|---|
+| [`AUDIT.md`](AUDIT.md) | initial repo audit (PHASE 0) + modification plan |
+| [`DATASET_POLICY.md`](DATASET_POLICY.md) | 5-status classification (final/obsolete/diagnostic/partial/excluded), selection rules, hard guards |
+| [`HARNESS_FIXES.md`](HARNESS_FIXES.md) | per-subject (S2/S4/S5) test corrections with root cause + why each fix does not mask an isolation failure |
+| [`REPRODUCE.md`](REPRODUCE.md) | step-by-step reproduction from a clean clone |
+| [`RQ5_IDEMPOTENCE.md`](RQ5_IDEMPOTENCE.md) | RQ5 protocol, current metrics, TSE-confirmatory gaps |
+| [`PHASE2_ASSERTION_LEVEL.md`](PHASE2_ASSERTION_LEVEL.md) | per-assertion outcome collector + categories |
+| [`PHASE7_RQ5_LOCK.md`](PHASE7_RQ5_LOCK.md) | RQ5 lock mechanism preventing parallel execution |
+| `analysis/output/paper_claims.md` | every paper claim classified by evidence level |
+| `analysis/output/paper_limitations.md` | L1-L10 limitations + mitigation paths |
+| `analysis/output/tse_readiness_checklist.md` | A-K checklist of TSE-required items |
+
+### RQ5 must run alone
+
+RQ5 (idempotence) deliberately kills the operator pod. Other experiments running
+concurrently will crash. The `harness/experiment_lock.py` module enforces this
+mechanically:
+
+```bash
+# Inspect current lock state
+python3 harness/experiment_lock.py status
+
+# Recover after a manual abort (only when state is genuinely stale)
+python3 harness/experiment_lock.py clear
+```
+
+See `PHASE7_RQ5_LOCK.md` for integration recipe.
+
+### Live tracker vs frozen data
+
+`EXPERIMENT_METRICS.md` is a **work-in-progress journal**, not a citable source.
+The paper must cite `results_frozen/MANIFEST.json` and `analysis/output/MANIFEST_ANALYSIS.json`
+for every number. `consolidate_results.py` enforces this by refusing to read
+`EXPERIMENT_METRICS.md`, `AUDIT.md`, or `CLAUDE.md`.
+
+---
+
 ## Anonymization for Double-Blind Submission
 
 ```bash
