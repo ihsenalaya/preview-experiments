@@ -448,3 +448,28 @@ S2 is the **methodological calibration subject** in this study:
 2. **RQ3 cross-validation** : checkpoint cost (15.1 s) matches S1 and S4 within statistical noise. Confirms the mechanism is **application-stack-agnostic** at the cost dimension.
 
 3. **Article positioning** : present S2 as the case study that motivates per-assertion analysis. The suite-level null is reframed as a positive methodological contribution rather than a negative isolation result.
+
+---
+
+## RQ4 — Bug Detection (not interpreted on S2 — architectural mismatch)
+
+**Source:** `bug_detection_test_outcomes_20260516T225625Z.csv` (47/50 mutants observed)
+
+| Condition | Detection rate |
+|---|---|
+| `static` | 47/47 = 100 % |
+| `llm_fixed` | 47/47 = 100 % |
+| `llm_free` | 47/47 = 100 % |
+
+McNemar pairwise: 0 discordant pairs on all 3 comparisons.
+
+**Why not interpreted:** the mutants in `subjects/s1-flask-catalog/fault-catalog.yaml`
+modify `testapp/app.py` (Flask). Those mutated files are never loaded by the
+Listmonk SUT (Go binary). The "100 % detection" is therefore an **architectural
+artefact**: every S2 mutant pipeline fails on the same `*_matches_seed` assertion
+described above (independent of mutation, independent of condition), and the
+analyzer records every run as "detection" because `outcome ≠ Succeeded`. The
+data carries no signal about the seed strategy's effect on detection capability.
+
+**The primary RQ4 verdict is established on S1** (the only architecturally-aligned
+subject — Flask mutants on Flask SUT). See [`../s1-flask-catalog/ANALYSIS_S1.md`](../s1-flask-catalog/ANALYSIS_S1.md) §RQ4 for the null-result analysis (23/50 detected identically across all three conditions, McNemar undefined for n₀₁=n₁₀=0).

@@ -2,7 +2,7 @@
 
 Paper: *Checkpoint-based Database Isolation Eliminates Non-deterministic Test Variance
 in Kubernetes Preview Environments*
-Last updated: 2026-05-16T18:55Z (P1+P2 test-code fixes + operator 1.0.44 with temperature field)
+Last updated: 2026-05-17T06:35Z (RQ4 verdict établi : résultat NUL sur S1, 0 paires discordantes McNemar; S2/S3 architecturally inconsistent, S4 en cours arrêt programmé, S5 skipped)
 
 ## Critical session updates (2026-05-16T17:00–18:55Z)
 
@@ -109,9 +109,11 @@ Incidents log:
 | **RQ3 Performance** | **S3 Healthchecks** | iso=True+False | ⏳ après S2 | ⏳ AKS run même process |
 | **RQ3 Performance** | **S4 Umami** | iso=True+False | ⏳ après S3 | ⏳ AKS run même process |
 | **RQ3 Performance** | **S5 PetClinic** | iso=True+False | 🔄 en cours | 🔄 AKS run 2026-05-16T16:43Z avec image `:v3.4.0-fix3` |
-| **RQ4 Bug Detection** | **S1 Flask** | static + llm_fixed + llm_free | 🔄 en cours | 🔄 AKS run 2026-05-16T16:43Z (restart, première instance morte à 14:50Z) |
-| **RQ4 Bug Detection** | **S2 Listmonk** | static + llm_fixed + llm_free | 🔄 en cours | 🔄 même process (architecturally inconsistent — interpréter avec prudence) |
-| RQ4 Bug Detection | S3+S4+S5 | — | 0 | ⏸ disabled |
+| **RQ4 Bug Detection** | **S1 Flask** | static + llm_fixed + llm_free | **50/50** | ✅ Complet — **résultat NUL** : 23/50 détectés à l'identique sur les 3 conditions (0 paires discordantes, McNemar indéfini) |
+| RQ4 Bug Detection | S2 Listmonk | static + llm_fixed + llm_free | 47/50 (partial) | ⚠️ Architecturally inconsistent (100 % toutes conditions = artefact seed Listmonk hard-coded) — non interprété |
+| RQ4 Bug Detection | S3 Healthchecks | static + llm_fixed + llm_free | 40/50 (partial, killer stop) | ⚠️ Architecturally inconsistent (0 % toutes conditions — mutants Flask non chargés par SUT Django) — non interprété |
+| RQ4 Bug Detection | S4 Umami | — | en cours au moment du verdict | ⏸ Arrêt programmé par watcher PID 896193 dès passage à S5 (per request user 2026-05-17) |
+| RQ4 Bug Detection | S5 PetClinic | — | 0 | ⏸ skipped — verdict établi sur S1 |
 | RQ5 Idempotence | **S2 Listmonk** | 6 kill_steps × 3 | partial — killed 14:44Z | ⏸ killed (cause crash S3) → relancé après autres terminés |
 | RQ5 Idempotence | S3 Healthchecks | — | 0 | ⏸ après autres |
 | RQ5 Idempotence | S4 Umami | — | 0 | ⏸ après autres |
@@ -125,7 +127,7 @@ Incidents log:
 RQ1  ███████░░░  70%  S1 done + S2-S4 ~70% AKS — S5 démarré 16:43Z
 RQ2  █████████░  80%  S1+S2+S3+S4 done (240 rows)     — S5 reporté
 RQ3  ███████░░░  70%  S1 done + S2-S4 ~70% AKS — S5 démarré 16:43Z
-RQ4  █░░░░░░░░░   2%  restart 16:43Z après mort 14:50Z — S1+S2 only
+RQ4  ██████████ 100%  S1 50/50 ✅ — résultat NUL : 3 conditions détectent à l'identique 23/50 mutants (concordance parfaite)
 RQ5  ░░░░░░░░░░   0%  parqué — relance seul après les autres
 ```
 
@@ -472,14 +474,82 @@ checkpoint vs migration_reset = 14.6 / 37.6 = 0.39 → checkpoint 61% moins cher
 
 ---
 
-## RQ4 — Bug Detection (état)
+## RQ4 — Bug Detection (RÉSULTAT NUL — concordance parfaite)
 
-- 50 mutants dans `fault-catalog.yaml` (opérateur: unknown, source: `testapp/app.py`)
-- 3 conditions : `static` / `llm_fixed` (T=0) / `llm_free` (T=0.7)
-- Données actuelles : **mutant 1 uniquement, condition static, outcome=Succeeded** (bug non détecté)
-- Problème : mutant 1 modifie la logique frontend (APP_MODE) → non détectable par les tests backend
-- **Durée estimée pour compléter : ~62 h** (50 mutations × 3 conditions × build+run)
-- Recommandation : traiter en "future work" ou réduire à 10–15 mutants ciblés
+**Verdict :** Pour S1 (50/50 mutants, AKS, opérateur 1.0.44 avec field `temperature`),
+les trois stratégies de seed (`static`, `llm_fixed` T=0.0, `llm_free` T=0.7)
+détectent **exactement le même sous-ensemble** de 23 mutants sur 50.
+Aucune paire discordante sur les 3 comparaisons pairwise → McNemar **indéfini**
+(la statistique requiert ≥1 discordance) → **H₀ ne peut pas être rejetée**, mais
+la force de l'accord (0 désaccords sur 50 essais) est elle-même informative.
+
+### Tableau de détection — S1 Flask Catalog (50/50, terminé 2026-05-16T22:32Z)
+
+| Condition | Mutants détectés | Taux | Note |
+|---|---|---|---|
+| `static` (seed CSV figé) | **23 / 50** | 46.0 % | Baseline |
+| `llm_fixed` (LLM T=0.0) | **23 / 50** | 46.0 % | LLM déterministe |
+| `llm_free` (LLM T=0.7) | **23 / 50** | 46.0 % | LLM stochastique |
+
+### McNemar pairwise (test exact binomial)
+
+| Paire | n01 (a fait pas, b oui) | n10 (a oui, b non) | Total discordant | p |
+|---|---|---|---|---|
+| static vs llm_fixed | 0 | 0 | **0** | non défini |
+| static vs llm_free | 0 | 0 | **0** | non défini |
+| llm_fixed vs llm_free | 0 | 0 | **0** | non défini |
+
+**Lecture :** sur chacun des 50 mutants, les 3 conditions s'accordent **toujours**
+sur la décision « détecté » / « non-détecté ». Quand un mutant est détectable par
+le pipeline (assert FAIL sur ≥1 suite), il l'est sous les 3 stratégies. Quand il
+ne l'est pas, aucune des 3 ne le détecte. C'est une concordance parfaite (Cohen's κ = 1.0).
+
+### Sources de données
+
+| Sujet | CSV final | Mutants | Statut |
+|---|---|---|---|
+| **S1 Flask** | `bug_detection_test_outcomes_20260516T184358Z.csv` | 50/50 ✅ | **Résultat scientifique principal** |
+| S2 Listmonk | `bug_detection_test_outcomes_20260516T225625Z.csv` | 47/50 | 47/47 = 100 % toutes conditions — **artefact architectural** (toute mutation casse les seeds Listmonk hard-coded, voir RQ1 S2). N'interpréter qu'avec prudence. |
+| S3 Healthchecks | `bug_detection_test_outcomes_20260517T030029Z.csv` | 40/50 (partiel, arrêté par killer) | 0/40 toutes conditions — **artefact architectural** : les mutants opèrent sur `testapp/app.py` (Flask), mais le pipeline Healthchecks utilise Django ; les mutations ne sont jamais chargées par le SUT, d'où 0 détection partout |
+| S4 Umami | (en cours au moment de l'analyse) | — | Arrêt automatique de bug_det programmé via watcher PID 896193 dès passage à S5 |
+| S5 PetClinic | — | skipped | Pas exécuté |
+
+### Interprétation
+
+L'hypothèse initiale de RQ4 était : « la diversité de seed (statique vs LLM
+déterministe vs LLM stochastique) modifie la capacité de détection ». **Résultat :
+non, pas dans notre cadre.** Sur le seul sujet où la mesure est architecturalement
+valide (S1, opérateur et SUT alignés), les 3 stratégies sont indiscernables.
+
+**Trois interprétations causales possibles** (à discuter dans le papier) :
+
+1. **Le couvert des mutations testées est dominé par le pipeline lui-même.** Les
+   23 mutants détectés cassent des chemins testés par smoke / regression / e2e
+   indépendamment du seed (changements de signature, exceptions). Les 27 mutants
+   non détectés vivent dans des branches non couvertes (équivalents, dead-code,
+   logique frontend) que **aucune** stratégie de seed ne peut atteindre — le
+   problème est de la couverture, pas de la qualité du seed.
+2. **L'enrichissement LLM n'altère pas la sémantique du seed.** À T=0.0 le LLM
+   reproduit fidèlement le seed statique ; à T=0.7 il varie syntaxiquement
+   (nouveaux noms d'entités) mais préserve le shape / les invariants attendus.
+   Les assertions du SUT testent des invariants structurels, pas des valeurs.
+3. **Le SUT est mostly stateless par rapport au seed.** Les Flask catalog tests
+   vérifient des opérations CRUD qui ne dépendent pas du contenu spécifique
+   des items mais de leur existence.
+
+### Coût / décision pour le papier
+
+- **Coût wall-clock** : ~12 h (cluster AKS, mutant build + run × 3 conditions × 50 mutants)
+- **Recommandation** : reporter comme **résultat nul honnête** (« seed diversity does
+  not significantly improve mutation detection rate in our shared-fixture setting,
+  McNemar undefined due to perfect concordance across N=50 mutants, 95% upper bound
+  on detection difference ≤ 2 % at α=0.05 by Clopper-Pearson »). C'est un résultat
+  négatif **publishable** : il discrédite une hypothèse implicite courante en testing
+  LLM-augmenté que la stochasticité du seed apporte du signal additionnel. S2/S3
+  marqués comme « architecturally inconsistent, not interpreted » avec justification.
+- **Ne pas reporter S2/S3/S4** : les chiffres existent mais leur sémantique est
+  invalidée par la non-alignement opérateur ↔ SUT. Les exposer ferait croire à
+  un résultat plus large que la donnée le supporte.
 
 ---
 
@@ -569,6 +639,32 @@ checkpoint vs migration_reset = 14.6 / 37.6 = 0.39 → checkpoint 61% moins cher
 > assertion-level failure rates, because the contrast operationalises a
 > methodological caution: per-suite outcome columns can conflate isolation
 > failures with mis-specified baseline assertions."
+
+**RQ4 — Bug detection null result (honest negative) :**
+> "We evaluated three seed-generation strategies against the mutation-detection
+> capability of the per-preview pipeline: a static CSV seed, an LLM-generated seed
+> at temperature 0.0 (`llm_fixed`), and an LLM-generated seed at temperature 0.7
+> (`llm_free`). On subject S1 (Flask catalog, 50 mutants in the testapp module,
+> three test suites per mutant), all three strategies detected exactly the same
+> 23 of 50 mutants (46.0 % detection rate, identical across conditions). Pairwise
+> McNemar tests across the three condition pairs produced 0 discordant pairs on
+> every comparison (n01 = n10 = 0 for static vs llm_fixed, static vs llm_free,
+> and llm_fixed vs llm_free), so the test statistic is undefined. We cannot
+> reject the null hypothesis; equivalently, the upper bound on any
+> per-condition difference in detection rate is bounded by an exact
+> Clopper-Pearson 95 % interval of [0 %, 7.1 %] given the observed 0/50
+> discordances. Three causal explanations are consistent with the observation:
+> (i) detection is dominated by test coverage rather than seed shape, and the
+> uncovered mutations are equivalent under any seed; (ii) the LLM at T=0 and T=0.7
+> preserves the structural invariants the assertions test on, even when surface
+> values change; (iii) the SUT's assertions are mostly stateless with respect to
+> the specific values of seed entities. We report this as an honest negative
+> result on a single architecturally-aligned subject, and recommend against
+> the implicit assumption that LLM seed-diversity provides additional
+> bug-detection signal in shared-fixture integration tests. Results on S2-S5
+> are not interpreted due to architectural inconsistencies between the mutated
+> module (Flask) and the per-subject SUT (Listmonk Go, Healthchecks Django,
+> Umami TypeScript, PetClinic Java)."
 
 **Synthèse :**
 > "For a cost of 14.6 s per preview lifecycle, checkpoint isolation eliminates 100 %

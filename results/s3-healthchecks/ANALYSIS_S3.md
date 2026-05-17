@@ -312,6 +312,33 @@ S3 is the **clean primary confirmation** of the central thesis:
 
 ---
 
+## RQ4 — Bug Detection (not interpreted on S3 — architectural mismatch)
+
+**Source:** `bug_detection_test_outcomes_20260517T030029Z.csv` (40/50 mutants — partial, bug_det killed before S3 finished)
+
+| Condition | Detection rate |
+|---|---|
+| `static` | 0/40 = 0 % |
+| `llm_fixed` | 0/40 = 0 % |
+| `llm_free` | 0/40 = 0 % |
+
+McNemar pairwise: 0 discordant pairs on all 3 comparisons (concordance is trivial when both arms are 0).
+
+**Why not interpreted:** the mutants in `subjects/s1-flask-catalog/fault-catalog.yaml`
+modify `testapp/app.py` (Flask). The S3 SUT is Healthchecks (Django). Mutations
+to a file that the SUT never loads cannot affect any SUT behavior, so the
+Healthchecks test suites pass uniformly (no detection) across all mutants and
+all three seed conditions. This is an **architectural artefact** — the opposite
+side of the same coin as S2's 100 % artefact, both rooted in the per-subject
+`fault-catalog.yaml` pointing at the wrong module.
+
+**Future work** would require enumerating per-subject mutants on each SUT's own
+codebase (Django models / views for S3) so that the mutation actually reaches
+the SUT under test. For the present paper, RQ4's null verdict is grounded on
+the only architecturally-aligned subject, S1. See [`../s1-flask-catalog/ANALYSIS_S1.md`](../s1-flask-catalog/ANALYSIS_S1.md) §RQ4.
+
+---
+
 ## Data files (updated)
 
 | File | Rows | Notes |

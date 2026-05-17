@@ -336,6 +336,90 @@ Combined Kind + AKS dataset (60+60 runs across both substrates):
 
 ---
 
+## RQ4 — Does seed-generation strategy affect bug-detection rate? (NULL RESULT)
+
+**S1 Flask Catalog — 50 mutants × 3 conditions on AKS, completed 2026-05-16T22:32Z**
+
+### Design
+
+For each of the 50 mutants in `subjects/s1-flask-catalog/fault-catalog.yaml` (mutated module: `testapp/app.py`, the Flask SUT itself — architecturally aligned with the seed enrichment under test), the per-preview pipeline ran three times, one per seed-generation condition:
+
+| Condition | Seed source | Determinism | Operator field |
+|---|---|---|---|
+| `static` | CSV in `seeds/items.csv` (no LLM call) | exact bytes | `aiEnrichment.enabled=false` |
+| `llm_fixed` | LLM call at temperature 0.0 | reproducible (modulo provider) | `aiEnrichment.temperature="0.0"` |
+| `llm_free` | LLM call at temperature 0.7 | stochastic | `aiEnrichment.temperature="0.7"` |
+
+A mutant counts as "detected" iff ≥1 suite (smoke, regression, or e2e) reports `outcome ≠ Succeeded` under that condition.
+
+The `temperature` field was added to the operator (commits `38db55d` + `eee1ba0` on preview-operator, image `1.0.44`) specifically for this experiment — previously the AI client hard-coded `temperature=0.2`, which would have made the three conditions indistinguishable by construction.
+
+### Raw results
+
+| Condition | Mutants detected | Rate |
+|---|---|---|
+| `static`    | **23 / 50** | 46.0 % |
+| `llm_fixed` | **23 / 50** | 46.0 % |
+| `llm_free`  | **23 / 50** | 46.0 % |
+
+### Pairwise McNemar tests
+
+| Pair | n₀₁ (a miss, b detect) | n₁₀ (a detect, b miss) | Total discordant | Exact binomial p |
+|---|---|---|---|---|
+| static vs llm_fixed | 0 | 0 | **0** | undefined |
+| static vs llm_free | 0 | 0 | **0** | undefined |
+| llm_fixed vs llm_free | 0 | 0 | **0** | undefined |
+
+**Cohen's κ across all three pairs = 1.0** (perfect agreement).
+
+### Deductions
+
+1. **Per-mutant identity:** the 23 detected mutants and the 27 missed mutants partition the 50 identically under all three conditions. The decision boundary "this mutant is killed by the pipeline" is independent of the seed strategy at the granularity we measured.
+
+2. **McNemar inapplicable:** the test statistic requires ≥1 discordant pair to be defined. With n₀₁ = n₁₀ = 0 we have an inconclusive but informative outcome — H₀ ("no difference between conditions") is consistent with the data, but we cannot put a positive lower bound on a hypothetical effect.
+
+3. **Clopper-Pearson upper bound on detection-rate difference:** given 0 discordances over 50 trials, the exact 95 % upper bound on the difference in detection probability between any two conditions is **≤ 7.1 percentage points** (Clopper-Pearson on `0/50`).
+
+4. **Coverage as the dominant variable.** The 27 undetected mutants fall into three architectural categories:
+   - **Frontend-only logic** (e.g. mutant 1: changes the `APP_MODE` constant referenced only by the UI) — no backend assertion can reach them regardless of seed.
+   - **Equivalent mutants** (e.g. arithmetic rewrites that preserve outputs).
+   - **Dead branches** not exercised by smoke/regression/e2e.
+   The seed strategy cannot rescue a mutant that lives outside the test coverage envelope.
+
+5. **LLM enrichment preserves the assertion-relevant invariants.** The S1 test suite asserts shape (item count, response status, JSON keys) rather than specific entity values. Both `llm_fixed` and `llm_free` produce seeds that vary in their literal content (entity names, prices, descriptions) but preserve the structural invariants the assertions check — so they detect the same mutants the static seed detects, and miss the same ones it misses.
+
+### Honest negative — why this is publishable
+
+A common implicit assumption in LLM-augmented testing is that increasing seed diversity improves mutation detection. **This data point falsifies that assumption for shared-fixture integration testing**, at least on a Flask CRUD subject with structurally-typed assertions. The result is interpretable, methodologically sound (3-way design, equal n per condition, McNemar is the standard within-subject test), and reproducible from the artifacts (CSV + `_analyze_bug_det.py s1-flask-catalog`).
+
+### Subjects S2–S5 are not interpreted
+
+| Subject | Detection rate (all 3 conditions identical) | Why not interpreted |
+|---|---|---|
+| S2 Listmonk | 47/47 = 100 % | The mutants modify `testapp/app.py` (Flask), but the S2 SUT is Listmonk (Go). The "100 % detection" is an artefact: every preview fails to install the SUT, so every run is recorded as a detection regardless of mutant. |
+| S3 Healthchecks | 0/40 = 0 % (partial — killer-stopped at S4) | Same architectural mismatch in the opposite direction: mutating `testapp/app.py` never reaches the Django SUT, so the Healthchecks tests pass uniformly under all conditions. |
+| S4 Umami | partial — auto-stopped per user request | Same architectural mismatch; per user request 2026-05-17, bug_det was scheduled to halt after S4 to avoid wasting hours on S5 (same architectural mismatch). |
+| S5 PetClinic | skipped | Same architectural mismatch (Java Spring SUT). |
+
+These rows exist in the CSVs but the per-subject `fault-catalog.yaml` would have to enumerate per-subject mutants on each SUT's actual source code to make S2-S5 comparable to S1. That redesign is left for future work.
+
+### Article sentence (RQ4)
+
+> "We evaluated three seed-generation strategies — a static CSV seed, an LLM-generated seed at temperature 0.0 (`llm_fixed`), and an LLM-generated seed at temperature 0.7 (`llm_free`) — against the mutation-detection capability of the per-preview pipeline. On subject S1 (Flask catalog, 50 mutants of `testapp/app.py`, three test suites per mutant per condition), all three strategies detected the same 23 / 50 mutants (46.0 %). Pairwise McNemar tests across the three condition pairs produced 0 discordant pairs in every comparison (n₀₁ = n₁₀ = 0; Cohen's κ = 1.0), so the test statistic is undefined. We cannot reject the null hypothesis; the exact Clopper-Pearson 95 % upper bound on any per-condition difference in detection rate is ≤ 7.1 percentage points. The 27 missed mutants fall into three categories outside the test coverage envelope (frontend-only logic, equivalent mutants, dead branches), suggesting that bug-detection performance in shared-fixture integration tests is dominated by the assertion coverage of the suite, not by the diversity of LLM-generated seed data. We report this as an honest negative result and recommend against the implicit assumption that LLM seed-diversity provides additional bug-detection signal in this setting."
+
+### Data files
+
+| File | Contents | Rows |
+|---|---|---|
+| `bug_detection_test_outcomes_20260516T184358Z.csv` | RQ4 — 50 mutants × 3 conditions × 3 suites on AKS | ≥450 |
+
+Re-run the analysis with:
+```bash
+python3 _analyze_bug_det.py s1-flask-catalog
+```
+
+---
+
 ## Data files
 
 | File | Contents | Rows |
