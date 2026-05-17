@@ -1,0 +1,11 @@
+--- app.py
++++ app.py
+@@ -90,8 +90,6 @@
+ def healthz():
+     return "ok"
+ 
+-
+-@app.get("/api/version")
+ def version():
+     return jsonify({"version": "1.0.0", "app": "preview-exp"})
+ 

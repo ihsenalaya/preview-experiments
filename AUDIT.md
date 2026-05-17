@@ -162,9 +162,9 @@ Chaîne (5 expériences identiques en structure) :
 
 #### Fichiers à créer
 - `scripts/consolidate_results.py` (nouveau)
-- `results_frozen/` (généré, gitignore-friendly)
-- `results_frozen/MANIFEST.json` (généré)
-- `results_frozen/excluded_datasets.csv` (généré)
+- `results/frozen/` (généré, gitignore-friendly)
+- `results/frozen/MANIFEST.json` (généré)
+- `results/frozen/excluded_datasets.csv` (généré)
 - `AUDIT.md` (ce fichier — déjà créé)
 
 #### Fichiers NON modifiés
@@ -206,7 +206,7 @@ CLASSIFICATION (status):
 
 FROZEN OUTPUT:
   Pour chaque file classified "final":
-    - copy to results_frozen/<subject>/<experiment>_<schema>_<timestamp>.csv
+    - copy to results/frozen/<subject>/<experiment>_<schema>_<timestamp>.csv
     - record entry dans MANIFEST.json
 
 EXCLUSIONS:
@@ -223,12 +223,12 @@ INCONSISTENCIES WARNINGS (printed + saved):
 ```
 
 #### Critères d'acceptation PHASE 1
-- [ ] `results_frozen/MANIFEST.json` existe, parseable, liste tous les CSVs final
-- [ ] `results_frozen/excluded_datasets.csv` existe avec raison pour chaque exclusion
+- [ ] `results/frozen/MANIFEST.json` existe, parseable, liste tous les CSVs final
+- [ ] `results/frozen/excluded_datasets.csv` existe avec raison pour chaque exclusion
 - [ ] Tous les CSVs explicitement OBSOLETE_* sont exclus
 - [ ] S3 RQ5 partial 14/18 est exclu (status=partial OU obsolete)
 - [ ] S4 RQ5 broken image est exclu (sera marqué après rename ou par règle "0 Succeeded sur 18 = suspect")
-- [ ] Aucun CSV original n'est modifié ou supprimé (test : `git status` après run ne montre que les nouveaux fichiers dans `results_frozen/` et `scripts/`)
+- [ ] Aucun CSV original n'est modifié ou supprimé (test : `git status` après run ne montre que les nouveaux fichiers dans `results/frozen/` et `scripts/`)
 - [ ] Script idempotent : 2 runs successifs produisent le même MANIFEST (modulo timestamps de run)
 
 #### Risques PHASE 1
@@ -243,7 +243,7 @@ INCONSISTENCIES WARNINGS (printed + saved):
 1. `feat(audit): add AUDIT.md — phase 0 findings`
 2. `feat(scripts): add consolidate_results.py — phase 1 freeze logic`
 3. `chore(results): rename implicit-obsolete CSVs with .OBSOLETE_* suffix` (S3 partial, S4/S5 broken image)
-4. `chore: run consolidate, commit results_frozen/MANIFEST.json + excluded_datasets.csv` (initial snapshot)
+4. `chore: run consolidate, commit results/frozen/MANIFEST.json + excluded_datasets.csv` (initial snapshot)
 
 ### Phases ultérieures (à valider séparément)
 

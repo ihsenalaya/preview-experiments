@@ -34,11 +34,11 @@ RUN_ID_RE = re.compile(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--frozen", type=Path,
-                        default=Path(__file__).resolve().parent.parent / "results_frozen",
-                        help="Frozen results directory (default: ../results_frozen)")
+                        default=Path(__file__).resolve().parent.parent / "results" / "frozen",
+                        help="Frozen results directory (default: results/frozen)")
     parser.add_argument("--out", type=Path,
-                        default=Path(__file__).resolve().parent / "output",
-                        help="Output directory (default: analysis/output)")
+                        default=Path(__file__).resolve().parent.parent / "results" / "analysis",
+                        help="Output directory (default: results/analysis)")
     args = parser.parse_args()
 
     frozen: Path = args.frozen.resolve()

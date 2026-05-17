@@ -1,0 +1,10 @@
+run_id,experiment,subject_id,preview_name,isolation_enabled,suite,test_name,outcome,db_rows_before,db_rows_after,timestamp_utc
+bug_detection-s1-flask-catalog-mutant1-static-708242,bug_detection,s1-flask-catalog,bd-7f136e0b,true,smoke,mutant_1_static,Succeeded,,,2026-05-16T17:58:45.923143+00:00
+bug_detection-s1-flask-catalog-mutant1-static-708242,bug_detection,s1-flask-catalog,bd-7f136e0b,true,regression,mutant_1_static,Succeeded,,,2026-05-16T17:58:45.923205+00:00
+bug_detection-s1-flask-catalog-mutant1-static-708242,bug_detection,s1-flask-catalog,bd-7f136e0b,true,e2e,mutant_1_static,Succeeded,,,2026-05-16T17:58:45.923213+00:00
+bug_detection-s1-flask-catalog-mutant1-llm_fixed-af294f,bug_detection,s1-flask-catalog,bd-e642b027,true,smoke,mutant_1_llm_fixed,Succeeded,,,2026-05-16T18:00:21.595589+00:00
+bug_detection-s1-flask-catalog-mutant1-llm_fixed-af294f,bug_detection,s1-flask-catalog,bd-e642b027,true,regression,mutant_1_llm_fixed,Succeeded,,,2026-05-16T18:00:21.595644+00:00
+bug_detection-s1-flask-catalog-mutant1-llm_fixed-af294f,bug_detection,s1-flask-catalog,bd-e642b027,true,e2e,mutant_1_llm_fixed,Succeeded,,,2026-05-16T18:00:21.595650+00:00
+bug_detection-s1-flask-catalog-mutant1-llm_free-aa2f9d,bug_detection,s1-flask-catalog,bd-61006c75,true,smoke,mutant_1_llm_free,Succeeded,,,2026-05-16T18:01:51.477420+00:00
+bug_detection-s1-flask-catalog-mutant1-llm_free-aa2f9d,bug_detection,s1-flask-catalog,bd-61006c75,true,regression,mutant_1_llm_free,Succeeded,,,2026-05-16T18:01:51.477492+00:00
+bug_detection-s1-flask-catalog-mutant1-llm_free-aa2f9d,bug_detection,s1-flask-catalog,bd-61006c75,true,e2e,mutant_1_llm_free,Succeeded,,,2026-05-16T18:01:51.477498+00:00

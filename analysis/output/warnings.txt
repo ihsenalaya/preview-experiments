@@ -1,5 +1,0 @@
-# warnings.txt — data quality notes from build_all.py
-# Generated: 2026-05-17T12:34:18Z
-
-- RQ1 assertion-level: no assertion_outcomes_*.csv in frozen — decomposition table not generated. Run watch-mode or instrument exp_*/run.py to populate this dataset (see PHASE2_ASSERTION_LEVEL.md).
-- RQ5: PHASE 8 v2 instrumentation absent (duplicate_job_count, lost_status_count, final_state_consistent missing). RQ5 cannot support confirmatory claims about controller-runtime idempotence properties; results report convergence outcomes and time only. See RQ5_IDEMPOTENCE.md §3 for the full target metric list.

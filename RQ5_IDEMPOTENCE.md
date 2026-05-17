@@ -234,7 +234,7 @@ RQ5 + PHASE 8 v2 + comparaison avec d'autres operators (cert-manager, etc.) cons
 - `exp_idempotence/run.py` — code de l'expérience
 - `harness/preview_factory.py` — wrappers résilients (`get_tests_step`, `get_phase`)
 - `harness/results_writer.py` — schéma CSV `run_metrics`
-- `results_frozen/s*/idempotence_run_metrics_*.csv` — données figées
+- `results/frozen/s*/idempotence_run_metrics_*.csv` — données figées
 - `EXPERIMENT_METRICS.md` "Contraintes de parallélisme" — règle de non-parallélisation
 - `HARNESS_FIXES.md` — pourquoi les CSVs avec images `:v2.15.1-fix` et `:v3.4.0-fix4` sont marqués obsolete (broken-image, pas vrai operator failure)
 - `AUDIT.md` §5 — détail du code RQ5 actuel et métriques manquantes

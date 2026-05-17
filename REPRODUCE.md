@@ -26,7 +26,7 @@ cd /path/to/preview-experiments
 python3 - <<'PY'
 import hashlib, json
 from pathlib import Path
-mfst = json.loads(Path("results_frozen/MANIFEST.json").read_text())
+mfst = json.loads(Path("results/frozen/MANIFEST.json").read_text())
 print(f"Manifest version: {mfst['consolidate_version']}")
 print(f"Generated:        {mfst['generated_at_utc']}")
 print(f"Total scanned:    {mfst['total_csvs_scanned']}")
@@ -35,7 +35,7 @@ print()
 print("Verifying SHA-256 of each frozen CSV ...")
 ok = bad = 0
 for e in mfst["entries"]:
-    p = Path("results_frozen") / e["subject_id_from_path"] / Path(e["src"]).name
+    p = Path("results/frozen") / e["subject_id_from_path"] / Path(e["src"]).name
     actual = hashlib.sha256(p.read_bytes()).hexdigest()
     if actual == e["sha256"]:
         ok += 1
@@ -58,7 +58,7 @@ d'expérience), regénérez le freeze :
 
 ```bash
 python3 scripts/consolidate_results.py
-git diff results_frozen/MANIFEST.json    # vérifier les changements
+git diff results/frozen/MANIFEST.json    # vérifier les changements
 ```
 
 Le script est **idempotent** : 2 runs sur la même donnée produisent un
@@ -73,7 +73,7 @@ diagnostic / partial / excluded) et les règles de sélection multi-candidats.
 
 ```bash
 python3 analysis/check_k_consistency.py
-cat analysis/output/k_consistency_report.txt
+cat results/analysis/k_consistency_report.txt
 ```
 
 Sortie attendue : tous les batches K=2, K=4, K=8 × 5 sujets × 2 iso = 30 batches
@@ -102,8 +102,8 @@ python3 analysis/04_bug_detection.py
 python3 analysis/05_idempotence.py
 ```
 
-Chaque script lit **exclusivement** depuis `results_frozen/` et produit ses
-sorties sous `analysis/figures/` (PDF/PNG) et `analysis/output/` (tables).
+Chaque script lit **exclusivement** depuis `results/frozen/` et produit ses
+sorties sous `results/analysis/figures/` (PDF/PNG) et `results/analysis/` (tables).
 
 > Les analyses utilisent jupytext (format `py:percent`) — chaque script est
 > exécutable en CLI **et** ouvrable comme notebook Jupyter via
@@ -153,9 +153,9 @@ pip install -r analysis/requirements.txt
 python3 -c "
 import hashlib, json
 from pathlib import Path
-m = json.loads(Path('results_frozen/MANIFEST.json').read_text())
+m = json.loads(Path('results/frozen/MANIFEST.json').read_text())
 for e in m['entries']:
-    p = Path('results_frozen') / e['subject_id_from_path'] / Path(e['src']).name
+    p = Path('results/frozen') / e['subject_id_from_path'] / Path(e['src']).name
     assert hashlib.sha256(p.read_bytes()).hexdigest() == e['sha256'], e['src']
 print('All hashes OK')
 "
@@ -168,7 +168,7 @@ python3 analysis/03_performance.py
 python3 analysis/04_bug_detection.py
 python3 analysis/05_idempotence.py
 
-ls analysis/figures/ analysis/output/
+ls results/analysis/figures/ results/analysis/
 ```
 
 ---
@@ -178,7 +178,7 @@ ls analysis/figures/ analysis/output/
 - **Pas de live tracker dans les analyses** : `EXPERIMENT_METRICS.md` est un journal
   de travail, pas une source de vérité figeable. Les analyses doivent rester
   reproductibles même si ce fichier disparaît.
-- **Freezeable** : `results_frozen/MANIFEST.json` capture l'état exact (SHA-256)
+- **Freezeable** : `results/frozen/MANIFEST.json` capture l'état exact (SHA-256)
   des CSVs au moment du freeze. Toute modification du dataset est détectée.
 - **Idempotent** : re-runner les analyses sur le même freeze produit les mêmes
   tables/figures, modulo timestamps.
@@ -193,14 +193,14 @@ ls analysis/figures/ analysis/output/
 | Chemin | Contenu |
 |---|---|
 | `results/` | données brutes per-subject (jamais modifiées par les scripts d'analyse) |
-| `results_frozen/` | snapshot figé pour analyse — produit par `scripts/consolidate_results.py` |
-| `results_frozen/MANIFEST.json` | inventaire avec SHA-256, line counts, subjects, conditions, K |
-| `results_frozen/excluded_datasets.csv` | CSVs non retenus + raison |
+| `results/frozen/` | snapshot figé pour analyse — produit par `scripts/consolidate_results.py` |
+| `results/frozen/MANIFEST.json` | inventaire avec SHA-256, line counts, subjects, conditions, K |
+| `results/frozen/excluded_datasets.csv` | CSVs non retenus + raison |
 | `analysis/01..05_*.py` | analyses per-RQ (jupytext) |
 | `analysis/check_k_consistency.py` | vérification batches RQ2 |
 | `analysis/shared/` | helpers stats/plotting/latex |
-| `analysis/output/` | tables markdown + CSV générés |
-| `analysis/figures/` | figures PDF/PNG générées |
+| `results/analysis/` | tables markdown + CSV générés |
+| `results/analysis/figures/` | figures PDF/PNG générées |
 | `AUDIT.md` | inventaire PHASE 0 |
 | `DATASET_POLICY.md` | règles de classification des CSVs |
 | `HARNESS_FIXES.md` | corrections de tests S2/S4/S5 avec rationale |

@@ -1,6 +1,6 @@
 # DATASET_POLICY.md — politique de classification et de freeze des données
 
-**Objectif** : définir sans ambiguïté quel CSV entre dans le dataset utilisé par les analyses, quel CSV en est exclu, et pourquoi. Le but est que tout chiffre du papier soit traçable à un CSV figé dans `results_frozen/`, et qu'aucun chiffre ne dépende d'un tracker live (`EXPERIMENT_METRICS.md`, captures kubectl éphémères, console output).
+**Objectif** : définir sans ambiguïté quel CSV entre dans le dataset utilisé par les analyses, quel CSV en est exclu, et pourquoi. Le but est que tout chiffre du papier soit traçable à un CSV figé dans `results/frozen/`, et qu'aucun chiffre ne dépende d'un tracker live (`EXPERIMENT_METRICS.md`, captures kubectl éphémères, console output).
 
 ---
 
@@ -18,18 +18,18 @@
           ├──► classification → {final, obsolete, diagnostic, partial, excluded}
           │
           ▼
-   results_frozen/<subject>/<experiment>_<schema>_<TIMESTAMP>.csv   ← FROZEN (copie 1:1)
-   results_frozen/MANIFEST.json                                     ← métadonnées
-   results_frozen/excluded_datasets.csv                             ← exclus + raison
+   results/frozen/<subject>/<experiment>_<schema>_<TIMESTAMP>.csv   ← FROZEN (copie 1:1)
+   results/frozen/MANIFEST.json                                     ← métadonnées
+   results/frozen/excluded_datasets.csv                             ← exclus + raison
           │
           ▼
-   analysis/  (build_all.py, *.py)   ← lecture exclusive de results_frozen/
+   analysis/  (build_all.py, *.py)   ← lecture exclusive de results/frozen/
           │
           ▼
    tables/, figures/, paper.tex
 ```
 
-**Règle d'or** : aucune analyse ne lit `results/` ni `EXPERIMENT_METRICS.md`. Tout passe par `results_frozen/`.
+**Règle d'or** : aucune analyse ne lit `results/` ni `EXPERIMENT_METRICS.md`. Tout passe par `results/frozen/`.
 
 ---
 
@@ -62,7 +62,7 @@ CSV qui contient des données réelles mais qui a été superseded ou invalidé.
 | Idempotence avec **tous les runs en Failed** (≥ 10 runs, `n_succeeded == 0`) — suggère image cassée ou environnement, pas une vraie divergence operator | détection automatique |
 | Superseded par un CSV de meilleure qualité pour le même scope | sélection multi-candidats (§3) |
 
-Les CSVs `obsolete` ne sont **jamais supprimés** ; ils restent disponibles dans `results/` pour traçabilité, mais ne sont pas copiés dans `results_frozen/` et n'entrent dans aucune analyse.
+Les CSVs `obsolete` ne sont **jamais supprimés** ; ils restent disponibles dans `results/` pour traçabilité, mais ne sont pas copiés dans `results/frozen/` et n'entrent dans aucune analyse.
 
 ### 2.3 `diagnostic`
 
@@ -132,7 +132,7 @@ Cette règle garantit que :
 
 ### 4.2 Garanties pour les analyses (`analysis/`, futur `build_all.py`)
 
-1. **Lecture exclusive** de `results_frozen/` — aucun import de `results/` direct.
+1. **Lecture exclusive** de `results/frozen/` — aucun import de `results/` direct.
 2. Toute table ou figure produite doit pouvoir nommer son CSV source via le `MANIFEST.json` et son SHA-256.
 3. Toute claim chiffrée dans le papier doit citer le CSV figé ; les chiffres dérivés des trackers live (`EXPERIMENT_METRICS.md`) ne sont pas publiables.
 
@@ -155,7 +155,7 @@ python3 scripts/consolidate_results.py --dry-run
 python3 scripts/consolidate_results.py
 
 # Vérifier ce qui a changé
-git diff results_frozen/MANIFEST.json
+git diff results/frozen/MANIFEST.json
 
 # Si une promotion final → obsolete est faite (un nouveau CSV supersede un ancien),
 # c'est attendu et le rationale est dans l'excluded_datasets.csv
@@ -178,7 +178,7 @@ python3 analysis/02_cross_pr.py
 
 ### Cas 2 : Un CSV "obsolete" doit être recouvré pour comparaison
 
-**Action** : il reste dans `results/` (jamais supprimé). Référencer son chemin original ; ne pas le copier dans `results_frozen/`.
+**Action** : il reste dans `results/` (jamais supprimé). Référencer son chemin original ; ne pas le copier dans `results/frozen/`.
 
 ### Cas 3 : Deux CSVs "final" candidats avec quality_key identique
 
@@ -203,7 +203,7 @@ Toute modification de la politique entraîne :
 
 ## 8. Référence rapide
 
-| Statut | Compte initial (2026-05-17T11:55Z) | Dans `results_frozen/` ? | Analysé ? |
+| Statut | Compte initial (2026-05-17T11:55Z) | Dans `results/frozen/` ? | Analysé ? |
 |---|---|---|---|
 | `final` | 22 | ✅ | ✅ |
 | `obsolete` | 20 | ❌ | ❌ |
@@ -212,4 +212,4 @@ Toute modification de la politique entraîne :
 | `diagnostic` | 0 (aucun pour l'instant) | ❌ | ❌ |
 | **Total scanné** | **61** | | |
 
-Voir `results_frozen/MANIFEST.json` pour la liste complète et `results_frozen/excluded_datasets.csv` pour le détail des exclusions.
+Voir `results/frozen/MANIFEST.json` pour la liste complète et `results/frozen/excluded_datasets.csv` pour le détail des exclusions.

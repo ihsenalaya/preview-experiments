@@ -1,0 +1,8 @@
+run_id,experiment,subject_id,preview_name,namespace,isolation_enabled,phase,step,step_duration_s,total_reconcile_s,requeue_count,timestamp_utc
+idempotence-s1-flask-catalog-stepsaving-00-6f6b7e,idempotence,s1-flask-catalog,idem-95b3449b,preview-pr-6195,true,Succeeded,saving,331.46800318199894,15.973781002998294,0,2026-05-14T23:00:39.516386+00:00
+idempotence-s1-flask-catalog-stepsaving-01-a2e635,idempotence,s1-flask-catalog,idem-0b1c2bf3,preview-pr-6668,true,Succeeded,saving,44.89649272599854,13.73657432500113,0,2026-05-14T23:07:14.444138+00:00
+idempotence-s1-flask-catalog-stepsaving-02-54d780,idempotence,s1-flask-catalog,idem-fe5b744e,preview-pr-6052,true,Succeeded,saving,334.87439441800234,12.171890623001673,0,2026-05-14T23:09:02.660279+00:00
+idempotence-s1-flask-catalog-stepsmoke-00-a930e4,idempotence,s1-flask-catalog,idem-7d2e84a2,preview-pr-6483,true,Succeeded,smoke,328.940099034,11.77813193199836,0,2026-05-14T23:15:41.042639+00:00
+idempotence-s1-flask-catalog-stepsmoke-01-642bf4,idempotence,s1-flask-catalog,idem-97d57f7b,preview-pr-6253,true,Succeeded,smoke,320.1171954849997,11.923048210999696,0,2026-05-14T23:22:14.117547+00:00
+idempotence-s1-flask-catalog-stepsmoke-02-fe0666,idempotence,s1-flask-catalog,idem-2d80a9c2,preview-pr-6439,true,Succeeded,smoke,40.46294861899878,12.453599983997265,0,2026-05-14T23:28:36.221803+00:00
+idempotence-s1-flask-catalog-steprestore-regression-00-599df5,idempotence,s1-flask-catalog,idem-03c308df,preview-pr-6240,true,Succeeded,restore-regression,45.787337727000704,11.974635341000976,0,2026-05-14T23:30:16.848794+00:00

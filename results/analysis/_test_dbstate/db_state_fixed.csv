@@ -1,0 +1,12 @@
+run_id,subject_id,preview_name,isolation_enabled,step,schema_name,table_name,row_count,content_hash,excluded_columns,snapshot_hash_global,ts
+phase3-fix-idem-40beab08,s5-petclinic,idem-40beab08,True,post_smoke,public,owners,10,baf1f793ca32e45f05aa2d473376be38,,7ec25eb8c659a74a711392606ab173b5b2381cc69f72f0cac1cb1051f139c82c,2026-05-17T13:15:59Z
+phase3-fix-idem-40beab08,s5-petclinic,idem-40beab08,True,post_smoke,public,pets,13,da17ae5b8f11ad102b3140d57a136155,,7ec25eb8c659a74a711392606ab173b5b2381cc69f72f0cac1cb1051f139c82c,2026-05-17T13:15:59Z
+phase3-fix-idem-40beab08,s5-petclinic,idem-40beab08,True,post_smoke,public,roles,3,f891efeb32a69c1a58b76e38f4cddbaf,,7ec25eb8c659a74a711392606ab173b5b2381cc69f72f0cac1cb1051f139c82c,2026-05-17T13:15:59Z
+phase3-fix-idem-40beab08,s5-petclinic,idem-40beab08,True,post_smoke,public,run_log,0,d41d8cd98f00b204e9800998ecf8427e,,7ec25eb8c659a74a711392606ab173b5b2381cc69f72f0cac1cb1051f139c82c,2026-05-17T13:15:59Z
+phase3-fix-idem-40beab08,s5-petclinic,idem-40beab08,True,post_smoke,public,specialties,3,7c4cb33501ac3de861fbeb1b50f286ee,,7ec25eb8c659a74a711392606ab173b5b2381cc69f72f0cac1cb1051f139c82c,2026-05-17T13:15:59Z
+phase3-fix-idem-40beab08,s5-petclinic,idem-40beab08,True,post_smoke,public,types,6,736971696c20e3b49e46da0125c82dca,,7ec25eb8c659a74a711392606ab173b5b2381cc69f72f0cac1cb1051f139c82c,2026-05-17T13:15:59Z
+phase3-fix-idem-40beab08,s5-petclinic,idem-40beab08,True,post_smoke,public,users,1,1f2bc999bf42eae84917f63d51cac461,,7ec25eb8c659a74a711392606ab173b5b2381cc69f72f0cac1cb1051f139c82c,2026-05-17T13:15:59Z
+phase3-fix-idem-40beab08,s5-petclinic,idem-40beab08,True,post_smoke,public,vet_specialties,5,26028c74ce1febb66f37515111b71777,,7ec25eb8c659a74a711392606ab173b5b2381cc69f72f0cac1cb1051f139c82c,2026-05-17T13:15:59Z
+phase3-fix-idem-40beab08,s5-petclinic,idem-40beab08,True,post_smoke,public,vets,6,e76a03fd03ae502c45037e6ed65f1850,,7ec25eb8c659a74a711392606ab173b5b2381cc69f72f0cac1cb1051f139c82c,2026-05-17T13:15:59Z
+phase3-fix-idem-40beab08,s5-petclinic,idem-40beab08,True,post_smoke,public,visits,4,18fecccea718ccac7e8f15667114665a,,7ec25eb8c659a74a711392606ab173b5b2381cc69f72f0cac1cb1051f139c82c,2026-05-17T13:15:59Z
+phase3-fix-idem-40beab08,s5-petclinic,idem-40beab08,True,post_smoke,*,*,51,,,7ec25eb8c659a74a711392606ab173b5b2381cc69f72f0cac1cb1051f139c82c,2026-05-17T13:15:59Z

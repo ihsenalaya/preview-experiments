@@ -1,0 +1,25 @@
+experiment_id,subject_id,run_id,preview_name,isolation_enabled,strategy,suite_name,assertion_id,assertion_category,outcome,expected,observed,normalized_failure_signature,is_isolation_sensitive,ts
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,smoke,healthz,infra,Succeeded,,,,False,2026-05-17T12:26:18Z
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,smoke,vets_list,functional_api,Succeeded,,,,False,2026-05-17T12:26:18Z
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,smoke,owners_list,functional_api,Succeeded,,,,False,2026-05-17T12:26:18Z
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,smoke,pets_list,functional_api,Succeeded,,,,False,2026-05-17T12:26:18Z
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,smoke,pettypes,functional_api,Succeeded,,,,False,2026-05-17T12:26:18Z
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,regression,run_log_clean,isolation_probe,Succeeded,,,,True,2026-05-17T12:26:18Z
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,regression,healthz,infra,Succeeded,,,,False,2026-05-17T12:26:18Z
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,regression,vets_list,functional_api,Succeeded,,,,False,2026-05-17T12:26:18Z
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,regression,owners_list,functional_api,Succeeded,,,,False,2026-05-17T12:26:18Z
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,regression,owner_create,functional_api,Succeeded,,,,False,2026-05-17T12:26:18Z
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,regression,owner_fetch,functional_api,Succeeded,,,,False,2026-05-17T12:26:18Z
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,regression,owner_update,functional_api,Failed,,,update failed,False,2026-05-17T12:26:18Z
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,regression,owner_delete,functional_api,Succeeded,,,,False,2026-05-17T12:26:18Z
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,regression,pet_count_matches_seed,baseline_count,Succeeded,,,,True,2026-05-17T12:26:18Z
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,regression,pettypes,functional_api,Succeeded,,,,False,2026-05-17T12:26:18Z
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,regression,specialties,functional_api,Succeeded,,,,False,2026-05-17T12:26:18Z
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,e2e,run_log_clean,isolation_probe,Succeeded,,,,True,2026-05-17T12:26:18Z
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,e2e,entity_count_matches_seed,baseline_count,Succeeded,,,,True,2026-05-17T12:26:18Z
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,e2e,healthz,infra,Succeeded,,,,False,2026-05-17T12:26:18Z
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,e2e,vets_list,functional_api,Succeeded,,,,False,2026-05-17T12:26:18Z
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,e2e,owners_list,functional_api,Succeeded,,,,False,2026-05-17T12:26:18Z
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,e2e,e2e_create_owner,functional_api,Succeeded,,,,False,2026-05-17T12:26:18Z
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,e2e,e2e_create_pet,functional_api,Failed,2xx,400,status N,False,2026-05-17T12:26:18Z
+idempotence,s5-petclinic,idem-1e20650d,idem-1e20650d,True,,e2e,e2e_pet_fetch,functional_api,Failed,,,no pet created,False,2026-05-17T12:26:18Z

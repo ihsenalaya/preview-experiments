@@ -1,0 +1,4 @@
+run_id,experiment,subject_id,preview_name,isolation_enabled,suite,test_name,outcome,db_rows_before,db_rows_after,timestamp_utc
+bug_detection-s1-flask-catalog-mutant1-static-f794ef,bug_detection,s1-flask-catalog,bd-0e66c279,true,smoke,mutant_1_static,Succeeded,,,2026-05-16T17:25:32.218268+00:00
+bug_detection-s1-flask-catalog-mutant1-static-f794ef,bug_detection,s1-flask-catalog,bd-0e66c279,true,regression,mutant_1_static,Succeeded,,,2026-05-16T17:25:32.218311+00:00
+bug_detection-s1-flask-catalog-mutant1-static-f794ef,bug_detection,s1-flask-catalog,bd-0e66c279,true,e2e,mutant_1_static,Succeeded,,,2026-05-16T17:25:32.218316+00:00

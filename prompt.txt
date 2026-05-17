@@ -1,0 +1,414 @@
+Tu travailles dans le dépôt preview-experiments / preview-operator.
+
+Objectif :
+Préparer le dépôt pour une étude empirique TSE-ready sur checkpoint-based database state isolation dans des Kubernetes preview environments, en conservant RQ5 sur l’idempotence/convergence de l’opérateur après redémarrage.
+
+IMPORTANT :
+- Ne lance AUCUNE expérience.
+- Ne fabrique AUCUNE donnée.
+- Ne supprime AUCUN CSV.
+- Ne modifie pas la logique de checkpoint/restore sauf si explicitement demandé.
+- Ne modifie pas la logique métier des applications sujet.
+- Les changements doivent être minimaux, réversibles et documentés.
+- Commence par explorer le dépôt et produire un plan détaillé AVANT toute modification.
+- Attends validation avant d’appliquer les changements.
+- Tout chiffre du papier doit être régénérable depuis des CSV figés, jamais depuis un tracker live.
+
+PHASE 0 — Audit initial obligatoire
+1. Explorer le dépôt.
+2. Identifier les dossiers de résultats existants.
+3. Identifier les CSV final / obsolete / diagnostic / partial.
+4. Identifier les scripts d’analyse existants.
+5. Identifier les tests S1-S5 et leurs assertions.
+6. Identifier où sont générés les résultats suite-level.
+7. Identifier le code RQ5 / idempotence :
+   - kill steps disponibles
+   - méthode de redémarrage de l’opérateur
+   - métriques actuellement enregistrées
+   - risques de concurrence avec les autres expériences
+8. Produire un plan de modification AVANT toute modification avec :
+   - fichiers à modifier
+   - fichiers à créer
+   - risques
+   - critères d’acceptation
+   - ordre recommandé des commits
+
+PHASE 1 — Figeage des données
+Créer scripts/consolidate_results.py.
+
+Le script doit :
+- scanner results/
+- exclure les fichiers contenant OBSOLETE ou marqués obsolete
+- ne jamais lire EXPERIMENT_METRICS.md ou un tracker live
+- produire results_frozen/
+- produire results_frozen/MANIFEST.json
+- produire results_frozen/excluded_datasets.csv
+- calculer pour chaque fichier :
+  - chemin source
+  - chemin figé
+  - SHA-256
+  - nombre de lignes
+  - expérience/RQ
+  - sujets couverts
+  - conditions présentes
+  - date/timestamp si disponible
+  - statut : final, obsolete, diagnostic, partial, excluded
+  - raison d’exclusion si applicable
+- signaler les incohérences :
+  - condition iso manquante
+  - sujet manquant pour une expérience
+  - K déclaré différent des previews observées
+  - CSV partiel
+  - colonnes manquantes
+  - doublons de run_id
+  - mélange de versions d’image sujet dans un même dataset si détectable
+
+Ne supprime aucun CSV original.
+
+PHASE 2 — Assertion-level outcomes
+Ajouter un fichier assertion_outcomes_<timestamp>.csv sans casser les CSV existants.
+
+Colonnes minimales :
+experiment_id,
+subject_id,
+run_id,
+preview_name,
+isolation_enabled,
+strategy,
+suite_name,
+assertion_id,
+assertion_category,
+outcome,
+expected,
+observed,
+normalized_failure_signature,
+is_isolation_sensitive,
+ts.
+
+Catégories autorisées :
+isolation_probe,
+baseline_count,
+functional_api,
+auth_permission,
+schema_validation,
+infra,
+timeout,
+unknown.
+
+Contraintes :
+- Ne pas masquer les échecs.
+- Enregistrer toutes les assertions, y compris celles qui passent.
+- Conserver les CSV suite-level existants pour rétrocompatibilité.
+- Ajouter une documentation expliquant la différence entre suite-level outcome et assertion-level outcome.
+
+PHASE 3 — DB-state restore verification
+Ajouter un collecteur read-only de métriques DB, de préférence hors logique métier de l’opérateur.
+
+Créer db_state_metrics_<timestamp>.csv.
+
+Colonnes :
+run_id,
+subject_id,
+preview_name,
+isolation_enabled,
+step,
+schema_name,
+table_name,
+row_count,
+content_hash,
+excluded_columns,
+snapshot_hash_global,
+ts.
+
+Étapes minimales :
+post_migration,
+post_checkpoint,
+post_smoke,
+pre_restore_regression,
+post_restore_regression,
+post_regression,
+pre_restore_e2e,
+post_restore_e2e,
+post_e2e.
+
+Critères de vérification :
+post_checkpoint snapshot_hash_global == post_restore_regression snapshot_hash_global
+post_checkpoint snapshot_hash_global == post_restore_e2e snapshot_hash_global
+
+Contraintes :
+- Le collecteur doit être read-only.
+- Ne pas modifier les données applicatives.
+- Si une colonne volatile empêche le hashing stable, la documenter explicitement dans excluded_columns.
+- Le hash doit être déterministe : ordre stable des tables, ordre stable des lignes, sérialisation stable.
+- Si la clé primaire n’est pas identifiable, utiliser un tri déterministe de toutes les colonnes non exclues.
+
+PHASE 4 — Corrections harness S2/S4/S5
+Localiser les assertions défectueuses connues :
+- S2 : baseline codée en dur incompatible avec état post-install/post-seed.
+- S4 : endpoint nécessitant autorisation ou query params absents.
+- S5 : payload invalide / statut HTTP attendu incorrect / smoke qui échoue dès l’état migré.
+
+Pour chaque sujet :
+- expliquer le symptôme
+- expliquer la cause racine
+- proposer une correction minimale
+- appliquer la correction uniquement si elle est clairement justifiée
+- documenter dans HARNESS_FIXES.md :
+  - symptôme
+  - cause racine
+  - correction appliquée
+  - pourquoi la correction ne masque pas un échec d’isolation
+  - impact attendu
+  - fichiers modifiés
+
+Contraintes :
+- Ne pas supprimer une assertion sans justification.
+- Préférer les baselines runtime aux constantes codées en dur.
+- Ne pas transformer un vrai bug applicatif en succès artificiel.
+- Si une correction est ambiguë, la signaler et ne pas deviner.
+
+PHASE 5 — RQ2 K-consistency
+Créer analysis/check_k_consistency.py.
+
+Le script produit :
+analysis/output/k_consistency_report.txt
+analysis/output/k_consistency_report.csv
+
+Il doit signaler :
+subject_id,
+batch_id,
+isolation_enabled,
+declared_K,
+observed_previews,
+missing_previews,
+completion_rate,
+incomplete_batch,
+suspected_infra_pressure,
+notes.
+
+Contraintes :
+- Ne pas supprimer les batches incomplets automatiquement.
+- Marquer explicitement les batches K=8 incomplets.
+- Générer un warning utilisable dans l’article :
+  “Declared K differs from observed previews for batch X.”
+
+PHASE 6 — Analyse reproductible principale
+Créer analysis/build_all.py qui lit uniquement results_frozen/.
+
+Sorties :
+analysis/output/tables/*.md
+analysis/output/tables/*.tex
+analysis/output/figures/*.pdf
+analysis/output/figures/*.png
+analysis/output/MANIFEST_ANALYSIS.json
+analysis/output/warnings.txt
+
+Analyses obligatoires :
+
+RQ1 Reliability :
+- failure rate par sujet / suite / condition
+- Wilson ou Clopper-Pearson confidence intervals
+- risk difference en percentage points
+- Fisher exact test
+- odds ratio avec correction Haldane si nécessaire
+- effect label
+- séparation suite-level vs assertion-level
+
+Assertion-level decomposition :
+- nombre d’assertions par catégorie
+- taux d’échec par catégorie
+- isolation-sensitive assertions
+- baseline-invalid assertions
+- functional assertions
+- infra-related failures
+- table “suite-level failure vs root-cause category”
+
+DB-state verification :
+- row-count match par table
+- content-hash match par table
+- snapshot_hash_global match
+- dirty_state_detected
+- restore_verified
+- table par sujet et par restore step
+
+RQ2 Concurrency :
+- failure rate par sujet / K / condition
+- observed_previews vs declared_K
+- completion_rate
+- exclusion ou flag des batches incomplets
+- Fisher exact test si données complètes
+- commentaire automatique si K=8 incomplet
+
+RQ3 Performance :
+- mean, median, SD, IQR, p95
+- checkpoint_total
+- save_time
+- restore_time
+- pipeline_duration
+- Mann-Whitney U
+- Vargha-Delaney A12
+- Cliff’s delta
+- comparaison no isolation vs checkpoint_restore
+- si migration_reset existe : comparaison mesurée
+- sinon : marquer migration_reset comme theoretical/derived, pas measured
+
+RQ4 Mutation :
+- mutation score par seed condition
+- killed / survived / invalid mutants
+- confidence intervals
+- pairwise McNemar
+- gestion explicite du cas n01=n10=0
+- matrice de concordance mutants × seed condition
+- minimum detectable effect / power analysis
+- ne pas interpréter les sujets dont les mutants ne sont pas alignés avec le SUT
+
+RQ5 Idempotence and convergence :
+- lire uniquement les CSV RQ5 figés
+- calculer par sujet et kill_step :
+  - total restarts
+  - succeeded restarts
+  - failed restarts
+  - convergence_time_sec mean / median / p95
+  - operator_unavailable_sec
+  - webhook_unavailable_sec si disponible
+  - duplicate_job_count
+  - lost_status_count
+  - orphaned_resource_count
+  - final_state_consistent
+  - pipeline_succeeded_after_restart
+- produire une table :
+  subject_id, kill_step, repetitions, success_rate, median_convergence_time, p95_convergence_time, duplicate_job_count, lost_status_count, verdict
+- si les métriques nécessaires sont absentes, produire un warning explicite :
+  “RQ5 cannot support confirmatory claims because convergence metrics are missing.”
+- ne jamais mélanger RQ5 avec les runs RQ1/RQ2/RQ3.
+
+PHASE 7 — Protection RQ5 obligatoire
+Conserver RQ5, mais ajouter une garde empêchant toute exécution parallèle.
+
+Implémenter un mécanisme de lock global, par exemple :
+.experiment_lock
+ou un fichier équivalent dans le dossier runtime/logs.
+
+Règles :
+- Si RQ5 démarre alors qu’une autre expérience tourne : fail fast.
+- Si une autre expérience démarre pendant RQ5 : fail fast.
+- Le message d’erreur doit expliquer :
+  “RQ5 restarts the preview operator and cannot run concurrently with other experiments.”
+- Documenter cette contrainte dans README et REPRODUCE.md.
+- Ajouter une option explicite :
+  --force-rq5-alone
+  ou équivalent si le harness utilise des arguments CLI.
+- Ne pas lancer RQ5 automatiquement dans une chaîne parallèle.
+
+PHASE 8 — RQ5 instrumentation
+Améliorer l’instrumentation RQ5 sans modifier la logique métier.
+
+Créer ou enrichir idempotence_outcomes_<timestamp>.csv.
+
+Colonnes minimales :
+experiment_id,
+subject_id,
+run_id,
+restart_number,
+kill_step,
+preview_name,
+operator_pod_before,
+operator_deleted_at,
+operator_ready_at,
+operator_unavailable_sec,
+webhook_unavailable_sec,
+preview_phase_before_restart,
+preview_phase_after_restart,
+reconcile_resume_at,
+pipeline_completed_at,
+convergence_time_sec,
+duplicate_job_count,
+duplicate_configmap_count,
+lost_status_count,
+orphaned_resource_count,
+final_state_consistent,
+pipeline_status,
+failure_reason,
+ts.
+
+Kill steps recommandés :
+post_migration,
+post_checkpoint_save,
+post_smoke,
+post_restore_regression,
+post_regression,
+post_restore_e2e.
+
+Critères d’acceptation RQ5 :
+- chaque sujet a le même nombre de kill_steps
+- chaque kill_step a le même nombre de répétitions
+- chaque run indique final_state_consistent
+- chaque run indique duplicate_job_count et lost_status_count
+- convergence_time_sec est non nul et calculable
+- les échecs sont conservés, pas masqués
+
+PHASE 9 — Documentation artifact
+Créer ou mettre à jour :
+- REPRODUCE.md
+- HARNESS_FIXES.md
+- DATASET_POLICY.md
+- RQ5_IDEMPOTENCE.md
+- README artifact section
+
+REPRODUCE.md doit contenir :
+- comment consolider les résultats
+- comment régénérer toutes les tables
+- comment régénérer toutes les figures
+- comment vérifier les hashes
+- comment lancer RQ5 seul si nécessaire
+- pourquoi RQ5 ne doit jamais tourner avec les autres expériences
+
+DATASET_POLICY.md doit expliquer :
+- final
+- obsolete
+- diagnostic
+- partial
+- excluded
+
+RQ5_IDEMPOTENCE.md doit expliquer :
+- objectif de RQ5
+- pourquoi elle est séparée
+- kill_steps
+- métriques
+- critères de succès
+- risques expérimentaux
+- comment interpréter les résultats
+
+PHASE 10 — Ne pas réécrire l’article automatiquement
+Ne modifie pas l’article scientifique principal dans cette tâche.
+
+À la place, produire :
+- analysis/output/paper_claims.md
+- analysis/output/paper_limitations.md
+- analysis/output/tse_readiness_checklist.md
+
+paper_claims.md doit classer les claims en :
+confirmed,
+preliminary,
+diagnostic,
+null_result,
+not_interpretable.
+
+tse_readiness_checklist.md doit indiquer :
+- ce qui est prêt
+- ce qui manque
+- ce qui bloque TSE
+- ce qui peut être soumis à un workshop/short paper
+- ce qui doit être rerun
+
+CRITÈRES D’ACCEPTATION GLOBAUX
+1. Aucun chiffre du papier ne dépend d’un tracker live.
+2. Tous les tableaux sont régénérables depuis results_frozen/.
+3. Tous les CSV utilisés sont listés dans MANIFEST.json.
+4. Les outcomes assertion-level existent pour tous les sujets corrigés.
+5. Les restores sont vérifiés par hash/row-count quand les DB credentials sont disponibles.
+6. Les batches K incomplets sont signalés.
+7. RQ5 est conservé mais protégé contre toute exécution parallèle.
+8. RQ5 produit des métriques de convergence exploitables.
+9. Les corrections harness sont documentées dans HARNESS_FIXES.md.
+10. Les claims sont classés selon le niveau de preuve.

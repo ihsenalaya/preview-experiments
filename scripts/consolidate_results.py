@@ -360,14 +360,14 @@ def main() -> int:
     parser.add_argument("--results-dir", type=Path, default=None,
                         help="Override results/ location (default: <root>/results)")
     parser.add_argument("--out", type=Path, default=None,
-                        help="Output frozen dir (default: <root>/results_frozen)")
+                        help="Output frozen dir (default: <root>/results/frozen)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Report only, do not copy or write anything")
     args = parser.parse_args()
 
     root: Path = args.root.resolve()
     results_dir: Path = (args.results_dir or root / "results").resolve()
-    out_dir: Path = (args.out or root / "results_frozen").resolve()
+    out_dir: Path = (args.out or root / "results" / "frozen").resolve()
 
     if not results_dir.is_dir():
         print(f"[FATAL] results dir not found: {results_dir}", file=sys.stderr)
@@ -388,9 +388,11 @@ def main() -> int:
     records: list[CSVRecord] = []
 
     # Walk the results tree (one level for top-level CSVs + per-subject subfolders).
+    # Skip sub-directories that contain generated/processed data, not raw experiment CSVs.
+    SKIP_DIRS = {"logs", "frozen", "analysis"}
     for path in sorted(results_dir.rglob("*.csv")):
-        # Skip anything under results/logs/ (those are textual logs, not data CSVs)
-        if any(p == "logs" for p in path.relative_to(results_dir).parts):
+        rel_parts = path.relative_to(results_dir).parts
+        if any(p in SKIP_DIRS for p in rel_parts):
             continue
 
         experiment_fn, schema_fn, ts_fn, marker = parse_filename(path)

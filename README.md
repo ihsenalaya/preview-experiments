@@ -510,7 +510,7 @@ EXP_EXPERIMENTS_PERFORMANCE_N_RUNS=5 python3 exp_performance/run.py
 | `results/performance_run_metrics_<ts>.csv` | `exp_performance/run.py` |
 | `results/bug_detection_test_outcomes_<ts>.csv` | `exp_bug_detection/run.py` |
 | `results/idempotence_run_metrics_<ts>.csv` | `exp_idempotence/run.py` |
-| `analysis/figures/*.pdf` | `analysis/0*.py` |
+| `results/analysis/figures/*.pdf` | `analysis/0*.py` |
 | `anonymized-submission.tar.gz` | `scripts/anonymize.sh` |
 
 CSV schemas are in `harness/schemas/`.
@@ -568,7 +568,7 @@ Archive the following for every reported run:
 - `setup/versions.lock.yaml` — cluster and container versions
 - `analysis/requirements.txt` — Python dependencies
 - `results/*.csv` — raw outputs
-- `analysis/figures/*.pdf` — generated figures
+- `results/analysis/figures/*.pdf` — generated figures
 - `exp_bug_detection/fault-catalog.yaml` — mutant catalog (RQ4)
 - `CITATION.cff`
 
@@ -580,11 +580,11 @@ This repository ships a complete artifact for reproducing every number/table/fig
 in the paper from frozen CSVs, without cluster access. Pipeline:
 
 ```
-results/  ──▶  scripts/consolidate_results.py  ──▶  results_frozen/
+results/  ──▶  scripts/consolidate_results.py  ──▶  results/frozen/
                                                   │   ├── MANIFEST.json (SHA-256)
                                                   │   └── excluded_datasets.csv
                                                   ▼
-                  analysis/build_all.py  ──▶  analysis/output/
+                  analysis/build_all.py  ──▶  results/analysis/
                                               ├── tables/*.{md,tex}
                                               ├── figures/*.{pdf,png}
                                               ├── MANIFEST_ANALYSIS.json
@@ -595,7 +595,7 @@ results/  ──▶  scripts/consolidate_results.py  ──▶  results_frozen/
 
 ```bash
 pip install -r analysis/requirements.txt
-python3 scripts/consolidate_results.py    # freeze raw → results_frozen/
+python3 scripts/consolidate_results.py    # freeze raw → results/frozen/
 python3 analysis/check_k_consistency.py   # RQ2 K-batch completeness audit
 python3 analysis/build_all.py             # 50+ paper outputs (tables + figures)
 ```
@@ -611,9 +611,9 @@ python3 analysis/build_all.py             # 50+ paper outputs (tables + figures)
 | [`RQ5_IDEMPOTENCE.md`](RQ5_IDEMPOTENCE.md) | RQ5 protocol, current metrics, TSE-confirmatory gaps |
 | [`PHASE2_ASSERTION_LEVEL.md`](PHASE2_ASSERTION_LEVEL.md) | per-assertion outcome collector + categories |
 | [`PHASE7_RQ5_LOCK.md`](PHASE7_RQ5_LOCK.md) | RQ5 lock mechanism preventing parallel execution |
-| `analysis/output/paper_claims.md` | every paper claim classified by evidence level |
-| `analysis/output/paper_limitations.md` | L1-L10 limitations + mitigation paths |
-| `analysis/output/tse_readiness_checklist.md` | A-K checklist of TSE-required items |
+| `results/analysis/paper_claims.md` | every paper claim classified by evidence level |
+| `results/analysis/paper_limitations.md` | L1-L10 limitations + mitigation paths |
+| `results/analysis/tse_readiness_checklist.md` | A-K checklist of TSE-required items |
 
 ### RQ5 must run alone
 
@@ -634,7 +634,7 @@ See `PHASE7_RQ5_LOCK.md` for integration recipe.
 ### Live tracker vs frozen data
 
 `EXPERIMENT_METRICS.md` is a **work-in-progress journal**, not a citable source.
-The paper must cite `results_frozen/MANIFEST.json` and `analysis/output/MANIFEST_ANALYSIS.json`
+The paper must cite `results/frozen/MANIFEST.json` and `results/analysis/MANIFEST_ANALYSIS.json`
 for every number. `consolidate_results.py` enforces this by refusing to read
 `EXPERIMENT_METRICS.md`, `AUDIT.md`, or `CLAUDE.md`.
 

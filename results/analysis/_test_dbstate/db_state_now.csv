@@ -1,0 +1,2 @@
+run_id,subject_id,preview_name,isolation_enabled,step,schema_name,table_name,row_count,content_hash,excluded_columns,snapshot_hash_global,ts
+test-now,s5-petclinic,idem-e9ec6717,True,post_smoke,*,*,0,,,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,2026-05-17T13:10:20Z
