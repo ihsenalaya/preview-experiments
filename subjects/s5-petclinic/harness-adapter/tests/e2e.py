@@ -62,19 +62,24 @@ r_owner = requests.post(BASE + "/api/owners",
                         timeout=10)
 t("e2e_create_owner", lambda: (r_owner.status_code in (200, 201), f"status {r_owner.status_code}"))
 
-owner_id = r_owner.json().get("id") if r_owner.status_code == 201 else None
+# Owner created with status 200 or 201 (both valid); capture id from response body
+owner_id = r_owner.json().get("id") if r_owner.status_code in (200, 201) else None
 
 pettypes = requests.get(BASE + "/api/pettypes", timeout=10).json()
 pettype_id = (pettypes[0] if isinstance(pettypes, list) else {}).get("id", 1)
 
 if owner_id:
-    r_pet = requests.post(BASE + "/api/pets",
+    # Spring PetClinic REST 3.4.x expects nested "type"/"owner" objects, not
+    # flat "typeId"/"ownerId". Sending both formats; Spring ignores unknowns.
+    r_pet = requests.post(BASE + f"/api/owners/{owner_id}/pets",
                           json={"name": "e2epet", "birthDate": "2024-01-01",
+                                "type": {"id": pettype_id},
+                                "owner": {"id": owner_id},
                                 "typeId": pettype_id, "ownerId": owner_id},
                           timeout=10)
     t("e2e_create_pet", lambda: (r_pet.status_code in (200, 201), f"status {r_pet.status_code}"))
 
-    pet_id = r_pet.json().get("id") if r_pet.status_code == 201 else None
+    pet_id = r_pet.json().get("id") if r_pet.status_code in (200, 201) else None
     if pet_id:
         t("e2e_pet_fetch", lambda: (
             requests.get(BASE + f"/api/pets/{pet_id}", timeout=10).status_code == 200, "not 200"

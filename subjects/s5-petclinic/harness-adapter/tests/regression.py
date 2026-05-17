@@ -54,15 +54,16 @@ if owner_id:
     t("owner_fetch",  lambda: (
         requests.get(BASE + f"/api/owners/{owner_id}", timeout=10).status_code == 200, "not 200"
     ))
-    # Spring PetClinic REST returns 200 or 204 depending on minor version;
-    # accept both since the probe checks that the operation succeeds, not the
-    # exact REST style. Same rationale as the S4 endpoint accommodation.
+    # Spring PetClinic REST returns 200 or 204 depending on minor version.
+    # lastName must match @Pattern("[a-zA-Z]*") — no dashes/digits allowed
+    # (the dash in "Owner-Updated" was the cause of fix5's 0/18 idempotence).
+    r_upd = requests.put(BASE + f"/api/owners/{owner_id}",
+                 json={"id": owner_id, "firstName": "Exp", "lastName": "OwnerUpdated",
+                       "address": "123 Harness St", "city": "Testville", "telephone": "5550000001"},
+                 timeout=10)
     t("owner_update", lambda: (
-        requests.put(BASE + f"/api/owners/{owner_id}",
-                     json={"id": owner_id, "firstName": "Exp", "lastName": "Owner-Updated",
-                           "address": "123 Harness St", "city": "Testville", "telephone": "5550000001"},
-                     timeout=10).status_code in (200, 204),
-        "update failed"
+        r_upd.status_code in (200, 204),
+        f"status {r_upd.status_code}"
     ))
     t("owner_delete", lambda: (
         requests.delete(BASE + f"/api/owners/{owner_id}", timeout=10).status_code in (200, 204),
