@@ -78,8 +78,11 @@ TARGET_RUNS = {
 }
 
 FILENAME_RE = re.compile(
-    r"^(?P<experiment>[a-z_]+)_(?P<schema>run_metrics|test_outcomes|resource_usage)_"
-    r"(?P<timestamp>\d{8}T\d{6}Z)(?P<marker>(?:\.[A-Z][A-Za-z0-9_]*)*)\.csv$"
+    r"^(?P<experiment>[a-z_]+)_(?P<schema>run_metrics|test_outcomes|"
+    r"assertion_outcomes|resource_usage|db_state_metrics)_"
+    r"(?P<timestamp>\d{8}T\d{6}Z)"
+    r"(?:_mode-(?P<mode>[a-z]+))?"            # PHASE B baseline tag
+    r"(?P<marker>(?:\.[A-Z][A-Za-z0-9_]*)*)\.csv$"
 )
 
 # Filename markers that signal exclusion (case-insensitive substring match)
@@ -111,6 +114,10 @@ class CSVRecord:
     header_columns: list[str]
     n_succeeded: int = 0
     n_failed: int = 0
+    # PHASE B (RQ3 baseline) — "restore" (default) or "migration". CSVs with
+    # different modes are kept separately during multi-candidate selection so
+    # the baseline doesn't supersede the contribution mode (or vice versa).
+    mode: str = "restore"
     status: str = "candidate-final"
     reason: str = ""
     frozen_path: str | None = None
@@ -132,12 +139,21 @@ def sha256_of(path: Path, chunk: int = 1 << 16) -> str:
     return h.hexdigest()
 
 
-def parse_filename(path: Path) -> tuple[str | None, str | None, str | None, str | None]:
-    """Return (experiment, schema, timestamp, marker_text). All None if unparseable."""
+def parse_filename(path: Path) -> tuple[str | None, str | None, str | None, str, str | None]:
+    """Return (experiment, schema, timestamp, mode, marker_text). All None / defaults if unparseable.
+
+    mode is "restore" by default, or the value parsed from the _mode-<X> suffix.
+    """
     m = FILENAME_RE.match(path.name)
     if not m:
-        return (None, None, None, None)
-    return (m.group("experiment"), m.group("schema"), m.group("timestamp"), m.group("marker") or "")
+        return (None, None, None, "restore", None)
+    return (
+        m.group("experiment"),
+        m.group("schema"),
+        m.group("timestamp"),
+        m.group("mode") or "restore",
+        m.group("marker") or "",
+    )
 
 
 def read_header_and_iter(path: Path) -> tuple[list[str], Iterable[dict]]:
@@ -317,11 +333,13 @@ def select_finals(records: list[CSVRecord]) -> None:
             )
 
     # Second pass: group remaining candidate-finals by (experiment, subject_id).
-    by_scope: dict[tuple[str, str], list[CSVRecord]] = defaultdict(list)
+    # PHASE B: group by (experiment, subject, MODE) so the baseline (migration)
+    # and the contribution (restore) keep one final each instead of competing.
+    by_scope: dict[tuple[str, str, str], list[CSVRecord]] = defaultdict(list)
     for r in records:
         if r.status != "candidate-final":
             continue
-        scope_key = (r.experiment, r.subject_id_from_path or f"_orphan_{r.src}")
+        scope_key = (r.experiment, r.subject_id_from_path or f"_orphan_{r.src}", r.mode)
         by_scope[scope_key].append(r)
 
     def quality_key(r: CSVRecord) -> tuple:
@@ -395,7 +413,7 @@ def main() -> int:
         if any(p in SKIP_DIRS for p in rel_parts):
             continue
 
-        experiment_fn, schema_fn, ts_fn, marker = parse_filename(path)
+        experiment_fn, schema_fn, ts_fn, mode_fn, marker = parse_filename(path)
         subject_from_path = None
         try:
             rel = path.relative_to(results_dir)
@@ -437,6 +455,7 @@ def main() -> int:
             header_columns=content["header"],
             n_succeeded=content["n_succeeded"],
             n_failed=content["n_failed"],
+            mode=mode_fn,
         )
         if content["duplicate_run_ids"]:
             rec.warnings.append(

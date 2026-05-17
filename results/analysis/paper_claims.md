@@ -79,10 +79,20 @@ Classifications utilisées :
 
 | Champ | Valeur |
 |---|---|
-| Status | **preliminary** (migration reset chiffre est *théorique* dérivé de la mesure `postgres-migrate`) |
-| Évidence | checkpoint_total mesuré = 14.6s ; migration_reset estimé = 2 × postgres_migrate (18.8s) = 37.6s |
-| Caveat | aucune implémentation parallèle d'un operator "migration reset" n'a été mesurée. À reporter comme "theoretical comparison" pas "measured baseline". |
-| Comment durcir | implémenter un baseline operator (migration_reset) et mesurer sur le même cluster — ~2 jours dev + ~1h cluster |
+| Status (théorique) | **preliminary** — migration_reset = 2 × postgres-migrate (18.8 s) = 37.6 s, dérivé de la mesure de la migration initiale uniquement |
+| Status (mesuré, après PHASE B) | **confirmed** dès que `performance_*_mode-migration_*.csv` apparaît dans `results/frozen/` (voir warning emitted by `analysis/build_all.py` analyze_baseline_comparison) |
+| Évidence théorique | checkpoint_total mesuré = 14.6 s ; migration_reset estimé = 2 × postgres-migrate (18.8 s) = 37.6 s |
+| Évidence mesurée (PHASE B) | operator :1.0.45 expose `spec.database.isolationMode ∈ {restore, migration}`. Re-runs RQ1+RQ3 avec `CHECKPOINT_MODE=migration` produisent les CSVs `*_mode-migration*`. `analyze_baseline_comparison` calcule speedup per-subject + MWU + Vargha-Delaney Â₁₂. |
+| Output paper-ready | `results/analysis/tables/rq3_baseline_comparison.{md,tex}` + `results/analysis/figures/rq3_baseline_comparison.{pdf,png}` |
+| Caveat | en attendant les data baseline, claim reste "preliminary (theoretical comparison)". Une fois les data collectées, mettre à jour Status à "confirmed (measured 2.X×–2.Y× across 5 stacks)". |
+
+### claim-3.3 (PHASE B): "Both checkpoint and migration modes produce Δ=−100 pp flakiness reduction — checkpoint is preferred for cost, not for correctness."
+
+| Champ | Valeur |
+|---|---|
+| Status | **preliminary** (en attente data PHASE B) |
+| Évidence attendue | RQ1 baseline `flakiness_test_outcomes_*_mode-migration*.csv` doit montrer Δ=−100 pp identique au mode restore (la mécanique baseline résout aussi 100% des inter-suite contaminations, juste plus lentement) |
+| Pourquoi cette claim | désamorce le reviewer "vous dites checkpoint est mieux, mais en correctness c'est pareil ou différent ?" Réponse : pareil en correctness, meilleur en coût |
 
 ---
 

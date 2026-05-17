@@ -1,5 +1,6 @@
 """Write experiment results to per-subject timestamped CSV files."""
 import csv
+import os
 import pathlib
 from datetime import datetime, timezone
 
@@ -54,7 +55,12 @@ def _subject_dir(subject_id: str) -> pathlib.Path:
 
 def _open_csv(schema_name: str, experiment: str, subject_id: str):
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    path = _subject_dir(subject_id) / f"{experiment}_{schema_name}_{ts}.csv"
+    # PHASE B (RQ3 baseline) — when running with CHECKPOINT_MODE!=restore,
+    # tag the CSV filename with _mode-<X> so consolidate_results.py can group
+    # baseline runs separately from default runs.
+    mode = os.environ.get("CHECKPOINT_MODE", "restore")
+    suffix = f"_mode-{mode}" if mode != "restore" else ""
+    path = _subject_dir(subject_id) / f"{experiment}_{schema_name}_{ts}{suffix}.csv"
     f = open(path, "w", newline="")
     writer = csv.DictWriter(f, fieldnames=_SCHEMAS[schema_name], extrasaction="ignore")
     writer.writeheader()

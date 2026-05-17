@@ -631,6 +631,28 @@ python3 harness/experiment_lock.py clear
 
 See `PHASE7_RQ5_LOCK.md` for integration recipe.
 
+### RQ3 baseline mode (`CHECKPOINT_MODE=migration`)
+
+PHASE B (paper claim-3.2 ICSE/FSE Q1 hardening) adds a measured comparison
+to the `migration_reset` baseline. The preview-operator 1.0.45 exposes
+`spec.database.isolationMode ∈ {restore, migration}`. The harness sets this
+field from the `CHECKPOINT_MODE` env var:
+
+```bash
+# Default mode (current contribution): pg_dump + psql restore (~14.6 s/cycle)
+SUBJECT=s1-flask-catalog EXPERIMENT=performance python3 -u _run_one_subject.py
+
+# Baseline mode: DROP SCHEMA + replay migration (~37.6 s/cycle expected)
+CHECKPOINT_MODE=migration SUBJECT=s1-flask-catalog EXPERIMENT=performance \
+  python3 -u _run_one_subject.py
+```
+
+CSVs from baseline runs are tagged with `_mode-migration` in the filename so
+`consolidate_results.py` and `build_all.py` group them separately. The
+`analyze_baseline_comparison` function in `build_all.py` produces
+`results/analysis/tables/rq3_baseline_comparison.{md,tex}` + figure when
+both modes have data.
+
 ### Live tracker vs frozen data
 
 `EXPERIMENT_METRICS.md` is a **work-in-progress journal**, not a citable source.

@@ -1,5 +1,6 @@
 """Create, wait for, and delete Preview CRs for experiments."""
 import json
+import os
 import subprocess
 import time
 import uuid
@@ -83,6 +84,11 @@ def create(
                 "enabled": True,
                 "version": "15",
                 "isolationEnabled": isolation_enabled,
+                # PHASE B (RQ3 baseline) — operator picks isolation mechanism
+                # from spec.database.isolationMode. Defaults to "restore"
+                # (pg_dump+psql restore, current behavior). Set CHECKPOINT_MODE
+                # env var to "migration" to use the migration-replay baseline.
+                "isolationMode": os.environ.get("CHECKPOINT_MODE", "restore"),
                 "migration": {
                     "enabled": True,
                     "command": migration_cmd,
