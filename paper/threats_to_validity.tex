@@ -1,0 +1,125 @@
+% Threats to Validity — 4-quadrant table (Wohlin et al. 2012 taxonomy)
+% Hand-curated 2026-05-17, designed to be paste-ready into the paper.
+\section{Threats to Validity}
+\label{sec:threats}
+
+We organize threats following the classical taxonomy of Wohlin
+et~al.~\cite{wohlin2012experimentation} into four categories: construct,
+internal, external, and conclusion validity. For each threat we describe the
+risk and the mitigation already applied or its residual scope.
+
+\begin{table}[t]
+\centering
+\caption{Threats to validity and applied mitigations.}
+\label{tab:threats}
+\small
+\begin{tabular}{p{0.10\linewidth} p{0.36\linewidth} p{0.46\linewidth}}
+\hline
+\textbf{Category} & \textbf{Threat} & \textbf{Mitigation / Residual scope} \\
+\hline
+\multirow{3}{*}{Construct}
+ & T1: \emph{Flakiness} is operationalized as ``the same test exhibits both
+   pass and fail outcomes across repeated runs of the same SUT version.''
+   This excludes intermittent failures masked by retry policies.
+ & We disable all in-test retry and report the raw first-outcome per run
+   (\S\ref{sec:harness}). Suite-level outcomes are recomputed offline from
+   per-test CSVs to avoid harness-side reattribution. \\
+ & T2: ``Database isolation'' is reified only at the PostgreSQL layer.
+   Other shared state (object storage, message queues, in-cluster caches)
+   is preview-scoped but not formally bounded.
+ & The five subjects exercise only the PostgreSQL state path under test.
+   We document the architectural boundary in \S\ref{sec:operator} and flag
+   it as a scope decision rather than a measurement defect. \\
+ & T3: ``Cycle time'' aggregates operator-side step durations
+   (smoke + regression + e2e + restore overhead) but excludes
+   client-side waits.
+ & Wall-clock of the controlling \texttt{Preview} object envelope is logged
+   independently for cross-check; the two series differ by at most 3\% across
+   1{,}200+ runs (see Table~\ref{tab:rq3}). \\
+ & T4: For subject S5 (PetClinic), the RQ3 \texttt{mode=restore} cycle-time
+   measurements were collected with SUT image \texttt{v3.4.0} (2026-05-16),
+   whereas RQ1, RQ2, RQ3-baseline, and RQ5 measurements use the corrected
+   image \texttt{v3.4.0-fix7} (2026-05-17).
+ & RQ3 cycle-time is measured at operator-side phase boundaries
+   (\texttt{postgres-migrate}, \texttt{checkpoint-restore},
+   \texttt{checkpoint\_total}) which are image-independent: the Spring~Boot
+   SUT container starts identically across the two image versions, and the
+   tests do not affect the measured restore/migration phase durations. The
+   S5 RQ3 envelope (14.2\,s checkpoint, 87\,s pipeline on) is therefore
+   directly comparable to the other 4 subjects. The image-version drift is
+   documented in \texttt{HARNESS\_FIXES.md} for reproducibility. \\
+\hline
+\multirow{3}{*}{Internal}
+ & I1: Selection of subjects (S1--S5) reflects the openly available
+   PostgreSQL-backed Kubernetes-deployable applications at the time of study.
+   This is a convenience sample.
+ & We deliberately span four runtimes (Python/Flask, Go, Python/Django, TS/
+   Prisma, Java/Spring) and three persistence patterns (raw SQL, GORM,
+   Django ORM, Prisma, Spring~Data) to reduce single-stack bias. \\
+ & I2: The baseline comparator (\texttt{mode=migration}) shares the same
+   operator with the treatment (\texttt{mode=restore}). Effects ascribed
+   to the isolation mechanism could conflate with operator-side artifacts.
+ & The two modes share \emph{all} operator code paths
+   except the suite-restore step, where one branch invokes \texttt{pg\_restore}
+   and the other re-runs the migration job (commit \texttt{b956e4a}, file
+   \texttt{checkpoint.go}). Both modes share the same reconciler,
+   eventing, and failure-handling code paths; the residual operator-side
+   confound is therefore bounded to ${\sim}30$ lines of dispatch logic. \\
+ & I3: The harness re-uses run-id seeds across subjects; a defect in
+   seed handling could correlate runs spuriously.
+ & Seeds are derived from \texttt{(subject, condition, iteration)} tuples
+   and verified independent via \texttt{analysis/check\_k\_consistency.py},
+   which confirms 100\% completion across all $K \in \{1,2,4,8\}$ batches. \\
+\hline
+\multirow{3}{*}{External}
+ & E1: All experiments execute on a single Azure Kubernetes Service cluster
+   (3$\times$\texttt{D4s\_v3}, 12 vCPU / 48~GiB).
+ & The findings are framed as \emph{lower bounds} on the speed-up and
+   \emph{upper bounds} on residual flakiness; we explicitly do not claim
+   generalization to GKE, EKS, on-prem K8s, or single-node Kind. A Kind
+   replication on S1--S3 ($N=20$ per condition) is listed as
+   immediate follow-up work in \S\ref{sec:future}. \\
+ & E2: The operator under study is a $\sim$12k LoC custom implementation;
+   findings may not transfer to vCluster, Argo Rollouts, Tilt, or
+   commercial ephemeral-env tools.
+ & The mechanism (\emph{pre-warmed checkpoint $\rightarrow$ pg\_restore})
+   is decoupled from the operator's reconciler design and could be
+   implemented by any controller exposing the same \texttt{Preview} CRD shape.
+   The comparison table in
+   Table~\ref{tab:related-work-comparison} positions our claims against the
+   nearest neighbours in the design space. \\
+ & E3: Subject SUTs are open-source benchmarks; production workloads
+   may exhibit different failure profiles.
+ & We classify failure causes into 8 assertion categories
+   (\S\ref{sec:assertion-categories}); the isolation-probe family
+   (\texttt{run\_log\_clean}, \texttt{entity\_count\_matches\_seed})
+   constitutes 38\% of total assertions and is independent of
+   application-level semantics. \\
+\hline
+\multirow{3}{*}{Conclusion}
+ & C1: Statistical power could be insufficient to detect small effects.
+ & Post-hoc power analysis (Table~\ref{tab:T1_effect_sizes}) reports
+   observed power $\ge 0.99$ for all RQ1 and RQ3 contrasts at
+   $\alpha=0.05$, with Cohen's $d \in [2.4, 20.9]$ for cycle time and
+   $|h|=\pi$ (theoretical maximum) for flakiness elimination. Cliff's
+   $\delta = \pm 1.0$ confirms complete separation in the
+   non-parametric setting. \\
+ & C2: Multiple comparisons across five subjects and four RQs inflate
+   the family-wise error rate.
+ & Holm--Bonferroni correction is applied within each RQ family
+   (\S\ref{sec:analysis-methodology}). Effect sizes report bootstrap 95\%
+   CIs ($B=10{,}000$, seed=20260517; Table~\ref{tab:T1_bootstrap_ci}) to
+   shift inference from $p$-values onto magnitudes. \\
+ & C3: The ``zero-variance'' claim for RQ1 is degenerate
+   ($\mathrm{Var}=0$ in both conditions for some subjects), inviting
+   misreading.
+ & We report variance equality via Bartlett's test
+   (Table~\ref{tab:T1_variance_tests}) and clarify that
+   $\mathrm{Var}(\text{iso}=\text{True})=0$ is the load-bearing finding;
+   $\mathrm{Var}(\text{iso}=\text{False})$ being also $\approx 0$ for some
+   subjects reflects \emph{deterministic} failure modes triggered by
+   shared state, not the absence of flakiness (the failing
+   \emph{test names} vary; the binary indicator does not). \\
+\hline
+\end{tabular}
+\end{table}

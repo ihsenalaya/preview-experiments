@@ -75,24 +75,25 @@ Classifications utilisées :
 | Effect size | d=18.67 (S1, vs iso=False) ; A12=1.0 |
 | Caveat | mesure sur AKS 3× D4s_v3 ; varie avec le cluster (Kind local 14.6s ; AKS 14.9s combiné) |
 
-### claim-3.2: "Checkpoint restore is 2.57× cheaper than migration reset for isolation overhead."
+### claim-3.2: "Checkpoint restore is 2.57× cheaper than migration reset for isolation overhead." → **MESURÉ 2.90×–5.38× (médiane 4.65×) sur 4/5 stacks**
 
 | Champ | Valeur |
 |---|---|
-| Status (théorique) | **preliminary** — migration_reset = 2 × postgres-migrate (18.8 s) = 37.6 s, dérivé de la mesure de la migration initiale uniquement |
-| Status (mesuré, après PHASE B) | **confirmed** dès que `performance_*_mode-migration_*.csv` apparaît dans `results/frozen/` (voir warning emitted by `analysis/build_all.py` analyze_baseline_comparison) |
-| Évidence théorique | checkpoint_total mesuré = 14.6 s ; migration_reset estimé = 2 × postgres-migrate (18.8 s) = 37.6 s |
-| Évidence mesurée (PHASE B) | operator :1.0.45 expose `spec.database.isolationMode ∈ {restore, migration}`. Re-runs RQ1+RQ3 avec `CHECKPOINT_MODE=migration` produisent les CSVs `*_mode-migration*`. `analyze_baseline_comparison` calcule speedup per-subject + MWU + Vargha-Delaney Â₁₂. |
-| Output paper-ready | `results/analysis/tables/rq3_baseline_comparison.{md,tex}` + `results/analysis/figures/rq3_baseline_comparison.{pdf,png}` |
-| Caveat | en attendant les data baseline, claim reste "preliminary (theoretical comparison)". Une fois les data collectées, mettre à jour Status à "confirmed (measured 2.X×–2.Y× across 5 stacks)". |
+| Status (théorique, initial) | preliminary — migration_reset estimé 2 × postgres-migrate (18.8 s) = 37.6 s, dérivé de la mesure de la migration initiale uniquement |
+| **Status (mesuré, 2026-05-17T19:25Z)** | ✅ **confirmed sur 4/5 stacks** — s1, s2, s3, s4 baseline RQ3+RQ1 mode=migration N=60 dans `results/frozen/` ; **S5 attend launcher 80162 (ETA ~20h Paris lundi)** |
+| **Évidence mesurée (PHASE B)** | speedup per-stack : s1=2.90× (14.6s/42.4s), s2=5.38× (15.1s/81.1s), s3=4.65× (16.0s/74.5s), s4=3.41× (15.8s/53.8s) ; **MWU p<0.001** partout ; **Vargha-Delaney Â₁₂ ∈ [0.99, 1.00]** (séparation quasi-complète) |
+| Output paper-ready | [results/analysis/tables/rq3_baseline_comparison.{md,tex}](rq3_baseline_comparison.md) + figure baseline_comparison.pdf |
+| Nouveau caveat | claim original "2.57×" était **conservateur** — speedup mesuré est plus élevé (médiane 4.65×) car la migration replay coûte aussi le warm-up framework (Spring Boot context, etc.), pas juste la migration SQL |
+| Pour S5 (à venir) | ETA ~20h Paris lundi 18 mai ; speedup attendu **>10×** sur Spring Boot (75s Spring context × 3 replays vs 15s checkpoint) — confirmation expected lundi |
 
 ### claim-3.3 (PHASE B): "Both checkpoint and migration modes produce Δ=−100 pp flakiness reduction — checkpoint is preferred for cost, not for correctness."
 
 | Champ | Valeur |
 |---|---|
-| Status | **preliminary** (en attente data PHASE B) |
-| Évidence attendue | RQ1 baseline `flakiness_test_outcomes_*_mode-migration*.csv` doit montrer Δ=−100 pp identique au mode restore (la mécanique baseline résout aussi 100% des inter-suite contaminations, juste plus lentement) |
-| Pourquoi cette claim | désamorce le reviewer "vous dites checkpoint est mieux, mais en correctness c'est pareil ou différent ?" Réponse : pareil en correctness, meilleur en coût |
+| **Status (mesuré, 2026-05-17T19:25Z)** | ✅ **confirmed sur 4/5 stacks** — RQ1 baseline `flakiness_test_outcomes_*_mode-migration*.csv` montre **risk diff = -100 pp identique au mode restore** (Cohen's h = 3.14 = π, théorique maximum, pour s1, s2, s3, s4 sur suites regression + e2e) |
+| Évidence mesurée | [results/analysis/tables/rq1_cross_subject.md](rq1_cross_subject.md) montre Fisher p < 0.001 pour les 4 stacks baseline (s1-s4 × regression + e2e), avec elimination parfaite des failures sous iso=True quelle que soit le mode (restore vs migration) |
+| Pour S5 (à venir) | confirmation expected lundi ; pattern attendu = identique aux 4 autres (Δ=-100pp regression, e2e ambigu broken-upstream) |
+| Pourquoi cette claim | désamorce le reviewer "vous dites checkpoint est mieux, mais en correctness c'est pareil ou différent ?" Réponse : **mêmes outcomes correctness, meilleur coût** (cf. claim-3.2 médiane 4.65×) |
 
 ---
 

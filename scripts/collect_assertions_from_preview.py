@@ -78,10 +78,20 @@ def _infer_run_metadata(preview: dict) -> tuple[str, str, str, bool]:
     iso = bool(db.get("isolationEnabled", True))
     sid_path = ""
     image = spec.get("image") or ""
-    # The image tag often encodes the subject (e.g. s4-umami-adapter)
-    for sub in ("s1-flask-catalog", "s2-listmonk", "s3-healthchecks", "s4-umami", "s5-petclinic"):
-        if sub in image or sub in spec.get("subject", {}).get("image", ""):
-            sid_path = sub
+    # The image tag often encodes the subject (e.g. s4-umami-adapter).
+    # Extended aliases handle non-canonical image tags (e.g. S1 uses
+    # "idp-preview" instead of "s1-flask-catalog").
+    subject_image = spec.get("subject", {}).get("image", "") if isinstance(
+        spec.get("subject"), dict) else ""
+    for canonical, aliases in (
+        ("s1-flask-catalog", ("s1-flask-catalog", "idp-preview", "flask-catalog")),
+        ("s2-listmonk",      ("s2-listmonk", "listmonk-adapter", "listmonk")),
+        ("s3-healthchecks",  ("s3-healthchecks", "healthchecks-adapter", "healthchecks")),
+        ("s4-umami",         ("s4-umami", "umami-adapter")),
+        ("s5-petclinic",     ("s5-petclinic", "petclinic-adapter", "petclinic")),
+    ):
+        if any(a in image or a in subject_image for a in aliases):
+            sid_path = canonical
             break
     # run_id derivable from prefix of name
     prefix = name.split("-", 1)[0] if "-" in name else ""
@@ -165,8 +175,12 @@ def cmd_watch(args) -> int:
             iter_rows_to_csv(rows, str(out_path), append=True)
             seen.add(key)
             n_captured += len(rows)
+            try:
+                rel = out_path.relative_to(ROOT)
+            except ValueError:
+                rel = out_path
             print(f"[ok] {name}  exp={exp}  sid={sid}  iso={iso}  +{len(rows)} rows  "
-                  f"→ {out_path.relative_to(ROOT)}")
+                  f"→ {rel}")
 
         time.sleep(poll_every)
 

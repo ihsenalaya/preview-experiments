@@ -1,0 +1,14 @@
+| Subject | Metric | N (iso=T) | N (iso=F) | Mean iso=T | Mean iso=F | Effect size (d/h) | Cliff's δ | Observed power (α=0.05) |
+|---|---|---|---|---|---|---|---|---|
+| s1-flask-catalog | RQ1-flakiness | 30 | 30 | 0.0 | 1.0 | -3.1416 | -1.0 | 1.0 |
+| s2-listmonk | RQ1-flakiness | 30 | 30 | 0.0 | 1.0 | -3.1416 | -1.0 | 1.0 |
+| s3-healthchecks | RQ1-flakiness | 30 | 30 | 0.0 | 1.0 | -3.1416 | -1.0 | 1.0 |
+| s4-umami | RQ1-flakiness | 30 | 30 | 0.0 | 1.0 | -3.1416 | -1.0 | 1.0 |
+| s5-petclinic | RQ1-flakiness | 30 | 30 | 1.0 | 1.0 | 0.0 | 0.0 | 0.05 |
+| s1-flask-catalog | RQ3-cycle-time | 30 | 30 | 72.3 | 23.2 | 20.933 | 1.0 | 1.0 |
+| s2-listmonk | RQ3-cycle-time | 30 | 30 | 73.93 | 44.83 | 6.3763 | 1.0 | 1.0 |
+| s3-healthchecks | RQ3-cycle-time | 30 | 30 | 88.83 | 46.23 | 2.4385 | 0.9333 | 1.0 |
+| s4-umami | RQ3-cycle-time | 30 | 30 | 66.67 | 24.93 | 1.5339 | 0.9333 | 1.0 |
+| s5-petclinic | RQ3-cycle-time | 30 | 30 | 115.9 | 85.63 | 5.178 | 1.0 | 1.0 |
+
+*Post-hoc effect sizes and observed power for RQ1 (flakiness, Cohen's h) and RQ3 (cycle-time, Cohen's d). Cliff's delta is the rank-based non-parametric alternative; observed power is computed via normal approximation at alpha=0.05.*

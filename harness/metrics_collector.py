@@ -125,12 +125,26 @@ def count_db_rows(namespace: str, db_secret: str = "postgres-secret") -> Optiona
         "metadata": {"name": pod_name, "namespace": namespace},
         "spec": {
             "restartPolicy": "Never",
+            "securityContext": {
+                "runAsNonRoot": True,
+                "runAsUser": 70,
+                "seccompProfile": {"type": "RuntimeDefault"},
+            },
             "containers": [{
                 "name": "count",
                 "image": "postgres:15-alpine",
                 "command": ["sh", "-c", f'psql -h postgres -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c "{query}"'],
                 "envFrom": [{"secretRef": {"name": db_secret}}],
                 "env": [{"name": "PGPASSWORD", "valueFrom": {"secretKeyRef": {"name": db_secret, "key": "POSTGRES_PASSWORD"}}}],
+                "resources": {
+                    "requests": {"cpu": "50m",  "memory": "64Mi"},
+                    "limits":   {"cpu": "200m", "memory": "128Mi"},
+                },
+                "securityContext": {
+                    "allowPrivilegeEscalation": False,
+                    "runAsNonRoot": True,
+                    "capabilities": {"drop": ["ALL"]},
+                },
             }],
         },
     })

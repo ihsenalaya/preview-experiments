@@ -1,0 +1,19 @@
+\begin{table}[t]
+\centering
+\caption{Per-(subject, isolation-sensitive category) risk difference. 'iso eliminates' means iso=True drops to 0% failure while iso=False is >50%, i.e. the checkpoint mechanism fully resolves the assertion class.}
+\label{tab:T1_assertion_per_category_risk_diff}
+\begin{tabular}{llllllll}
+\hline
+Subject & Category & Failed/N (iso=T) & Failed/N (iso=F) & Rate iso=T & Rate iso=F & Risk diff (T-F) & Verdict \\
+\hline
+s1-flask-catalog & isolation\_probe & 0/2 & 40/40 & 0.0 & 1.0 & -1.0 & ✓ iso eliminates \\
+s1-flask-catalog & baseline\_count & 0/1 & 20/20 & 0.0 & 1.0 & -1.0 & ✓ iso eliminates \\
+s2-listmonk & isolation\_probe & 0/60 & 48/48 & 0.0 & 1.0 & -1.0 & ✓ iso eliminates \\
+s2-listmonk & baseline\_count & 0/60 & 0/48 & 0.0 & 0.0 & 0.0 &  \\
+s3-healthchecks & isolation\_probe & 0/30 & 44/44 & 0.0 & 1.0 & -1.0 & ✓ iso eliminates \\
+s3-healthchecks & baseline\_count & 0/30 & 0/44 & 0.0 & 0.0 & 0.0 &  \\
+s5-petclinic & isolation\_probe & 0/26 & 46/46 & 0.0 & 1.0 & -1.0 & ✓ iso eliminates \\
+s5-petclinic & baseline\_count & 0/26 & 0/46 & 0.0 & 0.0 & 0.0 &  \\
+\hline
+\end{tabular}
+\end{table}

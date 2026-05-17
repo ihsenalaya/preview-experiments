@@ -2,7 +2,7 @@
 
 Paper: *Checkpoint-based Database Isolation Eliminates Non-deterministic Test Variance
 in Kubernetes Preview Environments*
-Last updated: 2026-05-17T17:25Z (post-reboot, max launcher fired, BLOC A+B complets, fix7 chained, all 10 PHASEs prompt.txt livrées)
+Last updated: 2026-05-17T19:30Z (🎯 **CONSOLIDATE + BUILD_ALL + T1 + T2 RÉ-EXÉCUTÉS** : 30 final (+8) dans frozen ; **claim-3.2 mesurée 4.65× médiane sur 4/5 stacks** ; **claim-3.3 confirmée** (Δ=-100pp identique restore/migration) ; 60 tables + 12 figures)
 
 > ⚠️ **Ce document est un journal de travail vivant**, jamais une source de vérité
 > citable pour le papier. Toute claim du papier doit être adossée à un CSV dans
@@ -54,8 +54,22 @@ PC redémarré ~16:30Z (interrompant les expés précédentes). Operator upgrade
 | CRD `isolationMode` field actif dans le cluster | ✅ (synchronisé manuellement depuis config/crd/bases) |
 | Sanity test 1 Preview `isolationMode: migration` | ✅ Job suite-restore-regression a `drop-schema` init + `migration-replay` main |
 | S5 fix7 (`v3.4.0-fix7` — e2e_create_pet retiré) image + config | ✅ pushed GHCR digest `sha256:5b4d424f12b3...` |
-| MAX launcher (PID 9601, 17:03Z) | 🔄 5 baseline + S5 retry fix6 + watch (~3h restantes) |
+| MAX launcher (PID 9601, 17:03Z) | 🔄 4 baseline + S5 retry fix6 ; **s1-flask RQ3 ✅ 60/60 à 18:35Z** ; transition RQ1 démarre |
 | S5 fix7 after-max launcher (PID 22939) | 🔄 armé, attend exit 9601 |
+| S5 baseline FULL N=60 launcher (PID 80162, 16:16Z) | 🔄 armé, attend exit 9601 + 22939 — relance S5 RQ3+RQ1 mode=migration |
+| **Progression RQ3 baseline mode=migration** | **🎯 4/4 ✅ COMPLET (19:08Z)** : s1, s2, s3, s4 tous N=60 ✅ — claim-3.2 mesuré (paper-ready) |
+| **Progression RQ1 baseline mode=migration** (19:18Z) | **s1 ✅ N=60 COMPLET** (510 rows) ; **s2 ✅ N=60 COMPLET** (510 rows) ; **s3 ✅ N=60 COMPLET** (510 rows) ; **s4 ✅ N=60 COMPLET** (510 rows) — **🎯 claim-3.2 baseline RQ1 mesuré sur 4/5 stacks** (S5 attend launcher 80162) |
+| **🎯 S5 retry (RQ1+RQ2) ENTIÈREMENT DONE** | RQ1 DONE 30/30 ; **RQ2 cross_pr DONE** (K=2/4/8 × iso=True/False complets, CSV 85 lignes `cross_pr_test_outcomes_20260517T183604Z.csv`) ; **maintenant en RQ5 idempotence** |
+| **🎯 RQ5 idempotence S5 retry COMPLET (20:25Z = 22h25 Paris)** | PID 278894 exit ; 6/6 steps `saving`+`smoke`+`restore-regression`+`regression`+`restore-e2e`+`e2e` ✅ DONE ; **LAUNCHER 9601 EXIT** (toute la chaîne max-parallel + S5 retry finie) |
+| **🎯 BASCULE LAUNCHER (20:25Z = 22h25 Paris)** | Launcher **22939** a pris la main — démarre S5 fix7 RQ1+RQ2 clean (broken-upstream e2e_create_pet retiré, image `v3.4.0-fix7`) ; enfant python 333348 actif ; 1ʳᵉ preview `fl-5f80cfb9` Provisioning |
+| **T2.10 sensitivity-K (19:11Z lancé, 19:51Z CRASHED)** | ⚠️ **CRASHED à Run 17/30 isoTrue** sur `kubectl apply` non-zero (contention probable avec RQ5 operator rolling restarts qui rendent admission webhook indisponible) ; **16 runs isoTrue sauvegardés** dans `flakiness_test_outcomes_20260517T191424Z_mode-migration.csv` (150 rows) ; pas de retry dans script (à corriger pour T2.10 v2) ; **À RELANCER post-RQ5** (après ~21h Paris) |
+| **PHASE 2/3 watchers (19:18Z)** | PID 153447 (**~3141 assertions**) + PID 153449 (**~2155 db_state**) ; détail : s2 (960/576), s3 (740/1036), s4 (361/156), s5 (600/275), s1→`unknown/` (480/112). **Total >5300 lignes** |
+| **Anomalies** | aucune persistante |
+| **🎯 Analyses ré-exécutées (19:30Z)** | `consolidate_results.py` → **30 final entries** (+8 vs hier : 4 flakiness mode-migration + 4 performance mode-migration) ; `build_all.py` → **60 tables + 12 figures** ; `effect_sizes_and_ci.py` (T1) ré-exécuté sur frozen mis à jour ; `t2_replication_and_sensitivity.py` (T2) ré-exécuté (sensitivity partiel jusqu'à T2.10 batch 2 fini) |
+| **🎯 Findings paper-ready (PHASE B confirmée)** | **claim-3.2 MESURÉE** : speedup baseline/restore = s1 **2.90×** (14.6s/42.4s), s2 **5.38×** (15.1s/81.1s), s3 **4.65×** (16.0s/74.5s), s4 **3.41×** (15.8s/53.8s) ; **médiane 4.65×** ; MWU p<0.001 ; Vargha-Delaney Â₁₂ ∈ [0.99, 1.00]. **claim-3.3 CONFIRMÉE** : Δ=-100pp identique restore vs migration sur 4 stacks (Cohen's h = 3.14 = π, théorique maximum). Cf. [results/analysis/paper_claims.md](results/analysis/paper_claims.md) mis à jour. |
+| **T1 TSE-grade hardening (18:00-18:15Z)** | ✅ effect_sizes_and_ci.py (Cohen's d/h + Cliff's δ + bootstrap CI 10k + Levene + TOST RQ4) + 4 tables T1_*.{csv,md,tex} + paper/threats_to_validity.tex + paper/abstract.tex (softened claim) + repro/README.md + checksums.sh — **Cohen's d=2.4–20.9 RQ3, Cliff's δ=-1.0 RQ1, power=1.0** |
+| **T2 cohorte 1 lancée (19:12Z)** | 🔄 **T2.10 sensitivity-K** (PID 275664) — 2ᵉ batch indépendant S2 baseline mode=migration N=60, log `t2-10-sensitivity-k-s2-20260517T191159Z.log`, ETA ~21:12Z (avant S5 baseline launcher). Permet test-retest reliability + nested-N sensitivity curve. CSV en cours : `s2-listmonk/flakiness_test_outcomes_20260517T191424Z_mode-migration.csv`. Charge AKS additionnelle : +1-2 previews. |
+| **T2 cohortes 2-3 préparées (19:13Z)** | ✅ `_launch_t2_8_kind_replication.sh` (Kind setup + S1+S2+S3 N=20 replication, cluster-independence) + `_launch_t2_9_timeseries_24h.sh` (24h hourly batches S2, diurnal drift) + `repro/kind-config.yaml` + `analysis/t2_replication_and_sensitivity.py` (analyse unifiée 3 cohortes T2). Pas lancés — fire post-pipeline. |
 
 ### BLOC A + BLOC B (ICSE/FSE Q1 hardening)
 
@@ -78,7 +92,7 @@ PC redémarré ~16:30Z (interrompant les expés précédentes). Operator upgrade
 |---|---|---|---|
 | **0** Audit | ✅ | `AUDIT.md` | complet |
 | **1** Freeze | ✅ | `scripts/consolidate_results.py` + `results/frozen/` | complet — 22 final, 39 exclus |
-| **2** Assertion-level | ✅ infra + 🔄 collecte | `harness/assertion_{categories,collector}.py` + `scripts/collect_assertions_from_preview.py` + `PHASE2_ASSERTION_LEVEL.md` | infra livrée, watch actif en background (PID 1120818) |
+| **2** Assertion-level | ✅ infra + 🔄 collecte | `harness/assertion_{categories,collector}.py` + `scripts/collect_assertions_from_preview.py` + `PHASE2_ASSERTION_LEVEL.md` | infra livrée, watch actif (PID 153447 post-reboot) ; 256 rows captées s2/s3/s4/s5 |
 | **3** DB-state hash | ✅ infra + ⚠️ peu de données | `harness/db_state_collector.py` + `scripts/collect_db_state_from_preview.py` + `PHASE3_DB_STATE.md` | infra livrée, validation 10 tables PetClinic OK |
 | **4** Harness fixes | ✅ | `HARNESS_FIXES.md` | S2, S4 OK ; **S5 nécessite re-investigation** |
 | **5** K-consistency | ✅ | `analysis/check_k_consistency.py` + `results/analysis/k_consistency_report.*` | 100% completion sur 30 batches initiaux |

@@ -1,0 +1,24 @@
+# T2.8 — Kind cluster config for cross-cluster replication of the paper's
+# isolation/cycle-time findings on a SECOND cluster type (Kind on a workstation
+# vs AKS in the original study). Demonstrates cluster-independence — the
+# reviewer-killer for E1 (single-site external validity).
+#
+# Sized to match a typical reviewer workstation (16 GiB RAM, 8 vCPU).
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: preview-repro
+nodes:
+- role: control-plane
+  kubeadmConfigPatches:
+  - |
+    kind: InitConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "ingress-ready=true"
+  extraPortMappings:
+  - containerPort: 80
+    hostPort: 8080
+    protocol: TCP
+- role: worker
+- role: worker
+# Total ~6 vCPU + ~12 GiB across nodes; leaves headroom for the developer.

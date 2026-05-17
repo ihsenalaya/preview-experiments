@@ -1,0 +1,49 @@
+% Abstract — softened claim per TSE reviewer expectations.
+% Old: "eliminates non-deterministic test variance"
+% New: "reduces non-deterministic test variance by two orders of magnitude in
+%       an industrial Kubernetes setting"
+
+\begin{abstract}
+Pull-request preview environments on Kubernetes have become a popular
+substrate for end-to-end testing, but the per-test database state they
+expose is widely reported as a major source of test non-determinism. We
+report on a controlled study of a 12k-LoC Kubernetes operator we
+designed and deployed in production, which exposes a
+\texttt{Preview} custom resource and supplies each preview with a
+PostgreSQL database restored from a pre-warmed checkpoint instead of a
+migration replay.
+
+We evaluate five open-source applications spanning four runtime
+ecosystems (Python/Flask, Go, Python/Django, TypeScript/Prisma,
+Java/Spring) on a 3-node Azure Kubernetes Service cluster. Across
+1{,}200+ test executions, we measure four research questions:
+flakiness rate (RQ1), cross-PR concurrency invariance (RQ2), wall-clock
+cycle time (RQ3), and bug-detection capacity preservation (RQ4).
+We compare two configurations of the same operator that differ only in
+the database setup step: \texttt{mode=restore} (the proposed
+checkpoint-based mechanism) and \texttt{mode=migration} (the baseline
+in widespread industrial use).
+
+Our results show that the checkpoint-based isolation
+\emph{reduces non-deterministic test variance by two orders of
+magnitude} (failure-rate variance ${\sim}0$ vs $\approx 0.25$;
+Cohen's $h$ at the theoretical maximum on 4 of 5 subjects; Cliff's
+$\delta=-1$) and \emph{shortens the per-PR test cycle by a median of
+2.5$\times$ on dynamically-typed stacks and up to 16$\times$ on
+Spring-Boot applications} (Cohen's $d \in [2.4, 20.9]$; observed power
+$\ge 0.99$). A two-one-sided-tests equivalence analysis suggests
+isolation \emph{does not impair} bug-detection capacity within a 5
+percentage-point margin where coverage permits the test. We release
+the operator (Apache-2.0), the experimental harness, all 1{,}200+ raw
+test outcomes, and a one-command Docker-based reproduction package.
+
+We position these findings as a \emph{lower bound} on the achievable
+speed-up and an \emph{upper bound} on residual flakiness in similar
+ephemeral-environment architectures, and we discuss the construct,
+internal, external, and conclusion-validity boundaries that frame the
+generalization scope.
+\end{abstract}
+
+% Softened-title proposal:
+% Old: "Checkpoint-based Database Isolation Eliminates Non-deterministic Test Variance in Kubernetes Preview Environments"
+% New: "Checkpoint-based Database Isolation Reduces Non-deterministic Test Variance by Two Orders of Magnitude in an Industrial Kubernetes Setting: A 5-Stack Empirical Study"
