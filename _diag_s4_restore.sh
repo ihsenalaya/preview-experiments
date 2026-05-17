@@ -15,21 +15,34 @@ PREVIEW_NAME="s4diag-${TS,,}"
 
 # 1. Create a fresh S4 preview with isolation enabled
 cat <<YAML | kubectl apply -f -
-apiVersion: platform.preview.ihsenalaya.io/v1alpha1
+apiVersion: platform.company.io/v1alpha1
 kind: Preview
 metadata:
   name: ${PREVIEW_NAME}
-  namespace: default
 spec:
+  branch: main
   prNumber: 9999
-  app:
-    image: ghcr.io/ihsenalaya/idp-preview:exp-20260514-e2efix-2089
-  subject:
-    image: ghcr.io/ihsenalaya/s4-umami-adapter:v2.15.1-fix
-  probe:
-    image: ghcr.io/ihsenalaya/harness-probe:cached
-  isolationEnabled: true
-  size: medium
+  resourceTier: medium
+  ttl: 1h
+  image: ghcr.io/ihsenalaya/s4-umami-adapter:v2.15.1-fix
+  database:
+    enabled: true
+    isolationEnabled: true
+    version: "15"
+  services:
+    - name: backend
+      image: ghcr.io/ihsenalaya/s4-umami-adapter:v2.15.1-fix
+      pathPrefix: /
+      port: 3000
+    - name: probe
+      image: ghcr.io/ihsenalaya/harness-probe:cached
+      pathPrefix: /probe
+      port: 9090
+  testSuite:
+    enabled: true
+    smoke: { enabled: true }
+    regression: { enabled: true }
+    e2e: { enabled: true }
 YAML
 
 echo "[$(date -u +%FT%TZ)] Preview ${PREVIEW_NAME} créé"
