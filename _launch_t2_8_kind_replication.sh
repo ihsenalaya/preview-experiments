@@ -57,14 +57,14 @@ helm install cert-manager jetstack/cert-manager \
 kubectl -n cert-manager rollout status deployment/cert-manager --timeout=120s
 kubectl -n cert-manager rollout status deployment/cert-manager-webhook --timeout=120s
 
-# Step 3 — ingress-nginx (no Istio on Kind ; disable admissionWebhooks for self-signed Kind certs)
-echo "[$(date -u +%FT%TZ)] installing ingress-nginx (Kind: admission webhook off)"
-helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
-  --namespace ingress-nginx \
-  --create-namespace \
-  --set controller.admissionWebhooks.enabled=false \
-  --wait --timeout 5m || { echo "[fatal] ingress-nginx install failed"; exit 1; }
-kubectl -n ingress-nginx rollout status deployment/ingress-nginx-controller --timeout=120s
+# Step 3 — ingress-nginx SKIPPED for T2.8.
+# T2.8 experiments only inspect Preview.status and run kubectl exec — no HTTP
+# browser access needed. The operator creates Ingress resources but no traffic
+# flows. Installing ingress-nginx on plain Kind hangs because its LoadBalancer
+# service stays Pending without MetalLB, and --wait times out at 5 min.
+# Adding MetalLB to the Kind config would add 2-3 min of setup with no
+# scientific value for the replication study.
+echo "[$(date -u +%FT%TZ)] ingress-nginx install SKIPPED (not required for experiments)"
 
 # Step 4 — Install preview-operator
 # OP_CHART can be overridden via env var (e.g. OP_CHART=$HOME/preview-operator/...
