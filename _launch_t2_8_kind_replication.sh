@@ -35,15 +35,42 @@ done
 AKS_CTX=$(kubectl config current-context 2>/dev/null || echo "")
 echo "[$(date -u +%FT%TZ)] AKS context preserved: $AKS_CTX"
 
-# Create Kind cluster
+# Step 0 — Helm repos (per idp-preview README §3.0)
+echo "[$(date -u +%FT%TZ)] adding helm repos (cert-manager + ingress-nginx)"
+helm repo add jetstack       https://charts.jetstack.io >/dev/null 2>&1 || true
+helm repo add ingress-nginx  https://kubernetes.github.io/ingress-nginx >/dev/null 2>&1 || true
+helm repo update >/dev/null
+
+# Step 1 — Create Kind cluster (already documented in README §3.1 Option B)
 echo "[$(date -u +%FT%TZ)] creating Kind cluster (config: repro/kind-config.yaml)"
 kind create cluster --config repro/kind-config.yaml || exit 1
 kubectl config use-context kind-preview-repro
 
-# Install operator (assumes preview-operator chart in sibling repo)
+# Step 2 — cert-manager (operator's webhook cert requires it)
+echo "[$(date -u +%FT%TZ)] installing cert-manager v1.20.2"
+helm install cert-manager jetstack/cert-manager \
+  --namespace cert-manager \
+  --create-namespace \
+  --version v1.20.2 \
+  --set crds.enabled=true \
+  --wait --timeout 5m || { echo "[fatal] cert-manager install failed"; exit 1; }
+kubectl -n cert-manager rollout status deployment/cert-manager --timeout=120s
+kubectl -n cert-manager rollout status deployment/cert-manager-webhook --timeout=120s
+
+# Step 3 — ingress-nginx (no Istio on Kind ; disable admissionWebhooks for self-signed Kind certs)
+echo "[$(date -u +%FT%TZ)] installing ingress-nginx (Kind: admission webhook off)"
+helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+  --namespace ingress-nginx \
+  --create-namespace \
+  --set controller.admissionWebhooks.enabled=false \
+  --wait --timeout 5m || { echo "[fatal] ingress-nginx install failed"; exit 1; }
+kubectl -n ingress-nginx rollout status deployment/ingress-nginx-controller --timeout=120s
+
+# Step 4 — Install preview-operator
 # OP_CHART can be overridden via env var (e.g. OP_CHART=$HOME/preview-operator/...
 # on the VM where the path differs from the PC's WSL mount).
 OP_CHART="${OP_CHART:-/mnt/c/Users/Ihsen/Documents/kubebuilder/preview/preview-operator/charts/preview-operator}"
+echo "[$(date -u +%FT%TZ)] installing preview-operator from $OP_CHART"
 helm install preview-operator "$OP_CHART" \
   --set image.tag=v1.0.45 \
   --create-namespace --namespace preview-operator-system \
