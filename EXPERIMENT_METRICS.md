@@ -2,7 +2,7 @@
 
 Paper: *Checkpoint-based Database Isolation Eliminates Non-deterministic Test Variance
 in Kubernetes Preview Environments*
-Last updated: 2026-05-17T19:30Z (🎯 **CONSOLIDATE + BUILD_ALL + T1 + T2 RÉ-EXÉCUTÉS** : 30 final (+8) dans frozen ; **claim-3.2 mesurée 4.65× médiane sur 4/5 stacks** ; **claim-3.3 confirmée** (Δ=-100pp identique restore/migration) ; 60 tables + 12 figures)
+Last updated: 2026-05-18T02:25Z = 04h25 Paris lundi (🎯 **22939 EXIT** = S5 fix7 RQ1+RQ2 DONE clean ; **80162 STARTED** = S5 baseline mode=migration RQ3 démarré ; **T2.10 A S3 + B S4 N=60 COMPLETS** ; ⚠️ T2.10 v3 S2 died à 17/30 — relaunch en cours via AUTO-PERM 2)
 
 > ⚠️ **Ce document est un journal de travail vivant**, jamais une source de vérité
 > citable pour le papier. Toute claim du papier doit être adossée à un CSV dans

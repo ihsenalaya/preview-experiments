@@ -1,13 +1,13 @@
 {
-  "generated_at_utc": "2026-05-17T20:22:50Z",
+  "generated_at_utc": "2026-05-17T23:58:41Z",
   "consolidate_version": "1.0.0",
   "results_dir": "results",
   "frozen_dir": "results/frozen",
-  "total_csvs_scanned": 89,
+  "total_csvs_scanned": 103,
   "by_status": {
-    "excluded": 17,
-    "partial": 14,
-    "obsolete": 27,
+    "excluded": 25,
+    "partial": 15,
+    "obsolete": 32,
     "final": 31
   },
   "entries": [
@@ -769,15 +769,15 @@
       ]
     },
     {
-      "src": "results/s3-healthchecks/flakiness_test_outcomes_20260517T170714Z_mode-migration.csv",
-      "sha256": "3feee109b20e20f242fb6522009a36fb15834e6741813eabc9b6c42dd193050a",
+      "src": "results/s3-healthchecks/flakiness_test_outcomes_20260517T212354Z_mode-migration.csv",
+      "sha256": "c0c4bc627cfa1bd84494eb77fe4e03202b605911557a478a8a446bcdb1732c1d",
       "size_bytes": 74648,
       "line_count": 511,
       "data_row_count": 510,
       "experiment": "flakiness",
       "schema": "test_outcomes",
       "rq": "RQ1",
-      "timestamp": "20260517T170714Z",
+      "timestamp": "20260517T212354Z",
       "subject_id_from_path": "s3-healthchecks",
       "subjects_observed": [
         "s3-healthchecks"
@@ -807,9 +807,9 @@
       "mode": "migration",
       "status": "final",
       "reason": "",
-      "frozen_path": "s3-healthchecks/flakiness_test_outcomes_20260517T170714Z_mode-migration.csv",
+      "frozen_path": "s3-healthchecks/flakiness_test_outcomes_20260517T212354Z_mode-migration.csv",
       "warnings": [
-        "duplicate run_ids: ['flakiness-s3-healthchecks-isoTrue-000-c220fa', 'flakiness-s3-healthchecks-isoTrue-001-3925ab', 'flakiness-s3-healthchecks-isoTrue-002-d5abfa'] (60 total)"
+        "duplicate run_ids: ['flakiness-s3-healthchecks-isoTrue-000-dfa81e', 'flakiness-s3-healthchecks-isoTrue-001-f303ae', 'flakiness-s3-healthchecks-isoTrue-002-3efd3f'] (60 total)"
       ]
     },
     {
@@ -1037,15 +1037,15 @@
       ]
     },
     {
-      "src": "results/s4-umami/flakiness_test_outcomes_20260517T164216Z_mode-migration.csv",
-      "sha256": "39561c4acbe5234aab7ce60b01f008e37d973da72c17d50be63c6b91e3282cca",
+      "src": "results/s4-umami/flakiness_test_outcomes_20260517T212324Z_mode-migration.csv",
+      "sha256": "f0e5239ff6fdf84dab90373c59f93f566600f8194f668bffdff53b9e9bd2eb65",
       "size_bytes": 67508,
       "line_count": 511,
       "data_row_count": 510,
       "experiment": "flakiness",
       "schema": "test_outcomes",
       "rq": "RQ1",
-      "timestamp": "20260517T164216Z",
+      "timestamp": "20260517T212324Z",
       "subject_id_from_path": "s4-umami",
       "subjects_observed": [
         "s4-umami"
@@ -1075,9 +1075,9 @@
       "mode": "migration",
       "status": "final",
       "reason": "",
-      "frozen_path": "s4-umami/flakiness_test_outcomes_20260517T164216Z_mode-migration.csv",
+      "frozen_path": "s4-umami/flakiness_test_outcomes_20260517T212324Z_mode-migration.csv",
       "warnings": [
-        "duplicate run_ids: ['flakiness-s4-umami-isoTrue-000-9ec768', 'flakiness-s4-umami-isoTrue-001-11ab87', 'flakiness-s4-umami-isoTrue-002-0e9ab3'] (60 total)"
+        "duplicate run_ids: ['flakiness-s4-umami-isoTrue-000-e48751', 'flakiness-s4-umami-isoTrue-001-fa7eac', 'flakiness-s4-umami-isoTrue-002-d1d507'] (60 total)"
       ]
     },
     {
@@ -1213,15 +1213,15 @@
       ]
     },
     {
-      "src": "results/s5-petclinic/cross_pr_test_outcomes_20260517T183604Z.csv",
-      "sha256": "b3bf80ceaba389a02eda84beb18beeec1c43e019423f4693c954b8ec76fc4ad6",
+      "src": "results/s5-petclinic/cross_pr_test_outcomes_20260517T233925Z.csv",
+      "sha256": "0898a851bd7e83c769280f1c82a9f6858957245a0497a6537909bc791213fb14",
       "size_bytes": 13316,
       "line_count": 85,
       "data_row_count": 84,
       "experiment": "cross_pr",
       "schema": "test_outcomes",
       "rq": "RQ2",
-      "timestamp": "20260517T183604Z",
+      "timestamp": "20260517T233925Z",
       "subject_id_from_path": "s5-petclinic",
       "subjects_observed": [
         "s5-petclinic"
@@ -1255,21 +1255,21 @@
       "mode": "restore",
       "status": "final",
       "reason": "",
-      "frozen_path": "s5-petclinic/cross_pr_test_outcomes_20260517T183604Z.csv",
+      "frozen_path": "s5-petclinic/cross_pr_test_outcomes_20260517T233925Z.csv",
       "warnings": [
-        "duplicate run_ids: ['cross_pr-s5-petclinic-k2-isoTrue-1ff216bf-1-concurrent_k2', 'cross_pr-s5-petclinic-k2-isoTrue-1ff216bf-0-concurrent_k2', 'cross_pr-s5-petclinic-k4-isoTrue-7330b280-1-concurrent_k4'] (28 total)"
+        "duplicate run_ids: ['cross_pr-s5-petclinic-k2-isoTrue-8351526c-1-concurrent_k2', 'cross_pr-s5-petclinic-k2-isoTrue-8351526c-0-concurrent_k2', 'cross_pr-s5-petclinic-k4-isoTrue-8d33faab-2-concurrent_k4'] (28 total)"
       ]
     },
     {
-      "src": "results/s5-petclinic/flakiness_test_outcomes_20260517T150748Z.csv",
-      "sha256": "eb3afde9620692a300ed52bb373dc229b3babf71f7d605b3df76bb6d3ed39397",
-      "size_bytes": 71408,
+      "src": "results/s5-petclinic/flakiness_test_outcomes_20260517T202758Z.csv",
+      "sha256": "9728127bca19843a7ae5dd40461973506d1c5a8da7f5c35552a1f89cf318d60d",
+      "size_bytes": 71588,
       "line_count": 511,
       "data_row_count": 510,
       "experiment": "flakiness",
       "schema": "test_outcomes",
       "rq": "RQ1",
-      "timestamp": "20260517T150748Z",
+      "timestamp": "20260517T202758Z",
       "subject_id_from_path": "s5-petclinic",
       "subjects_observed": [
         "s5-petclinic"
@@ -1294,14 +1294,14 @@
         "db_rows_after",
         "timestamp_utc"
       ],
-      "n_succeeded": 90,
-      "n_failed": 90,
+      "n_succeeded": 120,
+      "n_failed": 60,
       "mode": "restore",
       "status": "final",
       "reason": "",
-      "frozen_path": "s5-petclinic/flakiness_test_outcomes_20260517T150748Z.csv",
+      "frozen_path": "s5-petclinic/flakiness_test_outcomes_20260517T202758Z.csv",
       "warnings": [
-        "duplicate run_ids: ['flakiness-s5-petclinic-isoTrue-000-7cf797', 'flakiness-s5-petclinic-isoTrue-001-ef64f0', 'flakiness-s5-petclinic-isoTrue-002-feb0f8'] (60 total)"
+        "duplicate run_ids: ['flakiness-s5-petclinic-isoTrue-000-5f8f4d', 'flakiness-s5-petclinic-isoTrue-001-9b4c13', 'flakiness-s5-petclinic-isoTrue-002-4c6e39'] (60 total)"
       ]
     },
     {
@@ -1554,7 +1554,13 @@
     {
       "src": "results/s2-listmonk/assertion_outcomes_20260517T173938Z.csv",
       "warnings": [
-        "duplicate run_ids: ['fl-2c403ca5', 'fl-36d46e5c', 'fl-2a1438a4'] (53 total)"
+        "duplicate run_ids: ['fl-2c403ca5', 'fl-36d46e5c', 'fl-2a1438a4'] (58 total)"
+      ]
+    },
+    {
+      "src": "results/s2-listmonk/assertion_outcomes_20260517T204650Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['fl-b4a1201c', 'fl-0fa9f264', 'fl-15392ef1'] (17 total)"
       ]
     },
     {
@@ -1578,7 +1584,13 @@
     {
       "src": "results/s2-listmonk/db_state_metrics_20260517T173938Z.csv",
       "warnings": [
-        "duplicate run_ids: ['fl-2c403ca5', 'fl-36d46e5c', 'fl-2a1438a4'] (43 total)"
+        "duplicate run_ids: ['fl-2c403ca5', 'fl-36d46e5c', 'fl-2a1438a4'] (48 total)"
+      ]
+    },
+    {
+      "src": "results/s2-listmonk/db_state_metrics_20260517T204650Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['fl-b4a1201c', 'fl-0fa9f264', 'fl-15392ef1'] (17 total)"
       ]
     },
     {
@@ -1607,6 +1619,20 @@
       ]
     },
     {
+      "src": "results/s2-listmonk/flakiness_test_outcomes_20260517T203515Z_mode-migration.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-s2-listmonk-isoTrue-000-db676b', 'flakiness-s2-listmonk-isoTrue-001-f40f95', 'flakiness-s2-listmonk-isoTrue-002-404ffe'] (3 total)",
+        "missing iso condition(s): ['False']"
+      ]
+    },
+    {
+      "src": "results/s2-listmonk/flakiness_test_outcomes_20260517T204602Z_mode-migration.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-s2-listmonk-isoTrue-000-c0d5c5', 'flakiness-s2-listmonk-isoTrue-001-c2b8da', 'flakiness-s2-listmonk-isoTrue-002-37ffa4'] (17 total)",
+        "missing iso condition(s): ['False']"
+      ]
+    },
+    {
       "src": "results/s2-listmonk/performance_run_metrics_20260516T154352Z.csv",
       "warnings": [
         "duplicate run_ids: ['performance-s2-listmonk-isoTrue-000-418108', 'performance-s2-listmonk-isoTrue-001-9165cf', 'performance-s2-listmonk-isoTrue-002-b5eb93'] (60 total)"
@@ -1622,6 +1648,12 @@
       "src": "results/s3-healthchecks/assertion_outcomes_20260517T173938Z.csv",
       "warnings": [
         "duplicate run_ids: ['fl-24509e2e', 'fl-142cb7b5', 'fl-37603b16'] (37 total)"
+      ]
+    },
+    {
+      "src": "results/s3-healthchecks/assertion_outcomes_20260517T204650Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['fl-a3cd73f5', 'fl-5778acef', 'fl-2e67e726'] (60 total)"
       ]
     },
     {
@@ -1655,6 +1687,12 @@
       ]
     },
     {
+      "src": "results/s3-healthchecks/db_state_metrics_20260517T204650Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['fl-a3cd73f5', 'fl-5778acef', 'fl-b930b8f4'] (56 total)"
+      ]
+    },
+    {
       "src": "results/s3-healthchecks/flakiness_test_outcomes_20260516T144647Z.csv",
       "warnings": [
         "duplicate run_ids: ['flakiness-s3-healthchecks-isoTrue-000-6df03c', 'flakiness-s3-healthchecks-isoTrue-001-a17f44', 'flakiness-s3-healthchecks-isoTrue-002-c7b306'] (60 total)"
@@ -1664,6 +1702,12 @@
       "src": "results/s3-healthchecks/flakiness_test_outcomes_20260517T170714Z_mode-migration.csv",
       "warnings": [
         "duplicate run_ids: ['flakiness-s3-healthchecks-isoTrue-000-c220fa', 'flakiness-s3-healthchecks-isoTrue-001-3925ab', 'flakiness-s3-healthchecks-isoTrue-002-d5abfa'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s3-healthchecks/flakiness_test_outcomes_20260517T212354Z_mode-migration.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-s3-healthchecks-isoTrue-000-dfa81e', 'flakiness-s3-healthchecks-isoTrue-001-f303ae', 'flakiness-s3-healthchecks-isoTrue-002-3efd3f'] (60 total)"
       ]
     },
     {
@@ -1691,6 +1735,12 @@
       ]
     },
     {
+      "src": "results/s4-umami/assertion_outcomes_20260517T204650Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['fl-602b06db', 'fl-2554eea4', 'fl-f65fa4a2'] (59 total)"
+      ]
+    },
+    {
       "src": "results/s4-umami/cross_pr_test_outcomes_20260515T204434Z.csv",
       "warnings": [
         "duplicate run_ids: ['cross_pr-s4-umami-k2-isoTrue-044410ad-1-concurrent_k2', 'cross_pr-s4-umami-k2-isoTrue-044410ad-0-concurrent_k2', 'cross_pr-s4-umami-k4-isoTrue-5c562775-0-concurrent_k4'] (20 total)"
@@ -1712,6 +1762,12 @@
       "src": "results/s4-umami/db_state_metrics_20260517T173938Z.csv",
       "warnings": [
         "duplicate run_ids: ['fl-d90e963b', 'fl-ffb99deb', 'fl-11973d88'] (13 total)"
+      ]
+    },
+    {
+      "src": "results/s4-umami/db_state_metrics_20260517T204650Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['fl-602b06db', 'fl-2554eea4', 'fl-ecd12796'] (49 total)"
       ]
     },
     {
@@ -1739,6 +1795,12 @@
       ]
     },
     {
+      "src": "results/s4-umami/flakiness_test_outcomes_20260517T212324Z_mode-migration.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-s4-umami-isoTrue-000-e48751', 'flakiness-s4-umami-isoTrue-001-fa7eac', 'flakiness-s4-umami-isoTrue-002-d1d507'] (60 total)"
+      ]
+    },
+    {
       "src": "results/s4-umami/performance_run_metrics_20260516T144239Z.csv",
       "warnings": [
         "duplicate run_ids: ['performance-s4-umami-isoTrue-000-fad2fc', 'performance-s4-umami-isoTrue-001-5b0e3b', 'performance-s4-umami-isoTrue-002-4ebb26'] (60 total)"
@@ -1759,7 +1821,13 @@
     {
       "src": "results/s5-petclinic/assertion_outcomes_20260517T173938Z.csv",
       "warnings": [
-        "duplicate run_ids: ['fl-bd16b6d0', 'fl-31a6079e', 'fl-a5af2dec'] (32 total)"
+        "duplicate run_ids: ['fl-bd16b6d0', 'fl-31a6079e', 'fl-a5af2dec'] (37 total)"
+      ]
+    },
+    {
+      "src": "results/s5-petclinic/assertion_outcomes_20260517T204650Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['fl-c8236a51', 'fl-76ccf213', 'fl-20c6c891'] (50 total)"
       ]
     },
     {
@@ -1775,9 +1843,21 @@
       ]
     },
     {
+      "src": "results/s5-petclinic/cross_pr_test_outcomes_20260517T233925Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['cross_pr-s5-petclinic-k2-isoTrue-8351526c-1-concurrent_k2', 'cross_pr-s5-petclinic-k2-isoTrue-8351526c-0-concurrent_k2', 'cross_pr-s5-petclinic-k4-isoTrue-8d33faab-2-concurrent_k4'] (28 total)"
+      ]
+    },
+    {
       "src": "results/s5-petclinic/db_state_metrics_20260517T173938Z.csv",
       "warnings": [
-        "duplicate run_ids: ['fl-bd16b6d0', 'fl-31a6079e', 'fl-c8808f20'] (43 total)"
+        "duplicate run_ids: ['fl-bd16b6d0', 'fl-31a6079e', 'fl-c8808f20'] (48 total)"
+      ]
+    },
+    {
+      "src": "results/s5-petclinic/db_state_metrics_20260517T204650Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['fl-53978a3c', 'fl-c8236a51', 'fl-17218df5'] (50 total)"
       ]
     },
     {
@@ -1803,6 +1883,12 @@
       "src": "results/s5-petclinic/flakiness_test_outcomes_20260517T150748Z.csv",
       "warnings": [
         "duplicate run_ids: ['flakiness-s5-petclinic-isoTrue-000-7cf797', 'flakiness-s5-petclinic-isoTrue-001-ef64f0', 'flakiness-s5-petclinic-isoTrue-002-feb0f8'] (60 total)"
+      ]
+    },
+    {
+      "src": "results/s5-petclinic/flakiness_test_outcomes_20260517T202758Z.csv",
+      "warnings": [
+        "duplicate run_ids: ['flakiness-s5-petclinic-isoTrue-000-5f8f4d', 'flakiness-s5-petclinic-isoTrue-001-9b4c13', 'flakiness-s5-petclinic-isoTrue-002-4c6e39'] (60 total)"
       ]
     },
     {
