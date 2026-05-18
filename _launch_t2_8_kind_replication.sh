@@ -12,7 +12,7 @@
 # Output: results/kind/<subject>/{flakiness,performance}_*.csv
 # ETA: ~4h on a 16 GiB / 8 vCPU workstation.
 set -u
-ROOT="/mnt/c/Users/Ihsen/Documents/kubebuilder/experimentation"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG="$ROOT/logs/t2-8-kind-replication-$(date -u +%Y%m%dT%H%M%SZ).log"
 exec >>"$LOG" 2>&1
 cd "$ROOT"

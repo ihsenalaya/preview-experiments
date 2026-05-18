@@ -12,7 +12,7 @@
 # Default: re-run on s1-flask-catalog (smallest, ~1h cluster time, gives the
 # augmented schema reference). User can pass SUBJECT arg to switch.
 set -u
-ROOT="/mnt/c/Users/Ihsen/Documents/kubebuilder/experimentation"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SUBJECT="${1:-s1-flask-catalog}"
 LOG="$ROOT/logs/t2-rq5-v2-${SUBJECT}-$(date -u +%Y%m%dT%H%M%SZ).log"
 exec >>"$LOG" 2>&1

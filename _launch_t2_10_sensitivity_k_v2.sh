@@ -7,7 +7,7 @@
 # l'opérateur (contrairement à RQ5), donc contention attendue MUCH LOWER
 # que pendant la crash de v1.
 set -u
-ROOT="/mnt/c/Users/Ihsen/Documents/kubebuilder/experimentation"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG="$ROOT/logs/t2-10-v2-sensitivity-k-s2-$(date -u +%Y%m%dT%H%M%SZ).log"
 exec >>"$LOG" 2>&1
 cd "$ROOT"

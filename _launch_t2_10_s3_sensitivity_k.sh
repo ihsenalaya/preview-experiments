@@ -3,7 +3,7 @@
 # Profite du metrics_collector.py fix (rowcount pod now passes ResourceQuota).
 # ETA ~2h (s3 healthchecks Python Django, modérément rapide).
 set -u
-ROOT="/mnt/c/Users/Ihsen/Documents/kubebuilder/experimentation"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG="$ROOT/logs/t2-10-s3-sensitivity-k-$(date -u +%Y%m%dT%H%M%SZ).log"
 exec >>"$LOG" 2>&1
 cd "$ROOT"

@@ -10,7 +10,7 @@
 # ETA: 24h passive (~6 runs × 2 min = 12 min/hour, leaves cluster mostly free
 # for any other work in parallel).
 set -u
-ROOT="/mnt/c/Users/Ihsen/Documents/kubebuilder/experimentation"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG="$ROOT/logs/t2-9-timeseries-24h-$(date -u +%Y%m%dT%H%M%SZ).log"
 exec >>"$LOG" 2>&1
 cd "$ROOT"
