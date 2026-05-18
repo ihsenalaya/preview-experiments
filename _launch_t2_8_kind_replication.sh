@@ -41,7 +41,9 @@ kind create cluster --config repro/kind-config.yaml || exit 1
 kubectl config use-context kind-preview-repro
 
 # Install operator (assumes preview-operator chart in sibling repo)
-OP_CHART="/mnt/c/Users/Ihsen/Documents/kubebuilder/preview/preview-operator/charts/preview-operator"
+# OP_CHART can be overridden via env var (e.g. OP_CHART=$HOME/preview-operator/...
+# on the VM where the path differs from the PC's WSL mount).
+OP_CHART="${OP_CHART:-/mnt/c/Users/Ihsen/Documents/kubebuilder/preview/preview-operator/charts/preview-operator}"
 helm install preview-operator "$OP_CHART" \
   --set image.tag=v1.0.45 \
   --create-namespace --namespace preview-operator-system \
